@@ -141,6 +141,14 @@ public class Game : IDisposable
 			_window.GainedFocus += OnGainedFocus;
 			_window.LostFocus += OnLostFocus;
 
+			if (!Settings.FullScreen)
+			{
+				_window.Position = new SFVectI(
+					(int)(CurrentMonitor.Width - _window.Size.X) / 2,
+					(int)(CurrentMonitor.Height - _window.Size.Y) / 2
+				);
+			}
+
 			Input.Load();
 		}
 		catch (WindowCreationException wex)
@@ -249,6 +257,14 @@ public class Game : IDisposable
 			_log.Log(LogLevel.Info, "Window successfully created.");
 
 			_window.SetIcon(_icon.Size.X, _icon.Size.Y, _icon.Pixels);
+
+			if (!Settings.FullScreen)
+			{
+				_window.Position = new SFVectI(
+					(int)(CurrentMonitor.Width - _window.Size.X) / 2,
+					(int)(CurrentMonitor.Height - _window.Size.Y) / 2
+				);
+			}
 		}
 		catch (WindowCreationException wex)
 		{
