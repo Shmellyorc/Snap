@@ -3,7 +3,7 @@ namespace Snap.Engine.Entities.Panels;
 /// <summary>
 /// Represents an individual selectable item in a <see cref="Listview"/>.
 /// </summary>
-public class ListviewItem : Entity
+public class ListItem : Entity
 {
 	private ColorRect _bar;
 	private bool _selected;
@@ -77,7 +77,7 @@ public class ListviewItem : Entity
 }
 
 /// <summary>
-/// A scrollable list container that manages a limited number of visible <see cref="ListviewItem"/>s,
+/// A scrollable list container that manages a limited number of visible <see cref="ListItem"/>s,
 /// allowing selection, navigation, and layout in vertical or horizontal mode.
 /// </summary>
 public sealed class Listview : RenderTarget
@@ -98,15 +98,15 @@ public sealed class Listview : RenderTarget
 	public float PerItemTimeout { get; set; } = 0.255f;
 
 	/// <summary>
-	/// Gets the currently selected <see cref="ListviewItem"/> instance, or null if none.
+	/// Gets the currently selected <see cref="ListItem"/> instance, or null if none.
 	/// </summary>
-	public ListviewItem SelectedItem => ChildCount > 0 ? (ListviewItem)Children[SelectedIndex] : null;
+	public ListItem SelectedItem => ChildCount > 0 ? (ListItem)Children[SelectedIndex] : null;
 
 	/// <summary>
 	/// Casts the selected item to the specified type.
 	/// </summary>
 	/// <typeparam name="T">The type to cast the selected item to.</typeparam>
-	public T SelectedItemAs<T>() where T : ListviewItem => (T)SelectedItem;
+	public T SelectedItemAs<T>() where T : ListItem => (T)SelectedItem;
 
 	/// <summary>
 	/// Returns true if the listview is scrolled to the top.
@@ -123,13 +123,13 @@ public sealed class Listview : RenderTarget
 	/// </summary>
 	/// <param name="index">The global index of the item.</param>
 	/// <exception cref="ArgumentOutOfRangeException">If the index is out of bounds.</exception>
-	public ListviewItem this[int index]
+	public ListItem this[int index]
 	{
 		get
 		{
 			return index < 0 || index >= Children.Count
 				? throw new ArgumentOutOfRangeException(nameof(index))
-				: (ListviewItem)Children[index];
+				: (ListItem)Children[index];
 		}
 	}
 
@@ -214,7 +214,7 @@ public sealed class Listview : RenderTarget
 	/// <param name="maxItems">The maximum number of items visible at one time.</param>
 	/// <param name="direction">The scroll direction (vertical or horizontal).</param>
 	/// <param name="items">The initial listview items to add.</param>
-	public Listview(uint maxItems, ListviewDirection direction, params ListviewItem[] items) : base(items)
+	public Listview(uint maxItems, ListviewDirection direction, params ListItem[] items) : base(items)
 	{
 		ArgumentOutOfRangeException.ThrowIfZero(maxItems);
 
@@ -243,17 +243,17 @@ public sealed class Listview : RenderTarget
 	}
 
 	/// <summary>
-	/// Adds one or more <see cref="ListviewItem"/>s to the listview.
-	/// If non-<see cref="ListviewItem"/> entities are passed, they are ignored.
+	/// Adds one or more <see cref="ListItem"/>s to the listview.
+	/// If non-<see cref="ListItem"/> entities are passed, they are ignored.
 	/// Automatically recalculates layout and adjusts scroll/selection indices.
 	/// </summary>
-	/// <param name="children">The entities to add. Only <see cref="ListviewItem"/>s are used.</param>
+	/// <param name="children">The entities to add. Only <see cref="ListItem"/>s are used.</param>
 	public new void AddChild(params Entity[] children)
 	{
 		if (children == null || children.Length == 0)
 			return;
 
-		var c = children.OfType<ListviewItem>().ToArray();
+		var c = children.OfType<ListItem>().ToArray();
 		if (c.Length == 0)
 			return;
 
@@ -338,7 +338,7 @@ public sealed class Listview : RenderTarget
 
 		for (int i = 0; i < Children.Count; i++)
 		{
-			var c = (ListviewItem)Children[i];
+			var c = (ListItem)Children[i];
 			if (!c.IsVisible) continue;
 
 			c.Position = Direction == ListviewDirection.Vertical
@@ -362,7 +362,7 @@ public sealed class Listview : RenderTarget
 		base.OnDirty(state);
 	}
 
-	private static Vect2 ComputeAverageSize(ListviewItem[] items)
+	private static Vect2 ComputeAverageSize(ListItem[] items)
 	{
 		float maxW = 0f, maxH = 0f;
 		foreach (var item in items)

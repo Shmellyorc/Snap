@@ -62,8 +62,8 @@ public sealed class Spritesheet : IAsset
 			var name = e.GetPropertyOrDefault<string>("name");
 			var key = e.GetProperty("keys").EnumerateArray().First();
 
-			Rect2 rectBounds = Rect2.Zero;
-			Rect2 rectPatch = Rect2.Zero;
+			Rect2 rectBounds = Rect2.Empty;
+			Rect2 rectPatch = Rect2.Empty;
 			Vect2 vectPivot = Vect2.Zero;
 
 			if (key.TryGetProperty("bounds", out var b))
@@ -145,7 +145,7 @@ public sealed class Spritesheet : IAsset
 			throw new ArgumentNullException(nameof(name), "Sprite name must not be null or empty.");
 		if (!_spritesheets.TryGetValue(HashHelpers.Hash32(name), out var result))
 			throw new KeyNotFoundException($"No spritesheet entry found for name '{name}'.");
-		if (result.Bounds.IsZero)
+		if (result.Bounds.IsEmpty)
 			throw new InvalidOperationException($"Bounds for spritesheet '{name}' has not been set.");
 
 		return result.Bounds;
@@ -165,19 +165,19 @@ public sealed class Spritesheet : IAsset
 	/// Attempts to retrieve the bounding rectangle of a sprite by name.
 	/// </summary>
 	/// <param name="name">The name of the sprite.</param>
-	/// <param name="value">When this method returns, contains the sprite bounds if found; otherwise, <see cref="Rect2.Zero"/>.</param>
+	/// <param name="value">When this method returns, contains the sprite bounds if found; otherwise, <see cref="Rect2.Empty"/>.</param>
 	/// <returns>
 	/// <see langword="true"/> if the sprite and its bounds were found; otherwise, <see langword="false"/>.
 	/// </returns>
 	public bool TryGetBounds(string name, out Rect2 value)
 	{
-		value = Rect2.Zero;
+		value = Rect2.Empty;
 
 		if (name.IsEmpty())
 			return false;
 		if (!_spritesheets.TryGetValue(HashHelpers.Hash32(name), out var result))
 			return false;
-		if (result.Bounds.IsZero)
+		if (result.Bounds.IsEmpty)
 			return false;
 
 		value = result.Bounds;
@@ -205,7 +205,7 @@ public sealed class Spritesheet : IAsset
 			throw new ArgumentNullException(nameof(name), "Sprite name must not be null or empty.");
 		if (!_spritesheets.TryGetValue(HashHelpers.Hash32(name), out var result))
 			throw new KeyNotFoundException($"No spritesheet entry found for name '{name}'.");
-		if (result.Patch.IsZero)
+		if (result.Patch.IsEmpty)
 			throw new Exception($"9-slice patch for '{name}' has not been defined.");
 
 		return result.Patch;
@@ -215,19 +215,19 @@ public sealed class Spritesheet : IAsset
 	/// Attempts to retrieve the 9-slice patch rectangle of a sprite by name.
 	/// </summary>
 	/// <param name="name">The sprite’s name in the metadata file.</param>
-	/// <param name="value">When this method returns, contains the patch region if found; otherwise, <see cref="Rect2.Zero"/>.</param>
+	/// <param name="value">When this method returns, contains the patch region if found; otherwise, <see cref="Rect2.Empty"/>.</param>
 	/// <returns>
 	/// <see langword="true"/> if the sprite and its patch region were found; otherwise, <see langword="false"/>.
 	/// </returns>
 	public bool TryGetPatch(string name, out Rect2 value)
 	{
-		value = Rect2.Zero;
+		value = Rect2.Empty;
 
 		if (name.IsEmpty())
 			return false;
 		if (!_spritesheets.TryGetValue(HashHelpers.Hash32(name), out var result))
 			return false;
-		if (result.Patch.IsZero)
+		if (result.Patch.IsEmpty)
 			return false;
 
 		value = result.Patch;

@@ -72,17 +72,29 @@ public class Texture : IAsset
 	/// <summary>
 	/// The width of the texture in pixels, or 0 if invalid.
 	/// </summary>
-	public int Width => IsValid ? (int)_texture.Size.X : 0;
+	public int Width => (int)Size.X;
 
 	/// <summary>
 	/// The height of the texture in pixels, or 0 if invalid.
 	/// </summary>
-	public int Height => IsValid ? (int)_texture.Size.Y : 0;
+	public int Height => (int)Size.Y;
 
 	/// <summary>
 	/// The full size of the texture in pixels as a <see cref="Vect2"/>.
 	/// </summary>
-	public Vect2 Size => new(Width, Height);
+	public Vect2 Size
+	{
+		get
+		{
+			if (!IsValid)
+				Load();
+
+			if (_texSize.IsZero)
+				_texSize = new Vect2(_texture.Size.X, _texture.Size.Y);
+
+			return _texSize;
+		}
+	}
 
 	/// <summary>
 	/// The bounding rectangle of the texture in local space, starting at (0,0).

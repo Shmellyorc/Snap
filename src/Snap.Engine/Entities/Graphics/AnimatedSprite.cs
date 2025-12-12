@@ -244,7 +244,7 @@ public sealed class AnimatedSprite : Entity
 			throw new ArgumentOutOfRangeException(nameof(speed));
 		if (grid.X <= 0 || grid.Y <= 0) throw new ArgumentOutOfRangeException(
 			nameof(grid), grid, "Grid cell with and height must both be greaer than zero.");
-
+		
 		var tilesPerRow = (int)(texture.Size.X / grid.X);
 
 		var rects = frames.Select(idx =>

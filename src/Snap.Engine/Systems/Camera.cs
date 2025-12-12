@@ -192,7 +192,7 @@ public class Camera
 
 		Vect2 desired = Vect2.Lerp(Position, targetPos, t);
 
-		if (!Clamp.IsZero)
+		if (!Clamp.IsEmpty)
 		{
 			desired.X = Math.Clamp(
 				desired.X,
