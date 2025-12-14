@@ -424,6 +424,53 @@ public class Screen
 
 
 	/// <summary>
+	/// Retrieves the texture associated with a specific tileset from an LDTK project.
+	/// </summary>
+	/// <remarks>
+	/// This method looks up the tileset definition within the provided <paramref name="project"/> 
+	/// using the given <paramref name="tilesetId"/> and returns its texture resource.
+	/// </remarks>
+	/// <param name="project">
+	/// The LDTK project instance containing tileset definitions and resources.
+	/// </param>
+	/// <param name="tilesetId">
+	/// The unique identifier of the tileset whose texture should be retrieved.
+	/// </param>
+	/// <returns>
+	/// A <see cref="Texture"/> object representing the tileset’s texture.  
+	/// If the tileset cannot be found, the return value may be <c>null</c> or throw an exception 
+	/// depending on implementation.
+	/// </returns>
+	public Texture GetTilesetTexture(LDTKProject project, int tilesetId)
+		=> AssetManager.GetTilesetTexture(project, tilesetId);
+
+	/// <summary>
+	/// Attempts to retrieve the texture associated with a specific tileset from an LDTK project.
+	/// </summary>
+	/// <remarks>
+	/// This method calls <see cref="GetTilesetTexture(LDTKProject,int)"/> internally and provides 
+	/// the result via the <paramref name="texture"/> output parameter.  
+	/// It follows the common "TryGet" pattern: returning <c>true</c> if the texture was found, 
+	/// and <c>false</c> if it was not.
+	/// </remarks>
+	/// <param name="project">
+	/// The LDTK project instance containing tileset definitions and resources.
+	/// </param>
+	/// <param name="tilesetId">
+	/// The unique identifier of the tileset whose texture should be retrieved.
+	/// </param>
+	/// <param name="texture">
+	/// When this method returns, contains the <see cref="Texture"/> object associated with the 
+	/// specified tileset if found; otherwise <c>null</c>.
+	/// </param>
+	/// <returns>
+	/// <c>true</c> if the tileset texture was successfully retrieved; otherwise, <c>false</c>.
+	/// </returns>
+	public bool TryGetTilesetTexture(LDTKProject project, int tilesetId, out Texture texture)
+		=> AssetManager.TryGetTilesetTexture(project, tilesetId, out texture);
+
+
+	/// <summary>
 	/// Returns the index of the specified entity within the screen's entity list.
 	/// </summary>
 	/// <param name="entity">The <see cref="Entity"/> to search for.</param>
@@ -610,6 +657,7 @@ public class Screen
 		if (entities == null || entities.Length == 0)
 			return;
 
+		_entities.EnsureCapacity(entities.Length);
 		for (int i = 0; i < entities.Length; i++)
 		{
 			var e = entities[i];

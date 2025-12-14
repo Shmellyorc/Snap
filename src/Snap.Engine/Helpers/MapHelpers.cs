@@ -57,4 +57,90 @@ public static class MapHelpers
 	/// <returns>The flat index corresponding to <paramref name="location"/>.</returns>
 	public static int To1D(Vect2 location, int tilesize) =>
 		(int)location.Y * tilesize + (int)location.X;
+
+
+	/// <summary>
+	/// Determines whether a unit located at <paramref name="bLocation"/>is adjacent to <paramref name="aLocation"/> on a tile grid.
+	/// </summary>
+	/// <remarks>
+	/// <para>This method operates on tile coordinates, not pixel coordinates.</para>
+	/// <list type="bullet">
+	///   <item>
+	///     <description>
+	///       If <paramref name="includeCorners"/> is <c>false</c>, adjacency is restricted to the 
+	///       four cardinal directions (up, down, left, right). In this case, only tiles at a 
+	///       distance of 1 are considered adjacent.
+	///     </description>
+	///   </item>
+	///   <item>
+	///     <description>
+	///       If <paramref name="includeCorners"/> is <c>true</c>, diagonal tiles are also considered 
+	///       adjacent. In this case, tiles up to a distance of 2 are considered potentially adjacent.
+	///     </description>
+	///   </item>
+	/// </list>
+	/// <para>
+	/// The distance check serves as a quick guard clause to rule out locations that are too far away 
+	/// to be adjacent before scanning the neighbor list.
+	/// </para>
+	/// </remarks>
+	/// <param name="aLocation">The tile location of the reference unit (parent).</param>
+	/// <param name="bLocation">The tile location of the unit being checked (child).</param>
+	/// <param name="includeCorners">
+	/// If <c>true</c>, diagonal tiles are considered adjacent in addition to orthogonal tiles.  
+	/// If <c>false</c>, only orthogonal tiles are considered.
+	/// </param>
+	/// <returns>
+	/// <c>true</c> if <paramref name="bLocation"/> is the same tile as <paramref name="aLocation"/> 
+	/// or is an adjacent tile (depending on <paramref name="includeCorners"/>); otherwise, <c>false</c>.
+	/// </returns>
+	public static bool IsUnitAround(Vect2 aLocation, Vect2 bLocation, bool includeCorners)
+	{
+		if (aLocation == bLocation)
+			return true;
+
+		if (includeCorners)
+		{
+			if (aLocation.Distance(bLocation) > 2)
+				return false;
+		}
+		else
+		{
+			if (aLocation.Distance(bLocation) > 1)
+				return false;
+		}
+
+		Vect2[] neighbours = includeCorners
+			?
+				[
+					aLocation + Vect2.Up,
+					aLocation + Vect2.Right,
+					aLocation + Vect2.Down,
+					aLocation + Vect2.Left,
+
+					aLocation + new Vect2(-1),		// Top Left
+					aLocation + new Vect2(1, -1),	// Top Right
+					aLocation + new Vect2(-1, 1),	// Bottom Left
+					aLocation + new Vect2(1),		// Bottom Right
+				]
+			:
+				[
+					aLocation + Vect2.Up,
+					aLocation + Vect2.Right,
+					aLocation + Vect2.Down,
+					aLocation + Vect2.Left,
+				];
+
+		for (int i = neighbours.Length - 1; i >= 0; i--)
+		{
+			var neighbour = neighbours[i];
+
+			if (bLocation != neighbour)
+				continue;
+
+			return true;
+		}
+
+		return false;
+	}
 }

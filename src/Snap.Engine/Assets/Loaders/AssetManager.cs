@@ -600,7 +600,7 @@ public sealed class AssetManager
 	/// <exception cref="KeyNotFoundException">
 	/// Thrown if the tileset ID does not exist in the <paramref name="project"/>.
 	/// </exception>
-	public Texture GetTilesetTexture(LDTKProject project, int tilesetId)
+	public static Texture GetTilesetTexture(LDTKProject project, int tilesetId)
 	{
 		if (tilesetId == -1)
 			throw new InvalidOperationException("Tileset ID is -1.");
@@ -611,7 +611,7 @@ public sealed class AssetManager
 		var wanted = Norm(FileHelpers.RemapLDTKPath(tileset.Path, EngineSettings.Instance.AppContentRoot));
 
 		// Find a loaded texture whose Tag is the same logical path
-		var texture = _assets
+		var texture = Instance._assets
 			.Where(kv => kv.Value.Asset is Texture)
 			.Select(kv => (Texture)kv.Value.Asset)
 			.FirstOrDefault(t => string.Equals(Norm(t.Tag), wanted, StringComparison.OrdinalIgnoreCase));
@@ -619,22 +619,31 @@ public sealed class AssetManager
 		return texture;
 	}
 
-
-
 	/// <summary>
-	/// Attempts to retrieve the texture associated with a tileset from an LDTK project.
+	/// Attempts to retrieve the texture associated with a specific tileset from an LDTK project.
 	/// </summary>
-	/// <param name="project">The LDTK project containing the tileset definition.</param>
-	/// <param name="tilesetID">The ID of the tileset to resolve to a texture.</param>
+	/// <remarks>
+	/// This method calls <see cref="GetTilesetTexture(LDTKProject,int)"/> internally and provides 
+	/// the result via the <paramref name="texture"/> output parameter.  
+	/// It follows the common "TryGet" pattern: returning <c>true</c> if the texture was found, 
+	/// and <c>false</c> if it was not.
+	/// </remarks>
+	/// <param name="project">
+	/// The LDTK project instance containing tileset definitions and resources.
+	/// </param>
+	/// <param name="tilesetId">
+	/// The unique identifier of the tileset whose texture should be retrieved.
+	/// </param>
 	/// <param name="texture">
-	/// When this method returns, contains the <see cref="Texture"/> if found; otherwise, <c>null</c>.
+	/// When this method returns, contains the <see cref="Texture"/> object associated with the 
+	/// specified tileset if found; otherwise <c>null</c>.
 	/// </param>
 	/// <returns>
-	/// <c>true</c> if the tileset texture was located and returned; otherwise <c>false</c>.
+	/// <c>true</c> if the tileset texture was successfully retrieved; otherwise, <c>false</c>.
 	/// </returns>
-	public bool TryGetTilesetTexture(LDTKProject project, int tilesetID, out Texture texture)
+	public static bool TryGetTilesetTexture(LDTKProject project, int tilesetId, out Texture texture)
 	{
-		texture = GetTilesetTexture(project, tilesetID);
+		texture = GetTilesetTexture(project, tilesetId);
 
 		return texture != null;
 	}
