@@ -91,7 +91,7 @@ public static class DiscoverableHelper
 	/// <summary>
 	/// Attempts to find exactly one discoverable type by name; returns null otherwise.
 	/// </summary>
-	public static Type TryFindSingleByName<T>(string name)
+	public static Type FindSingleByName<T>(string name)
 	{
 		var matches = FindManyByName<T>(name);
 		return matches.Count == 1 ? matches[0] : null;
@@ -100,8 +100,8 @@ public static class DiscoverableHelper
 	/// <summary>
 	/// Enum overload for TryFindSingleByName; uses the enum's string representation.
 	/// </summary>
-	public static Type TryFindSingleByName<T>(Enum name)
-		=> TryFindSingleByName<T>(name.ToEnumString());
+	public static Type FindSingleByName<T>(Enum name)
+		=> FindSingleByName<T>(name.ToEnumString());
 
 	/// <summary>
 	/// Retrieves all discoverable types matching the specified internal name.

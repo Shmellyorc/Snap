@@ -501,7 +501,7 @@ public class Screen
 
 
 
-	internal void EngineOnUpdate(bool isActive, bool isTopmostScreen)
+	internal void EngineOnUpdate(bool isActive, bool isTopmostScreen) // Hot Path
 	{
 		IsActive = isActive;
 		IsTopmostScreen = isTopmostScreen;

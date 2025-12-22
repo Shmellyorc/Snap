@@ -59,6 +59,24 @@ public static class MapHelpers
 		(int)location.Y * tilesize + (int)location.X;
 
 
+
+	public static List<Vect2> ToMap(Vect2 size, Vect2 location, int tileSize)
+	{
+		var xSize = (int)MathF.Floor(size.X / tileSize);
+		var ySize = (int)MathF.Floor(size.Y / tileSize);
+		var result = new List<Vect2>(xSize * ySize); // 20 => 21 => 21
+
+		for (int y = 0; y < ySize; y++)
+		{
+			for (int x = 0; x < xSize; x++)
+				result.Add(location + new Vect2(x, y));
+		}
+
+		return result;
+	}
+
+
+
 	/// <summary>
 	/// Determines whether a unit located at <paramref name="bLocation"/>is adjacent to <paramref name="aLocation"/> on a tile grid.
 	/// </summary>

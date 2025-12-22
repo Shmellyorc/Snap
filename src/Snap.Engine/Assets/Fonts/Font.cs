@@ -119,8 +119,6 @@ public class Font : IAsset
 		{
 			var c = text[i];
 
-			if (!Glyphs.TryGetValue(c, out var glyph))
-				continue;
 			if (c == '\r')
 				continue;
 			if (c == '\n')
@@ -129,6 +127,8 @@ public class Font : IAsset
 				offsetY += LineSpacing;
 				continue;
 			}
+			if (!Glyphs.TryGetValue(c, out var glyph))
+				continue;
 
 			offsetX += glyph.Advance;
 

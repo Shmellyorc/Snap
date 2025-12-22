@@ -55,7 +55,7 @@ public sealed class ScreenManager
 
 	internal ScreenManager() => Instance ??= this;
 
-	internal void Update()
+	internal void Update() // Hot Path
 	{
 		if (_screens.Count == 0)
 			return;

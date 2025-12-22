@@ -123,6 +123,19 @@ public class Game : IDisposable
 	public string ApplicationFolder => FileHelpers.GetApplicationData(Settings.AppCompany, Settings.AppName);
 
 	/// <summary>
+	/// Gets the absolute path to the application's content root folder.
+	/// </summary>
+	/// <remarks>
+	/// The path is constructed by combining the application's base directory
+	/// (<see cref="AppContext.BaseDirectory"/>) with the configured content root
+	/// specified in <see cref="EngineSettings.AppContentRoot"/>.
+	/// </remarks>
+	/// <returns>
+	/// A string representing the full path to the content root folder.
+	/// </returns>
+	public string ContentRootFolder => Path.Combine(AppContext.BaseDirectory, Settings.AppContentRoot);
+
+	/// <summary>
 	/// Gets the folder path where application logs are stored.
 	/// </summary>
 	/// <remarks>

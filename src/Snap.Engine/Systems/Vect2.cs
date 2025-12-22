@@ -842,7 +842,7 @@ public struct Vect2(float x, float y) : IEquatable<Vect2>
 	/// <param name="other">The target vector.</param>
 	/// <param name="t">The interpolation factor (0-1).</param>
 	/// <returns>The interpolated vector.</returns>
-	public readonly Vect2 LerpPercise(in Vect2 other, float t) => LerpPercise(this, other, t);
+	public readonly Vect2 LerpPercise(Vect2 other, float t) => LerpPercise(this, other, t);
 
 	/// <summary>
 	/// Linearly interpolates between two vectors using a precise method.
@@ -883,7 +883,7 @@ public struct Vect2(float x, float y) : IEquatable<Vect2>
 	/// <param name="target">The target vector.</param>
 	/// <param name="t">The interpolation factor (0-1).</param>
 	/// <returns>The interpolated vector.</returns>
-	public readonly Vect2 SmoothStep(in Vect2 target, float t)
+	public readonly Vect2 SmoothStep(Vect2 target, float t)
 		=> SmoothStep(this, target, t);
 
 	/// <summary>
@@ -939,7 +939,7 @@ public struct Vect2(float x, float y) : IEquatable<Vect2>
 	/// </summary>
 	/// <param name="value">The vector.</param>
 	/// <returns>The angle in radians.</returns>
-	public static float Angle(Vect2 value) => MathF.Atan2(value.Y, value.X);
+	public static float Angle(in Vect2 value) => MathF.Atan2(value.Y, value.X);
 
 	/// <summary>
 	/// Creates a unit vector from an angle (in radians).
