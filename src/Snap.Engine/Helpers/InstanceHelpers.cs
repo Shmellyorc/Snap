@@ -39,7 +39,8 @@ public static class InstanceHelpers
 	/// <exception cref="ArgumentNullException">Thrown if <paramref name="type"/> is <c>null</c>.</exception>
 	public static T CreateInstanceFromType<T>(Type type, params object[] args) where T : class
 	{
-		ArgumentNullException.ThrowIfNull(type);
+		if(type == null)
+			return null;
 
 		if (!typeof(T).IsAssignableFrom(type))
 			return null;         // rather than ArgumentException
@@ -92,7 +93,7 @@ public static class InstanceHelpers
 
 		var ap = AppDomain.CurrentDomain.GetAssemblies();
 		var ignoreType = ignoreCase
-			 ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+			? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
 
 		for (int i = ap.Length - 1; i >= 0; i--)
 		{

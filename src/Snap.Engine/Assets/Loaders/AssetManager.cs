@@ -643,6 +643,12 @@ public sealed class AssetManager
 	/// </returns>
 	public static bool TryGetTilesetTexture(LDTKProject project, int tilesetId, out Texture texture)
 	{
+		if(tilesetId == -1)
+		{
+			texture = null;
+			return false;
+		}
+
 		texture = GetTilesetTexture(project, tilesetId);
 
 		return texture != null;

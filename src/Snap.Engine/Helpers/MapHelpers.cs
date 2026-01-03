@@ -58,8 +58,31 @@ public static class MapHelpers
 	public static int To1D(Vect2 location, int tilesize) =>
 		(int)location.Y * tilesize + (int)location.X;
 
-
-
+	/// <summary>
+	/// Converts a world‑space rectangle into a list of tile coordinates on a grid.
+	/// </summary>
+	/// <param name="size">
+	/// The size of the area in world units.  
+	/// Only whole tiles that fully fit within this size are included.
+	/// </param>
+	/// <param name="location">
+	/// The top‑left tile coordinate where the area begins.  
+	/// This acts as the origin for the generated tile positions.
+	/// </param>
+	/// <param name="tileSize">
+	/// The size of a single tile in world units.  
+	/// Used to determine how many tiles fit horizontally and vertically.
+	/// </param>
+	/// <returns>
+	/// A list of <see cref="Vect2"/> tile coordinates covering the specified area,  
+	/// starting at <paramref name="location"/> and extending for as many whole tiles  
+	/// as fit within <paramref name="size"/>.
+	/// </returns>
+	/// <remarks>
+	/// This method floors the tile count in each dimension, ensuring that only tiles
+	/// fully contained within the given world‑space size are returned.  
+	/// Useful for collision queries, region checks, and tile‑based spatial iteration.
+	/// </remarks>
 	public static List<Vect2> ToMap(Vect2 size, Vect2 location, int tileSize)
 	{
 		var xSize = (int)MathF.Floor(size.X / tileSize);
@@ -74,8 +97,6 @@ public static class MapHelpers
 
 		return result;
 	}
-
-
 
 	/// <summary>
 	/// Determines whether a unit located at <paramref name="bLocation"/>is adjacent to <paramref name="aLocation"/> on a tile grid.
