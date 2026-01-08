@@ -597,14 +597,14 @@ public class Entity
 	/// If the tileset cannot be found, the return value may be <c>null</c> or throw an exception 
 	/// depending on implementation.
 	/// </returns>
-	public Texture GetTilesetTexture(LDTKProject project, int tilesetId)
+	public Texture GetTilesetTexture(LDTKProject project, uint tilesetId)
 		=> AssetManager.GetTilesetTexture(project, tilesetId);
 
 	/// <summary>
 	/// Attempts to retrieve the texture associated with a specific tileset from an LDTK project.
 	/// </summary>
 	/// <remarks>
-	/// This method calls <see cref="GetTilesetTexture(LDTKProject,int)"/> internally and provides 
+	/// This method calls <see cref="GetTilesetTexture(LDTKProject,uint)"/> internally and provides 
 	/// the result via the <paramref name="texture"/> output parameter.  
 	/// It follows the common "TryGet" pattern: returning <c>true</c> if the texture was found, 
 	/// and <c>false</c> if it was not.
@@ -622,7 +622,7 @@ public class Entity
 	/// <returns>
 	/// <c>true</c> if the tileset texture was successfully retrieved; otherwise, <c>false</c>.
 	/// </returns>
-	public bool TryGetTilesetTexture(LDTKProject project, int tilesetId, out Texture texture)
+	public bool TryGetTilesetTexture(LDTKProject project, uint tilesetId, out Texture texture)
 		=> AssetManager.TryGetTilesetTexture(project, tilesetId, out texture);
 
 

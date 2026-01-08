@@ -1,15 +1,136 @@
 namespace Snap.Engine.Assets.LDTKImporter;
 
+
+/// <summary>
+/// Represents a boolean field value parsed from map or entity metadata.
+/// Typically corresponds to a user-defined checkbox or toggle in the level editor.
+/// </summary>
+public sealed class MapBoolSettings(bool value) : MapSetting(value);
+
+/// <summary>
+/// Represents an array of boolean field values parsed from map or entity metadata.
+/// Typically corresponds to a multi-checkbox field or list of flags in the level editor.
+/// </summary>
+public sealed class MapBoolArraySettings(List<bool> value) : MapSetting(value);
+
+/// <summary>
+/// Represents a color field value parsed from entity or level metadata.
+/// Typically corresponds to a color picker field in the level editor.
+/// </summary>
+public sealed class MapColorSettings(Color value) : MapSetting(value);
+
+/// <summary>
+/// Represents an array of color field values parsed from entity or level metadata.
+/// Typically corresponds to a multi-color selection field in the level editor.
+/// </summary>
+public sealed class MapColorArraySettings(List<Color> value) : MapSetting(value);
+
+/// <summary>
+/// Represents a reference to another entity instance defined in map or level metadata.
+/// Commonly used to establish links between entities, such as targets, parents, or dependencies.
+/// </summary>
+public sealed class MapEntityRefSettings(MapEntityRef value) : MapSetting(value);
+
+/// <summary>
+/// Represents an array of entity references parsed from map or entity metadata.
+/// Used when an entity links to multiple other instances, forming one-to-many relationships.
+/// </summary>
+public sealed class MapEntityRefArraySettings(List<MapEntityRef> value) : MapSetting(value);
+
+/// <summary>
+/// Represents an enumerated field value parsed from map or entity metadata.
+/// Typically corresponds to a single-option dropdown or radio field in the level editor.
+/// </summary>
+public sealed class MapEnumSettings(string value) : MapSetting(value);
+
+/// <summary>
+/// Represents an array of enumerated field values parsed from map or entity metadata.
+/// Typically used for multi-select enum fields allowing multiple tags or categories.
+/// </summary>
+public sealed class MapEnumArraySettings(List<string> value) : MapSetting(value);
+
+/// <summary>
+/// Represents a file path field value parsed from map or entity metadata.
+/// Typically used to reference external resources such as images, audio, or data files.
+/// </summary>
+public sealed class MapFilePathSettings(string value) : MapSetting(value);
+
+/// <summary>
+/// Represents an array of file path field values parsed from map or entity metadata.
+/// Used when multiple external file references are provided in a single field.
+/// </summary>
+public sealed class MapFilePathArraySettings(List<string> value) : MapSetting(value);
+
+/// <summary>
+/// Represents a floating-point field value parsed from map or entity metadata.
+/// Typically used for configurable numeric properties such as speed, duration, or scale.
+/// </summary>
+public sealed class MapFloatSettings(float value) : MapSetting(value);
+
+/// <summary>
+/// Represents an array of floating-point field values parsed from map or entity metadata.
+/// Useful for multi-value numeric inputs or lists of adjustable values.
+/// </summary>
+public sealed class MapFloatArraySettings(List<float> value) : MapSetting(value);
+
+/// <summary>
+/// Represents an integer field value parsed from map or entity metadata.
+/// Commonly used for enumerations, counters, or discrete value options.
+/// </summary>
+public sealed class MapIntSettings(int value) : MapSetting(value);
+
+/// <summary>
+/// Represents an array of integer field values parsed from map or entity metadata.
+/// Useful for defining lists of levels, category IDs, or other multi-int values.
+/// </summary>
+public sealed class MapIntArraySettings(List<int> value) : MapSetting(value);
+
+/// <summary>
+/// Represents a 2D point field value parsed from map or entity metadata.
+/// Typically used for coordinates, positions, spawn points, or offsets.
+/// </summary>
+public sealed class MapPointSettings(Vect2 value) : MapSetting(value);
+
+/// <summary>
+/// Represents an array of 2D point field values parsed from map or entity metadata.
+/// Commonly used for pathfinding nodes, patrol routes, or grouped locations.
+/// </summary>
+public sealed class MapPointArraySettings(List<Vect2> value) : MapSetting(value);
+
+/// <summary>
+/// Represents a string field value parsed from map or entity metadata.
+/// Commonly used for names, identifiers, instructions, or dialogue content.
+/// </summary>
+public sealed class MapStringSettings(string value) : MapSetting(value);
+
+/// <summary>
+/// Represents an array of string field values parsed from map or entity metadata.
+/// Useful for multi-line text, tag groups, or custom string lists.
+/// </summary>
+public sealed class MapStringArraySettings(List<string> value) : MapSetting(value);
+
+/// <summary>
+/// Represents a tile reference parsed from map or entity metadata.
+/// Typically used to embed single tile graphics or visual tokens within the data layer.
+/// </summary>
+public sealed class MapTileSettings(MapTile value) : MapSetting(value);
+
+/// <summary>
+/// Represents an array of tile references parsed from map or entity metadata.
+/// Useful for attaching multiple tile visuals to a single field, such as randomized sets or composite graphics.
+/// </summary>
+public sealed class MapTileArraySettings(List<MapTile> value) : MapSetting(value);
+
 /// <summary>
 /// Represents a generic setting or custom field value attached to a level or entity.
 /// Stores untyped data internally and provides typed accessors for retrieving values.
 /// </summary>
-public class MapSetting
+public class MapSetting(object value)
 {
 	/// <summary>
 	/// Internal object backing the actual setting value.
 	/// </summary>
-	protected object Value { get; set; }
+	public object Value { get; } = value;
 
 	/// <summary>
 	/// Casts the stored value to the specified type.
@@ -18,8 +139,6 @@ public class MapSetting
 	/// <returns>The setting value cast to type <typeparamref name="T"/>.</returns>
 	/// <exception cref="InvalidCastException">Thrown if the stored value is not compatible with the requested type.</exception>
 	public T ValueAs<T>() => (T)Value;
-
-
 
 
 
@@ -42,8 +161,10 @@ public class MapSetting
 	///   <item><description>The setting exists but is not a boolean type.</description></item>
 	/// </list>
 	/// </exception>
-	public static bool GetBoolSetting(Dictionary<uint, MapSetting> settings, string name)
+	public static bool GetBoolSetting(IReadOnlyDictionary<uint, MapSetting> settings, string name)
 	{
+		if (name.IsEmpty())
+			throw new ArgumentNullException(nameof(name));
 		if (!settings.TryGetValue(HashHelpers.Cache32(name), out var result))
 			throw new Exception($"Unable to find setting with the name '{name}'.");
 		if (result.Value is not bool)
@@ -76,10 +197,12 @@ public class MapSetting
 	/// </exception>
 	public static int GetIntSetting(Dictionary<uint, MapSetting> settings, string name)
 	{
+		if (name.IsEmpty())
+			throw new ArgumentNullException(nameof(name));
 		if (!settings.TryGetValue(HashHelpers.Cache32(name), out var result))
 			throw new Exception($"Unable to find setting with the name '{name}'.");
 		if (result.Value is not int)
-			throw new Exception($"This setting '{name}' isn't '{result.Value.GetType()}', it is  '{typeof(int)}'.");
+			throw new Exception($"This setting '{name}' is '{result.Value.GetType()}', it is not '{typeof(int)}'.");
 
 		return result.ValueAs<int>();
 	}
@@ -108,6 +231,8 @@ public class MapSetting
 	/// </exception>
 	public static float GetFloatSetting(Dictionary<uint, MapSetting> settings, string name)
 	{
+		if (name.IsEmpty())
+			throw new ArgumentNullException(nameof(name));
 		if (!settings.TryGetValue(HashHelpers.Cache32(name), out var result))
 			throw new Exception($"Unable to find setting with the name '{name}'.");
 		if (result.Value is not float)
@@ -140,6 +265,8 @@ public class MapSetting
 	/// </exception>
 	public static Vect2 GetPointSetting(Dictionary<uint, MapSetting> settings, string name)
 	{
+		if (name.IsEmpty())
+			throw new ArgumentNullException(nameof(name));
 		if (!settings.TryGetValue(HashHelpers.Cache32(name), out var result))
 			throw new Exception($"Unable to find setting with the name '{name}'.");
 		if (result.Value is not Vect2)
@@ -172,6 +299,8 @@ public class MapSetting
 	/// </exception>
 	public static Color GetColorSetting(Dictionary<uint, MapSetting> settings, string name)
 	{
+		if (name.IsEmpty())
+			throw new ArgumentNullException(nameof(name));
 		if (!settings.TryGetValue(HashHelpers.Cache32(name), out var result))
 			throw new Exception($"Unable to find setting with the name '{name}'.");
 		if (result.Value is not Color)
@@ -202,8 +331,10 @@ public class MapSetting
 	/// <exception cref="Exception">
 	/// Thrown if the setting cannot be found or is not a string.
 	/// </exception>
-	public static string GetStringSetting(Dictionary<uint, MapSetting> settings, string name)
+	public static string GetStringSetting(IReadOnlyDictionary<uint, MapSetting> settings, string name)
 	{
+		if (name.IsEmpty())
+			throw new ArgumentNullException(nameof(name));
 		if (!settings.TryGetValue(HashHelpers.Cache32(name), out var result))
 			throw new Exception($"Unable to find setting with the name '{name}'.");
 		if (result.Value is not string)
@@ -236,6 +367,8 @@ public class MapSetting
 	/// </exception>
 	public static string GetFilePathSetting(Dictionary<uint, MapSetting> settings, string name)
 	{
+		if (name.IsEmpty())
+			throw new ArgumentNullException(nameof(name));
 		if (!settings.TryGetValue(HashHelpers.Cache32(name), out var result))
 			throw new Exception($"Unable to find setting with the name '{name}'.");
 		if (result.Value is not string)
@@ -268,6 +401,8 @@ public class MapSetting
 	/// </exception>
 	public static MapTile GetTileSetting(Dictionary<uint, MapSetting> settings, string name)
 	{
+		if (name.IsEmpty())
+			throw new ArgumentNullException(nameof(name));
 		if (!settings.TryGetValue(HashHelpers.Cache32(name), out var result))
 			throw new Exception($"Unable to find setting with the name '{name}'.");
 		if (result.Value is not MapTile)
@@ -301,6 +436,8 @@ public class MapSetting
 	/// </exception>
 	public static MapEntityRef GetEntityRefSetting(Dictionary<uint, MapSetting> settings, string name)
 	{
+		if (name.IsEmpty())
+			throw new ArgumentNullException(nameof(name));
 		if (!settings.TryGetValue(HashHelpers.Cache32(name), out var result))
 			throw new Exception($"Unable to find setting with the name '{name}'.");
 		if (result.Value is not MapEntityRef)
@@ -334,6 +471,8 @@ public class MapSetting
 	/// </exception>
 	public static TEnum GetEnumSetting<TEnum>(Dictionary<uint, MapSetting> settings, string name) where TEnum : Enum
 	{
+		if (name.IsEmpty())
+			throw new ArgumentNullException(nameof(name));
 		if (!settings.TryGetValue(HashHelpers.Cache32(name), out var result))
 			throw new Exception($"Unable to find setting with the name '{name}'.");
 		if (result.Value is not string)
@@ -372,6 +511,8 @@ public class MapSetting
 	/// </exception>
 	public static IReadOnlyList<bool> GetBoolArraySetting(Dictionary<uint, MapSetting> settings, string name)
 	{
+		if (name.IsEmpty())
+			throw new ArgumentNullException(nameof(name));
 		if (!settings.TryGetValue(HashHelpers.Cache32(name), out var result))
 			throw new Exception($"Unable to find setting with the name '{name}'.");
 		if (result.Value is not List<bool>)
@@ -406,6 +547,8 @@ public class MapSetting
 	/// </exception>
 	public static IReadOnlyList<int> GetIntArraySetting(Dictionary<uint, MapSetting> settings, string name)
 	{
+		if (name.IsEmpty())
+			throw new ArgumentNullException(nameof(name));
 		if (!settings.TryGetValue(HashHelpers.Cache32(name), out var result))
 			throw new Exception($"Unable to find setting with the name '{name}'.");
 		if (result.Value is not List<int>)
@@ -438,6 +581,8 @@ public class MapSetting
 	/// </exception>
 	public static IReadOnlyList<float> GetFloatArraySetting(Dictionary<uint, MapSetting> settings, string name)
 	{
+		if (name.IsEmpty())
+			throw new ArgumentNullException(nameof(name));
 		if (!settings.TryGetValue(HashHelpers.Cache32(name), out var result))
 			throw new Exception($"Unable to find setting with the name '{name}'.");
 		if (result.Value is not List<float>)
@@ -470,6 +615,8 @@ public class MapSetting
 	/// </exception>
 	public static IReadOnlyList<Vect2> GetPointArraySetting(Dictionary<uint, MapSetting> settings, string name)
 	{
+		if (name.IsEmpty())
+			throw new ArgumentNullException(nameof(name));
 		if (!settings.TryGetValue(HashHelpers.Cache32(name), out var result))
 			throw new Exception($"Unable to find setting with the name '{name}'.");
 		if (result.Value is not List<Vect2>)
@@ -502,6 +649,8 @@ public class MapSetting
 	/// </exception>
 	public static IReadOnlyList<Color> GetColorArraySetting(Dictionary<uint, MapSetting> settings, string name)
 	{
+		if (name.IsEmpty())
+			throw new ArgumentNullException(nameof(name));
 		if (!settings.TryGetValue(HashHelpers.Cache32(name), out var result))
 			throw new Exception($"Unable to find setting with the name '{name}'.");
 		if (result.Value is not List<Color>)
@@ -534,6 +683,8 @@ public class MapSetting
 	/// </exception>
 	public static IReadOnlyList<string> GetStringArraySetting(Dictionary<uint, MapSetting> settings, string name)
 	{
+		if (name.IsEmpty())
+			throw new ArgumentNullException(nameof(name));
 		if (!settings.TryGetValue(HashHelpers.Cache32(name), out var result))
 			throw new Exception($"Unable to find setting with the name '{name}'.");
 		if (result.Value is not List<string>)
@@ -566,6 +717,8 @@ public class MapSetting
 	/// </exception>
 	public static IReadOnlyList<string> GetFilePathArraySetting(Dictionary<uint, MapSetting> settings, string name)
 	{
+		if (name.IsEmpty())
+			throw new ArgumentNullException(nameof(name));
 		if (!settings.TryGetValue(HashHelpers.Cache32(name), out var result))
 			throw new Exception($"Unable to find setting with the name '{name}'.");
 		if (result.Value is not List<string>)
@@ -598,6 +751,8 @@ public class MapSetting
 	/// </exception>
 	public static IReadOnlyList<MapTile> GetTileArraySetting(Dictionary<uint, MapSetting> settings, string name)
 	{
+		if (name.IsEmpty())
+			throw new ArgumentNullException(nameof(name));
 		if (!settings.TryGetValue(HashHelpers.Cache32(name), out var result))
 			throw new Exception($"Unable to find setting with the name '{name}'.");
 		if (result.Value is not List<MapTile>)
@@ -630,6 +785,8 @@ public class MapSetting
 	/// </exception>
 	public static IReadOnlyList<MapEntityRef> GetEntityRefArraySetting(Dictionary<uint, MapSetting> settings, string name)
 	{
+		if (name.IsEmpty())
+			throw new ArgumentNullException(nameof(name));
 		if (!settings.TryGetValue(HashHelpers.Cache32(name), out var result))
 			throw new Exception($"Unable to find setting with the name '{name}'.");
 		if (result.Value is not List<MapEntityRef>)
@@ -663,6 +820,8 @@ public class MapSetting
 	/// </exception>
 	public static IReadOnlyList<TEnum> GetEnumArraySetting<TEnum>(Dictionary<uint, MapSetting> settings, string name) where TEnum : Enum
 	{
+		if (name.IsEmpty())
+			throw new ArgumentNullException(nameof(name));
 		if (!settings.TryGetValue(HashHelpers.Cache32(name), out var result))
 			throw new Exception($"Unable to find setting with the name '{name}'.");
 		if (result.Value is not List<string>)

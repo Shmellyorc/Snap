@@ -460,8 +460,8 @@ public struct Color : IEquatable<Color>
 	/// A new <see cref="Color"/> with the same RGB values as <paramref name="color"/>,
 	/// but with its alpha component set to <paramref name="alpha"/>.
 	/// </returns>
-	public  static Color WithAlpha(Color color, float alpha) =>
-		new(color.R, color.B, color.G, (byte)Math.Clamp(alpha * 255f, 0f, 255f));
+	public static Color WithAlpha(Color color, float alpha) =>
+		new(color.R, color.G, color.B, (byte)Math.Clamp(alpha * 255f, 0f, 255f));
 	#endregion
 
 
@@ -502,5 +502,16 @@ public struct Color : IEquatable<Color>
 	/// </summary>
 	/// <returns>A string in the format "Color(R,G,B,A)".</returns>
 	public readonly override string ToString() => $"Color({R},{G},{B},{A})";
+
+
+
+
+
+	public readonly string ToHex() => ToHex(this);
+	public static string ToHex(Color c)
+	{
+		return $"{c.R:X2}{c.G:X2}{c.B:X2}";
+	}
+
 	#endregion
 }

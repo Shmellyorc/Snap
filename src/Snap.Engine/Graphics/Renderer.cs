@@ -1,3 +1,8 @@
+using System.Diagnostics.Metrics;
+
+using Snap.Engine.Graphics.Markup;
+using Snap.Engine.Graphics.Markup.Effects;
+
 namespace Snap.Engine.Graphics;
 
 internal readonly struct DrawCommand
@@ -630,6 +635,12 @@ public sealed class Renderer
 			}
 		}
 	}
+
+
+
+
+
+
 
 	private void EngineDrawBypassAtlas(
 	Texture texture,

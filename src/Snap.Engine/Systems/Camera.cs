@@ -118,12 +118,25 @@ public class Camera
 			return;
 		}
 
+		if (!Clamp.IsEmpty)
+		{
+			target.X = Math.Clamp(
+				target.X,
+				Clamp.Left + _viewCenter.X,
+				Clamp.Right - _viewCenter.X
+			);
+			target.Y = Math.Clamp(
+				target.Y,
+				Clamp.Top + _viewCenter.Y,
+				Clamp.Bottom - _viewCenter.Y
+			);
+		}
+
 		_flyStart = Position;
 		_flyTarget = target;
 		_flyDuration = duration;
 		_flyElapsed = 0f;
 		_flyEase = ease;
-
 		_isFlying = true;
 	}
 
@@ -236,9 +249,9 @@ public class Camera
 		_flyElapsed += dt;
 		if (_flyElapsed >= _flyDuration)
 		{
-			// Tween is done
 			Position = _flyTarget;
 			_isFlying = false;
+
 			return;
 		}
 

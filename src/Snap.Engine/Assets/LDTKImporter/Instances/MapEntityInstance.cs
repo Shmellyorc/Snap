@@ -4,7 +4,7 @@ namespace Snap.Engine.Assets.LDTKImporter.Instances;
 /// Represents a single entity instance placed on a map.
 /// Derived from parsed LDTK level data and includes metadata, dimensions, pivot, and custom settings.
 /// </summary>
-public sealed class MapEntityInstance : MapInstance
+public sealed class MapEntityInstance : IMapInstance
 {
 	/// <summary>
 	/// The unique name or type identifier of this entity as defined in the level data.
@@ -51,6 +51,12 @@ public sealed class MapEntityInstance : MapInstance
 	/// </summary>
 	public Dictionary<uint, MapSetting> Settings { get; }
 
+	/// <inheritdoc />
+	public Vect2 Location { get; }
+
+	/// <inheritdoc />
+	public Vect2 Position { get; }
+
 	/// <summary>
 	/// Converts tag strings into enum values of the specified type.
 	/// </summary>
@@ -76,7 +82,6 @@ public sealed class MapEntityInstance : MapInstance
 	internal MapEntityInstance(string name, Vect2 pivot, string id, Vect2 size,
 		Vect2 coords, List<string> tags, Vect2 location, Vect2 position,
 		Dictionary<uint, MapSetting> settings)
-		: base(location, position)
 	{
 		Name = name;
 		Pivot = pivot;
@@ -85,11 +90,13 @@ public sealed class MapEntityInstance : MapInstance
 		Coords = coords;
 		Tags = tags;
 		Settings = settings;
+		Location = location;
+		Position = position;
 	}
 
-	internal static List<MapInstance> Process(JsonElement e)
+	internal static List<IMapInstance> Process(JsonElement e)
 	{
-		var result = new List<MapInstance>(e.GetArrayLength());
+		var result = new List<IMapInstance>(e.GetArrayLength());
 
 		foreach (var t in e.EnumerateArray())
 		{

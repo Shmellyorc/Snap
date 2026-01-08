@@ -4,7 +4,7 @@ namespace Snap.Engine.Assets.LDTKImporter.Instances;
 /// Represents a single int grid cell instance in a tile-based map.
 /// Contains grid index data commonly used for collision or logic layers.
 /// </summary>
-public sealed class MapIntGridInstance : MapInstance
+public sealed class MapIntGridInstance : IMapInstance
 {
 	/// <summary>
 	/// The raw integer value assigned to this grid cell. Typically corresponds to a label or behavior.
@@ -16,14 +16,22 @@ public sealed class MapIntGridInstance : MapInstance
 	/// </summary>
 	public bool IsSolid => Index > 0;
 
-	internal MapIntGridInstance(int index, Vect2 location, Vect2 position) : base(location, position)
+	/// <inheritdoc />
+	public Vect2 Location {get;}
+
+	/// <inheritdoc />
+	public Vect2 Position {get;}
+
+	internal MapIntGridInstance(int index, Vect2 location, Vect2 position)
 	{
 		Index = index;
+		Location = location;
+		Position = position;
 	}
 
-	internal static List<MapInstance> Process(JsonElement e, Vect2 gridSize)
+	internal static List<IMapInstance> Process(JsonElement e, Vect2 gridSize)
 	{
-		var result = new List<MapInstance>(e.GetArrayLength());
+		var result = new List<IMapInstance>(e.GetArrayLength());
 		var index = 0;
 
 		foreach (var t in e.EnumerateArray())

@@ -307,6 +307,6 @@ public static class EntityExtentions
 	/// <param name="clone">The resulting created instance, or null if creation failed.</param>
 	/// <param name="args">Optional arguments to pass to the constructor of the entity.</param>
 	/// <returns>True if the instance was successfully created; otherwise, false.</returns>
-	public static bool TryCreateInstance<TEntity>(this Entity entity, out TEntity clone, params object[] args) where TEntity : Entity =>
-        InstanceHelpers.TryCreateInstanceFromObject(out clone, entity, args);
+	public static bool TryCreateInstance<TEntity>(this Entity entity, object[] args, out TEntity clone) where TEntity : Entity =>
+        InstanceHelpers.TryCreateInstanceFromObject(entity, args, out clone);
 }

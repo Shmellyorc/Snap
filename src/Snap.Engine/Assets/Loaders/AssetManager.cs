@@ -600,11 +600,12 @@ public sealed class AssetManager
 	/// <exception cref="KeyNotFoundException">
 	/// Thrown if the tileset ID does not exist in the <paramref name="project"/>.
 	/// </exception>
-	public static Texture GetTilesetTexture(LDTKProject project, int tilesetId)
+	public static Texture GetTilesetTexture(LDTKProject project, uint tilesetId)
 	{
-		if (tilesetId == -1)
-			throw new InvalidOperationException("Tileset ID is -1.");
-		if (!project.Tilesets.TryGetValue(tilesetId, out var tileset))
+		if (tilesetId == 0)
+			throw new InvalidOperationException("Tileset ID is 0.");
+		// if (!project.Tilesets.TryGetValue(tilesetId, out var tileset))
+		if (!project.TryGetTilesetId(tilesetId, out var tileset))
 			throw new KeyNotFoundException($"Tileset with ID {tilesetId} was not found in LDTK project");
 
 		// Get the desired *logical* path
@@ -623,7 +624,7 @@ public sealed class AssetManager
 	/// Attempts to retrieve the texture associated with a specific tileset from an LDTK project.
 	/// </summary>
 	/// <remarks>
-	/// This method calls <see cref="GetTilesetTexture(LDTKProject,int)"/> internally and provides 
+	/// This method calls <see cref="GetTilesetTexture(LDTKProject,uint)"/> internally and provides 
 	/// the result via the <paramref name="texture"/> output parameter.  
 	/// It follows the common "TryGet" pattern: returning <c>true</c> if the texture was found, 
 	/// and <c>false</c> if it was not.
@@ -641,17 +642,18 @@ public sealed class AssetManager
 	/// <returns>
 	/// <c>true</c> if the tileset texture was successfully retrieved; otherwise, <c>false</c>.
 	/// </returns>
-	public static bool TryGetTilesetTexture(LDTKProject project, int tilesetId, out Texture texture)
+	public static bool TryGetTilesetTexture(LDTKProject project, uint tilesetId, out Texture texture)
 	{
-		if(tilesetId == -1)
+		try
+		{
+			texture = GetTilesetTexture(project, tilesetId);
+			return true;
+		}
+		catch
 		{
 			texture = null;
 			return false;
 		}
-
-		texture = GetTilesetTexture(project, tilesetId);
-
-		return texture != null;
 	}
 	#endregion
 

@@ -77,7 +77,7 @@ public sealed class MapLayer
 	/// The unique identifier of the tileset used by this layer, if applicable.
 	/// Returns -1 if no tileset is assigned.
 	/// </summary>
-	public int TilesetId { get; }
+	public uint TilesetId { get; }
 
 	/// <summary>
 	/// The relative path to the tileset image used by this layer, if any.
@@ -108,18 +108,18 @@ public sealed class MapLayer
 	/// A list of typed instances contained in this layer.
 	/// These could be entity instances, tile instances, or int grid entries depending on layer type.
 	/// </summary>
-	public List<MapInstance> Instances { get; }
+	public IReadOnlyList<IMapInstance> Instances { get; }
 
 	/// <summary>
 	/// Returns the list of instances in this layer, filtered by the specified type.
 	/// </summary>
-	/// <typeparam name="T">The type of <see cref="MapInstance"/> to extract.</typeparam>
+	/// <typeparam name="T">The type of <see cref="IMapInstance"/> to extract.</typeparam>
 	/// <returns>A list of instances cast to the desired type.</returns>
-	public List<T> InstanceAs<T>() where T : MapInstance => Instances.OfType<T>().ToList();
+	public IReadOnlyList<T> InstanceAs<T>() where T : IMapInstance => [.. Instances.OfType<T>()];
 
 	internal MapLayer(string name, MapLayerType type, Vect2 gridSize, int tileSize, float opacity,
-		Vect2 totalOffset, int tilesetId, string tilesetPath, string id, int levelId, Vect2 offset,
-		bool visible, List<MapInstance> instances)
+		Vect2 totalOffset, uint tilesetId, string tilesetPath, string id, int levelId, Vect2 offset,
+		bool visible, List<IMapInstance> instances)
 	{
 		Name = name;
 		Type = type;
@@ -150,7 +150,7 @@ public sealed class MapLayer
 			var opacity = t.GetPropertyOrDefault<float>("__opacity");
 			var totalOffsetX = t.GetPropertyOrDefault<int>("__pxTotalOffsetX");
 			var totalOffsetY = t.GetPropertyOrDefault<int>("__pxTotalOffsetY");
-			var tilesetId = t.GetPropertyOrDefault("__tilesetDefUid", -1);
+			var tilesetId = t.GetPropertyOrDefault("__tilesetDefUid", 0u);
 			var tilesetPath = t.GetPropertyOrDefault("__tilesetRelPath", string.Empty);
 			var id = t.GetPropertyOrDefault("iid", string.Empty);
 			var levelId = t.GetPropertyOrDefault<int>("levelId");
@@ -159,7 +159,7 @@ public sealed class MapLayer
 			var visible = t.GetPropertyOrDefault<bool>("visible");
 			var gridSize = new Vect2(cX, cY);
 
-			List<MapInstance> instResult = type switch
+			List<IMapInstance> instResult = type switch
 			{
 				MapLayerType.IntGrid => MapIntGridInstance.Process(t.GetProperty("intGridCsv"), gridSize),
 				MapLayerType.Entities => MapEntityInstance.Process(t.GetProperty("entityInstances")),
@@ -169,8 +169,21 @@ public sealed class MapLayer
 			};
 
 			result.Add(
-				new MapLayer(name, type, gridSize, tileSize, opacity, new(totalOffsetX, totalOffsetY),
-					tilesetId, tilesetPath, id, levelId, new(offsetX, offsetY), visible, instResult)
+				new MapLayer(
+					name,
+					type,
+					gridSize,
+					tileSize,
+					opacity,
+					new(totalOffsetX, totalOffsetY),
+					tilesetId,
+					tilesetPath,
+					id,
+					levelId,
+					new(offsetX, offsetY),
+					visible,
+					instResult
+				)
 			);
 		}
 

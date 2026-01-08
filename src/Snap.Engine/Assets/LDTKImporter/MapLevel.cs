@@ -70,13 +70,13 @@ public sealed class MapLevel
 	/// A collection of all layers contained within the level.
 	/// Layers include tilemaps, entities, and int grids.
 	/// </summary>
-	public List<MapLayer> Layers { get; }
+	public IReadOnlyList<MapLayer> Layers { get; }
 
 	/// <summary>
 	/// A dictionary of user-defined custom field values attached to the level.
 	/// Keys are hashed field identifiers mapped to typed <see cref="MapSetting"/> entries.
 	/// </summary>
-	public Dictionary<uint, MapSetting> Settings { get; }
+	public IReadOnlyDictionary<uint, MapSetting> Settings { get; }
 
 	internal MapLevel(string name, string id, Vect2 coords, int worthDepth, Vect2 size,
 		Vect2 gridSize, Color color, string bgPath, Vect2 bgPosition, Vect2 bgPivot,

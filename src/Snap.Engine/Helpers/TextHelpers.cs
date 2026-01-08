@@ -22,7 +22,7 @@ public static class TextHelpers
 			return string.Empty;
 
 		var sb = new StringBuilder();
-		var lines = text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+		var lines = text.Split(["\r\n", "\n"], StringSplitOptions.None);
 
 		foreach (var line in lines)
 		{

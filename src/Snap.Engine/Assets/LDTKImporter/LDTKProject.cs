@@ -7,11 +7,12 @@ namespace Snap.Engine.Assets.LDTKImporter;
 public sealed class LDTKProject : IAsset
 {
 	// cachced levels, entities, etc:
-	private Dictionary<uint, MapLevel> _levelCache = [];
-	private readonly Dictionary<uint, MapEntityInstance> _entityCache = [];
-	private readonly Dictionary<uint, MapLayer> _layerCache = [];
-	private Dictionary<int, MapTileset> _tilesetCache = [];
-	private List<MapLevel> _levels;
+	private readonly Dictionary<uint, MapLevel> _levelCacheById = [];
+	private readonly Dictionary<uint, MapLevel> _levelCacheByName = [];
+	private readonly Dictionary<ulong, MapEntityInstance> _entityCacheById = [];
+	private readonly Dictionary<uint, MapLayer> _layerCacheById = [];
+	private readonly Dictionary<uint, MapTileset> _tilesetCacheById = [];
+	private readonly Dictionary<uint, MapTileset> _tilesetCacheByName = [];
 
 	/// <summary>
 	/// Unique identifier for this LDTK project asset.
@@ -32,16 +33,6 @@ public sealed class LDTKProject : IAsset
 	/// Returns a native resource handle if applicable. Value is implementation-specific.
 	/// </summary>
 	public uint Handle { get; }
-
-	/// <summary>
-	/// Gets a read-only list of all levels defined in the project.
-	/// </summary>
-	public IReadOnlyList<MapLevel> Levels => _levels;
-
-	/// <summary>
-	/// Gets a read-only dictionary of tilesets defined in the project, keyed by internal index.
-	/// </summary>
-	public IReadOnlyDictionary<int, MapTileset> Tilesets => _tilesetCache;
 
 	internal LDTKProject(uint id, string filename)
 	{
@@ -71,39 +62,53 @@ public sealed class LDTKProject : IAsset
 			s.CopyTo(ms);
 			bytes = ms.ToArray();
 		}
-		
+
 		var doc = JsonDocument.Parse(bytes);
 		var root = doc.RootElement;
 
-		var defs = root.GetProperty("defs");
-		var defTilesets = defs.GetProperty("tilesets");
+		if (!root.TryGetProperty("defs", out var jDefs))
+			throw new InvalidOperationException("Unable to find LDtk Defs");
+		if (!jDefs.TryGetProperty("tilesets", out var jTilesets))
+			throw new InvalidOperationException("Unable to find LDtk Tilesets");
+		if (!root.TryGetProperty("defaultGridSize", out var jDefaultGridSize))
+			throw new InvalidOperationException("Unable to find LDtk 'DefaultGridSize'.");
+		if (!root.TryGetProperty("levels", out var jLevels))
+			throw new InvalidOperationException("Unable to find LDtk 'Levels'.");
 
-		_tilesetCache = MapTileset.Process(defTilesets);
-		_levels = MapLevel.Process(root.GetProperty("levels"),
-			root.GetPropertyOrDefault<int>("defaultGridSize"));
+		var tilesets = MapTileset.Process(jTilesets);
+		var levels = MapLevel.Process(jLevels, jDefaultGridSize.GetInt32());
 
-		_levelCache = new Dictionary<uint, MapLevel>(_levels.Count);
-		for (int i = 0; i < _levels.Count; i++)
+		foreach (var tileset in tilesets)
 		{
-			var level = _levels[i];
+			var tilesetId = tileset.Id;
+			var tilesetName = HashHelpers.Cache32(tileset.Name);
 
-			_levelCache[HashHelpers.Cache32(level.Id)] = level;
+			_tilesetCacheById[tilesetId] = tileset;
+			_tilesetCacheByName[tilesetName] = tileset;
+		}
 
-			for (int x = 0; x < level.Layers.Count; x++)
+		foreach (var level in levels)
+		{
+			var lvlCacheId = HashHelpers.Cache32(level.Id);
+			var lvlCacheName = HashHelpers.Cache32(level.Name);
+
+			_levelCacheById[lvlCacheId] = level;
+			_levelCacheByName[lvlCacheName] = level;
+
+			foreach (var layer in level.Layers)
 			{
-				var layer = level.Layers[x];
+				var layerCache = HashHelpers.Cache32(layer.Id);
 
-				_layerCache[HashHelpers.Cache32(layer.Id)] = layer;
+				_layerCacheById[layerCache] = layer;
 
-				if (layer.Type == MapLayerType.Entities)
+				if (layer.Type != MapLayerType.Entities)
+					continue;
+
+				foreach (var entity in layer.InstanceAs<MapEntityInstance>())
 				{
-					var instances = layer.InstanceAs<MapEntityInstance>();
-					for (int z = 0; z < instances.Count; z++)
-					{
-						var entity = instances[z];
+					var entityCache = HashHelpers.Cache64(entity.Id);
 
-						_entityCache[HashHelpers.Cache32(entity.Id)] = entity;
-					}
+					_entityCacheById[entityCache] = entity;
 				}
 			}
 		}
@@ -131,10 +136,12 @@ public sealed class LDTKProject : IAsset
 	/// </summary>
 	public void Dispose()
 	{
-		_levels?.Clear();
-		_levelCache?.Clear();
-		_entityCache?.Clear();
-		_layerCache?.Clear();
+		_levelCacheById.Clear();
+		_levelCacheByName.Clear();
+		_entityCacheById.Clear();
+		_layerCacheById.Clear();
+		_tilesetCacheById.Clear();
+		_tilesetCacheByName.Clear();
 
 		Logger.Instance.Log(LogLevel.Info, $"Unloaded asset with ID {Id}, type: '{GetType().Name}'.");
 	}
@@ -142,56 +149,38 @@ public sealed class LDTKProject : IAsset
 
 	#region Entity
 	/// <summary>
-	/// Retrieves a map entity instance using its hashed ID.
-	/// </summary>
-	/// <param name="hash">The hashed entity identifier.</param>
-	/// <returns>The matching <see cref="MapEntityInstance"/>.</returns>
-	public MapEntityInstance GetEntityByHash(uint hash)
-	{
-		if (_entityCache.Count == 0)
-			throw new Exception("You don't have any entities to search");
-
-		if (!_entityCache.TryGetValue(hash, out var entity))
-			throw new Exception($"Unable to find a map entity with the hash id '{hash}'.");
-
-		return entity;
-	}
-
-	/// <summary>
 	/// Retrieves a map entity instance by its original ID string.
 	/// </summary>
 	/// <param name="id">The entity ID string.</param>
 	/// <returns>The matching <see cref="MapEntityInstance"/>.</returns>
 	public MapEntityInstance GetEntityById(string id)
 	{
-		if (_entityCache.Count == 0)
-			throw new Exception("You don't have any entities to search");
-
-		if (!_entityCache.TryGetValue(HashHelpers.Cache32(id), out var entity))
+		if (id.IsEmpty())
+			throw new ArgumentNullException(nameof(id));
+		var hash = HashHelpers.Cache64(id);
+		if (!_entityCacheById.TryGetValue(hash, out var entity))
 			throw new Exception($"Unable to find a entity with the id '{id}'.");
 
 		return entity;
+	}
+
+	public bool TryGetEntityById(string id, out MapEntityInstance value)
+	{
+		try
+		{
+			value = GetEntityById(id);
+			return true;
+		}
+		catch
+		{
+			value = null;
+			return false;
+		}
 	}
 	#endregion
 
 
 	#region Layer
-	/// <summary>
-	/// Retrieves a map layer by its hashed ID.
-	/// </summary>
-	/// <param name="hash">The hashed layer ID.</param>
-	/// <returns>The matching <see cref="MapLayer"/>.</returns>
-	public MapLayer GetLayerByHash(uint hash)
-	{
-		if (_layerCache.Count == 0)
-			throw new Exception("You don't have any layers to search");
-
-		if (!_layerCache.TryGetValue(hash, out var layer))
-			throw new Exception($"Unable to find a map layer with the hash id '{hash}'.");
-
-		return layer;
-	}
-
 	/// <summary>
 	/// Retrieves a map layer by its original ID string.
 	/// </summary>
@@ -199,58 +188,31 @@ public sealed class LDTKProject : IAsset
 	/// <returns>The matching <see cref="MapLayer"/>.</returns>
 	public MapLayer GetLayerById(string id)
 	{
-		if (_layerCache.Count == 0)
-			throw new Exception("You don't have any layers to search");
-
-		if (!_layerCache.TryGetValue(HashHelpers.Cache32(id), out var layer))
-			throw new Exception($"Unable to find a layer with the id '{id}'.");
+		if (id.IsEmpty())
+			throw new ArgumentNullException(nameof(id));
+		if (!_layerCacheById.TryGetValue(HashHelpers.Cache32(id), out var layer))
+			throw new KeyNotFoundException($"Unable to find a layer with the id '{id}'.");
 
 		return layer;
+	}
+
+	public bool TryGetLayerById(string id, out MapLayer value)
+	{
+		try
+		{
+			value = GetLayerById(id);
+			return true;
+		}
+		catch
+		{
+			value = null;
+			return false;
+		}
 	}
 	#endregion
 
 
 	#region Levels
-	/// <summary>
-	/// Attempts to retrieve a map level using its hashed identifier.
-	/// </summary>
-	/// <param name="hash">The 32-bit hash of the level ID.</param>
-	/// <param name="level">
-	/// When this method returns, contains the <see cref="MapLevel"/> associated with the specified hash,
-	/// or <c>null</c> if no matching level is found.
-	/// </param>
-	/// <returns>
-	/// <c>true</c> if a level matching the hash exists; otherwise, <c>false</c>.
-	/// </returns>
-	/// <exception cref="Exception">
-	/// Thrown if the level cache is empty, indicating that no levels are available to search.
-	/// </exception>
-	public bool TryGetLevelByHash(uint hash, out MapLevel level)
-	{
-		level = GetLevelByHash(hash);
-
-		return level != null;
-	}
-
-	/// <summary>
-	/// Retrieves a map level using its hashed identifier.
-	/// </summary>
-	/// <param name="hash">The 32-bit hash of the level ID.</param>
-	/// <returns>The matching <see cref="MapLevel"/> if found; otherwise, <c>null</c>.</returns>
-	/// <exception cref="Exception">
-	/// Thrown if the level cache is empty, indicating that no levels are available to search.
-	/// </exception>
-	public MapLevel GetLevelByHash(uint hash)
-	{
-		if (_layerCache.Count == 0)
-			throw new Exception("You don't have any map levels to search");
-
-		if (!_levelCache.TryGetValue(hash, out var level))
-			return null;
-
-		return level;
-	}
-
 	/// <summary>
 	/// Attempts to retrieve a map level using its original string identifier.
 	/// </summary>
@@ -267,9 +229,16 @@ public sealed class LDTKProject : IAsset
 	/// </exception>
 	public bool TryGetLevelById(string id, out MapLevel level)
 	{
-		level = GetLevelById(id);
-
-		return level != null;
+		try
+		{
+			level = GetLevelById(id);
+			return level != null;
+		}
+		catch
+		{
+			level = null;
+			return false;
+		}
 	}
 
 	/// <summary>
@@ -282,13 +251,11 @@ public sealed class LDTKProject : IAsset
 	/// </exception>
 	public MapLevel GetLevelById(string id)
 	{
-		if (_layerCache.Count == 0)
-			throw new Exception("You don't have any map levels to search");
-
-		if (string.IsNullOrWhiteSpace(id))
-			return null;
-		if (!_levelCache.TryGetValue(HashHelpers.Cache32(id), out var level))
-			return null;
+		if (id.IsEmpty())
+			throw new ArgumentNullException(nameof(id));
+		var hash = HashHelpers.Cache32(id);
+		if (!_levelCacheById.TryGetValue(hash, out var level))
+			throw new KeyNotFoundException($"Unable to find a level with the id '{id}'.");
 
 		return level;
 	}
@@ -297,9 +264,6 @@ public sealed class LDTKProject : IAsset
 	/// Attempts to retrieve a map level by matching its display name.
 	/// </summary>
 	/// <param name="name">The name of the level to search for.</param>
-	/// <param name="ignoreCase">
-	/// If <c>true</c>, performs a case-insensitive comparison; otherwise, uses case-sensitive matching.
-	/// </param>
 	/// <param name="level">
 	/// When this method returns, contains the <see cref="MapLevel"/> with the specified name,
 	/// or <c>null</c> if no matching level is found.
@@ -313,20 +277,24 @@ public sealed class LDTKProject : IAsset
 	/// <exception cref="Exception">
 	/// Thrown if the level list is uninitialized or empty.
 	/// </exception>
-	public bool TryGetLevelByName(string name, bool ignoreCase, out MapLevel level)
+	public bool TryGetLevelByName(string name, out MapLevel level)
 	{
-		level = GetLevelByName(name, ignoreCase);
-
-		return level != null;
+		try
+		{
+			level = GetLevelByName(name);
+			return level != null;
+		}
+		catch
+		{
+			level = null;
+			return false;
+		}
 	}
 
 	/// <summary>
 	/// Retrieves a map level by matching its display name.
 	/// </summary>
 	/// <param name="name">The name of the level to search for.</param>
-	/// <param name="ignoreCase">
-	/// If <c>true</c>, performs a case-insensitive comparison; otherwise, uses case-sensitive matching.
-	/// </param>
 	/// <returns>The <see cref="MapLevel"/> with the specified name, or <c>null</c> if not found.</returns>
 	/// <exception cref="ArgumentNullException">
 	/// Thrown if <paramref name="name"/> is <c>null</c> or empty.
@@ -334,24 +302,15 @@ public sealed class LDTKProject : IAsset
 	/// <exception cref="Exception">
 	/// Thrown if the level list is uninitialized or empty.
 	/// </exception>
-	public MapLevel GetLevelByName(string name, bool ignoreCase)
+	public MapLevel GetLevelByName(string name)
 	{
 		if (name.IsEmpty())
 			throw new ArgumentNullException(nameof(name), "Is null or empty");
-		if (_tilesetCache.Count == 0)
-			throw new Exception("You don't have any map levels to search");
+		var hash = HashHelpers.Cache32(name);
+		if (!_levelCacheByName.TryGetValue(hash, out var level))
+			throw new KeyNotFoundException($"Unable to find a level with the name '{name}'.");
 
-		var type = ignoreCase
-			? StringComparison.OrdinalIgnoreCase
-			: StringComparison.Ordinal;
-
-		foreach (var lv in _levels)
-		{
-			if (lv.Name.Equals(name, type))
-				return lv;
-		}
-
-		return null;
+		return level;
 	}
 	#endregion
 
@@ -360,18 +319,30 @@ public sealed class LDTKProject : IAsset
 	/// <summary>
 	/// Retrieves a tileset from the project by its numeric identifier index.
 	/// </summary>
-	/// <param name="index">The tileset's internal index value, as defined in the LDTK project.</param>
+	/// <param name="id">The tileset's internal index value, as defined in the LDTK project.</param>
 	/// <returns>The <see cref="MapTileset"/> associated with the given index.</returns>
 	/// <exception cref="Exception">
 	/// Thrown if the tileset cache is uninitialized or if no tileset matches the specified index.
 	/// </exception>
-	public MapTileset GetTileset(int index)
+	public MapTileset GetTilesetId(uint id)
 	{
-		if (_tilesetCache.Count == 0)
-			throw new Exception("You don't have any tilesets to search");
-		if (!_tilesetCache.TryGetValue(index, out var tilemap))
-			throw new Exception($"Unable to find a tileset with the id '{index}'.");
+		if (!_tilesetCacheById.TryGetValue(id, out var tilemap))
+			throw new Exception($"Unable to find a tileset with the id '{id}'.");
+
 		return tilemap;
+	}
+	public bool TryGetTilesetId(uint id, out MapTileset value)
+	{
+		try
+		{
+			value = GetTilesetId(id);
+			return true;
+		}
+		catch
+		{
+			value = null;
+			return false;
+		}
 	}
 
 	/// <summary>
@@ -388,24 +359,28 @@ public sealed class LDTKProject : IAsset
 	/// <exception cref="Exception">
 	/// Thrown if the tileset cache is uninitialized or no tileset with the given name is found.
 	/// </exception>
-	public MapTileset GetTilesetByName(string name, bool ignoreCase)
+	public MapTileset GetTilesetByName(string name)
 	{
 		if (name.IsEmpty())
 			throw new ArgumentNullException(nameof(name), "Is null or empty");
-		if (_tilesetCache.Count == 0)
-			throw new Exception("You don't have any tilesets to search");
+		var hash = HashHelpers.Cache32(name);
+		if (!_tilesetCacheByName.TryGetValue(hash, out var tileset))
+			throw new Exception($"Unable to find a tileset with the name '{name}'.");
 
-		var type = ignoreCase
-			? StringComparison.OrdinalIgnoreCase
-			: StringComparison.Ordinal;
-
-		foreach (var kv in _tilesetCache)
+		return tileset;
+	}
+	public bool TryGetTilesetByName(string name, out MapTileset value)
+	{
+		try
 		{
-			if (kv.Value.Name.Equals(name, type))
-				return kv.Value;
+			value = GetTilesetByName(name);
+			return true;
 		}
-
-		throw new Exception($"Unable to find a tileset called '{name}'.");
+		catch
+		{
+			value = null;
+			return false;
+		}
 	}
 	#endregion
 }

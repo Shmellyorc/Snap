@@ -9,7 +9,7 @@ public sealed class MapTileset
 	/// <summary>
 	/// The unique numeric ID assigned to the tileset in the source project.
 	/// </summary>
-	public int Id { get; }
+	public uint Id { get; }
 
 	/// <summary>
 	/// The name of the tileset, as defined in the LDTK editor.
@@ -52,7 +52,7 @@ public sealed class MapTileset
 	/// </summary>
 	public List<string> Tags { get; }
 
-	internal MapTileset(int id, string name, Vect2 cellSize, Vect2 size,
+	internal MapTileset(uint id, string name, Vect2 cellSize, Vect2 size,
 		string path, int tileSize, int spacing, int padding, List<string> tags)
 	{
 		Id = id;
@@ -66,16 +66,16 @@ public sealed class MapTileset
 		Tags = tags;
 	}
 
-	internal static Dictionary<int, MapTileset> Process(JsonElement e)
+	internal static List<MapTileset> Process(JsonElement e)
 	{
-		var result = new Dictionary<int, MapTileset>(e.GetArrayLength());
+		var result = new List<MapTileset>(e.GetArrayLength());
 
 		foreach (var t in e.EnumerateArray())
 		{
 			var cWidth = t.GetPropertyOrDefault<int>("__cWid");
 			var cHeight = t.GetPropertyOrDefault<int>("__cHei");
 			var name = t.GetPropertyOrDefault<string>("identifier");
-			var id = t.GetPropertyOrDefault<int>("uid");
+			var id = t.GetPropertyOrDefault<uint>("uid");
 			var path = t.GetPropertyOrDefault("relPath", string.Empty);
 			var pxWid = t.GetPropertyOrDefault<int>("pxWid");
 			var pxHei = t.GetPropertyOrDefault<int>("pxHei");
@@ -87,8 +87,19 @@ public sealed class MapTileset
 				.Select(x => x.GetString()!)
 				.ToList();
 
-			result[id] = new MapTileset(id, name, new(cWidth, cHeight),
-				new(pxWid, pxHei), path, tileSize, spacing, padding, tags);
+			result.Add(
+				new MapTileset(
+					id,
+					name,
+					new(cWidth, cHeight),
+					new(pxWid, pxHei),
+					path,
+					tileSize,
+					spacing,
+					padding,
+					tags
+				)
+			);
 		}
 
 		return result;
