@@ -8,7 +8,14 @@ public static class HashHelpers
 	private static readonly Dictionary<string, uint> _cache32 = [];
 	private static readonly Dictionary<string, ulong> _cache64 = [];
 
-
+	/// <summary>
+	/// Gets a cached 32-bit hash for the given name, computing and storing it if needed.
+	/// </summary>
+	/// <param name="name">The string to hash and cache.</param>
+	/// <returns>
+	/// The 32-bit hash value associated with <paramref name="name"/>.
+	/// If the value was previously cached, the cached value is returned.
+	/// </returns>
 	public static uint Cache32(string name)
 	{
 		if (_cache32.TryGetValue(name, out var id))
@@ -20,8 +27,14 @@ public static class HashHelpers
 		return hash;
 	}
 
-
-
+	/// <summary>
+	/// Gets a cached 64-bit hash for the given name, computing and storing it if needed.
+	/// </summary>
+	/// <param name="name">The string to hash and cache.</param>
+	/// <returns>
+	/// The 64-bit hash value associated with <paramref name="name"/>.
+	/// If the value was previously cached, the cached value is returned.
+	/// </returns>
 	public static ulong Cache64(string name)
 	{
 		if (_cache64.TryGetValue(name, out var id))
@@ -32,8 +45,6 @@ public static class HashHelpers
 		_cache64[name] = hash;
 		return hash;
 	}
-
-
 
 	/// <summary>
 	/// Computes the 32‑bit FNV‑1a hash of the given byte array.
@@ -87,9 +98,15 @@ public static class HashHelpers
 	/// <returns>The 32‑bit FNV‑1a hash value of the enum's name.</returns>
 	public static uint Hash32(Enum text) => Hash32(Encoding.UTF8.GetBytes(text.ToEnumString()));
 
-
+	/// <summary>
+	/// Gets a cached 32-bit hash for the given enum value.
+	/// </summary>
+	/// <param name="text">The enum value to hash and cache.</param>
+	/// <returns>
+	/// The 32-bit hash value associated with <paramref name="text"/>.
+	/// The enum is converted to its string representation before hashing.
+	/// </returns>
 	public static uint Cache32(Enum text) => Cache32(text.ToEnumString());
-
 
 	/// <summary>
 	/// Computes the 64‑bit FNV‑1a hash of the given string, using UTF‑8 encoding.
@@ -105,6 +122,14 @@ public static class HashHelpers
 	/// <returns>The 64‑bit FNV‑1a hash value of the enum's name.</returns>
 	public static ulong Hash64(Enum text) => Hash64(Encoding.UTF8.GetBytes(text.ToEnumString()));
 
-
+	/// <summary>
+	/// Gets a cached 64-bit hash for the given enum value.
+	/// </summary>
+	/// <param name="text">The enum value to hash and cache.</param>
+	/// <returns>
+	/// The 64-bit hash value associated with <paramref name="text"/>.
+	/// The enum is converted to its string representation before hashing.
+	/// </returns>
 	public static ulong Cache64(Enum text) => Cache64(text.ToEnumString());
+
 }

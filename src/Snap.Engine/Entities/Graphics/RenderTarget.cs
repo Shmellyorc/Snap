@@ -1,6 +1,3 @@
-using Snap.Engine.Graphics.Markup;
-using Snap.Engine.Graphics.Markup.Effects;
-
 namespace Snap.Engine.Entities.Graphics;
 
 /// <summary>
@@ -256,9 +253,13 @@ public class RenderTarget(params Entity[] entities) : Panel(entities)
 	// 	}
 	// }
 
-
+	/// <summary>
+	/// Overrides the render target’s texture color for subsequent draw operations.
+	/// </summary>
+	/// <param name="color">
+	/// The color to apply when rendering this target’s texture.
+	/// </param>
 	public void OverrideTextureColor(Color color) => _color = color;
-
 
 	/// <summary>
 	/// Draws a texture to the current render target with the specified transform and effects.
@@ -721,51 +722,6 @@ public class RenderTarget(params Entity[] entities) : Panel(entities)
 
 		list.Add(new DrawCommand(texture, quad, depth, _seqCounter++));
 	}
-
-
-
-
-	// public void DrawMarkupText(Font font, string markup, Vect2 position, Color color, int depth)
-	// 	=> EngineDrawMarkupText(font, markup, position, color, depth);
-
-	// internal void EngineDrawMarkupText(Font font, string markup, Vect2 pos, Color color, int depth)
-	// {
-	// 	var segments = MarkupParser.Parse(markup);
-
-	// 	IEnumerator Routine(List<TextSegment> segs, Color orgColor)
-	// 	{
-	// 		foreach (var seg in segs)
-	// 		{
-	// 			if (seg.Timing != null)
-	// 			{
-	// 				float delay = seg.Timing.GetDelay();
-	// 				yield return new WaitForSeconds(delay);
-	// 			}
-
-	// 			var drawPos = pos;
-
-	// 			float alpha = 1f;
-	// 			if (seg.VisualEffect != null)
-	// 			{
-	// 				seg.VisualEffect.Apply(ref drawPos);
-
-	// 				if (seg.VisualEffect is AlphaEffect ae)
-	// 					alpha = ae.GetAlpha();
-	// 			}
-
-	// 			var segColor = seg.ColorOverride ?? orgColor;
-
-	// 			var finalColor = Color.WithAlpha(segColor, alpha);
-
-	// 			EngineDrawText(font, seg.Text, drawPos, finalColor, depth);
-
-	// 			pos.X += font.Measure(seg.Text).X;
-	// 		}
-	// 	}
-
-	// 	CoroutineManager.Instance.Start(Routine(segments, color));
-	// }
-
 
 	private void EngineDraw(
 	Texture texture,

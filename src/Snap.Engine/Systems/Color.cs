@@ -502,16 +502,26 @@ public struct Color : IEquatable<Color>
 	/// </summary>
 	/// <returns>A string in the format "Color(R,G,B,A)".</returns>
 	public readonly override string ToString() => $"Color({R},{G},{B},{A})";
+	#endregion
 
 
-
-
-
+	#region ToHex
+	/// <summary>
+	/// Converts this <see cref="Color"/> to an ARGB hex string.
+	/// </summary>
+	/// <returns>
+	/// A string in the format <c>AARRGGBB</c>.
+	/// </returns>
 	public readonly string ToHex() => ToHex(this);
-	public static string ToHex(Color c)
-	{
-		return $"{c.R:X2}{c.G:X2}{c.B:X2}";
-	}
+
+	/// <summary>
+	/// Converts the given <see cref="Color"/> to an ARGB hex string.
+	/// </summary>
+	/// <param name="c">The color to convert.</param>
+	/// <returns>
+	/// A string in the format <c>AARRGGBB</c>, where each component is two uppercase hex digits.
+	/// </returns>
+	public static string ToHex(Color c) => $"{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
 
 	#endregion
 }

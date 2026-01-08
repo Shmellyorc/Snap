@@ -133,7 +133,16 @@ public sealed class Listview : RenderTarget
 		}
 	}
 
+	/// <summary>
+	/// Gets the current scroll position within the list.
+	/// </summary>
+	/// <remarks>
+	/// This value represents the index of the first visible <see cref="ListItem"/> 
+	/// within the underlying data set. It is updated when the list is scrolled
+	/// programmatically or through user input.
+	/// </remarks>
 	public int ScrollIndex => _scrollIndex;
+
 
 	/// <summary>
 	/// Gets or sets the globally selected index in the listview.

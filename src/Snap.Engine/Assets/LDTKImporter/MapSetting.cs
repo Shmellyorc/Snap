@@ -1,6 +1,5 @@
 namespace Snap.Engine.Assets.LDTKImporter;
 
-
 /// <summary>
 /// Represents a boolean field value parsed from map or entity metadata.
 /// Typically corresponds to a user-defined checkbox or toggle in the level editor.
@@ -140,13 +139,22 @@ public class MapSetting(object value)
 	/// <exception cref="InvalidCastException">Thrown if the stored value is not compatible with the requested type.</exception>
 	public T ValueAs<T>() => (T)Value;
 
-
-
+	/// <summary>
+	/// Determines whether the settings dictionary contains an entry matching the given name.
+	/// </summary>
+	/// <param name="settings">
+	/// The dictionary of settings keyed by their 32-bit hashed identifiers.
+	/// </param>
+	/// <param name="name">
+	/// The name to check for. This value is hashed using <c>Cache32</c>
+	/// before performing the lookup.
+	/// </param>
+	/// <returns>
+	/// <c>true</c> if an entry with the hashed name exists in <paramref name="settings"/>; 
+	/// otherwise <c>false</c>.
+	/// </returns>
 	public static bool Contains(Dictionary<uint, MapSetting> settings, string name)
 		=> settings.ContainsKey(HashHelpers.Cache32(name));
-
-
-
 
 	/// <summary>
 	/// Retrieves a boolean setting by name from a dictionary of typed map settings.
@@ -172,6 +180,25 @@ public class MapSetting(object value)
 
 		return result.ValueAs<bool>();
 	}
+
+	/// <summary>
+	/// Attempts to retrieve a boolean setting by name from the settings dictionary.
+	/// </summary>
+	/// <param name="settings">
+	/// The dictionary of settings keyed by their 32-bit hashed identifiers.
+	/// </param>
+	/// <param name="name">
+	/// The name of the setting to retrieve. This value is hashed using <c>Cache32</c>
+	/// before performing the lookup.
+	/// </param>
+	/// <param name="setting">
+	/// When this method returns, contains the resolved boolean value if the lookup 
+	/// succeeded; otherwise <c>false</c>.
+	/// </param>
+	/// <returns>
+	/// <c>true</c> if the setting was found and returned successfully;
+	/// <c>false</c> if the lookup failed or the setting does not exist.
+	/// </returns>
 	public static bool TryGetBoolSetting(Dictionary<uint, MapSetting> settings, string name, out bool setting)
 	{
 		try
@@ -206,6 +233,25 @@ public class MapSetting(object value)
 
 		return result.ValueAs<int>();
 	}
+
+	/// <summary>
+	/// Attempts to retrieve an integer setting by name from the settings dictionary.
+	/// </summary>
+	/// <param name="settings">
+	/// The dictionary of settings keyed by their 32-bit hashed identifiers.
+	/// </param>
+	/// <param name="name">
+	/// The name of the setting to retrieve. This value is hashed using <c>Cache32</c>
+	/// before performing the lookup.
+	/// </param>
+	/// <param name="setting">
+	/// When this method returns, contains the resolved integer value if the lookup 
+	/// succeeded; otherwise <c>0</c>.
+	/// </param>
+	/// <returns>
+	/// <c>true</c> if the setting was found and returned successfully;
+	/// <c>false</c> if the lookup failed or the setting does not exist.
+	/// </returns>
 	public static bool TryGetIntSetting(Dictionary<uint, MapSetting> settings, string name, out int setting)
 	{
 		try
@@ -240,6 +286,25 @@ public class MapSetting(object value)
 
 		return result.ValueAs<float>();
 	}
+
+	/// <summary>
+	/// Attempts to retrieve a floating‑point setting by name from the settings dictionary.
+	/// </summary>
+	/// <param name="settings">
+	/// The dictionary of settings keyed by their 32‑bit hashed identifiers.
+	/// </param>
+	/// <param name="name">
+	/// The name of the setting to retrieve. This value is hashed using <c>Cache32</c>
+	/// before performing the lookup.
+	/// </param>
+	/// <param name="setting">
+	/// When this method returns, contains the resolved floating‑point value if the lookup 
+	/// succeeded; otherwise <c>0f</c>.
+	/// </param>
+	/// <returns>
+	/// <c>true</c> if the setting was found and returned successfully;
+	/// <c>false</c> if the lookup failed or the setting does not exist.
+	/// </returns>
 	public static bool TryGetFloatSetting(Dictionary<uint, MapSetting> settings, string name, out float setting)
 	{
 		try
@@ -253,6 +318,7 @@ public class MapSetting(object value)
 			return false;
 		}
 	}
+
 
 	/// <summary>
 	/// Retrieves a 2D vector (point) setting by name.
@@ -274,6 +340,25 @@ public class MapSetting(object value)
 
 		return result.ValueAs<Vect2>();
 	}
+
+	/// <summary>
+	/// Attempts to retrieve a 2D point setting by name from the settings dictionary.
+	/// </summary>
+	/// <param name="settings">
+	/// The dictionary of settings keyed by their 32‑bit hashed identifiers.
+	/// </param>
+	/// <param name="name">
+	/// The name of the setting to retrieve. This value is hashed using <c>Cache32</c>
+	/// before performing the lookup.
+	/// </param>
+	/// <param name="setting">
+	/// When this method returns, contains the resolved <see cref="Vect2"/> value 
+	/// if the lookup succeeded; otherwise <c>(0,0)</c>.
+	/// </param>
+	/// <returns>
+	/// <c>true</c> if the setting was found and returned successfully;
+	/// <c>false</c> if the lookup failed or the setting does not exist.
+	/// </returns>
 	public static bool TryGetPointSetting(Dictionary<uint, MapSetting> settings, string name, out Vect2 setting)
 	{
 		try
@@ -287,6 +372,7 @@ public class MapSetting(object value)
 			return false;
 		}
 	}
+
 
 	/// <summary>
 	/// Retrieves a color setting by name, typically used for tints or markers.
@@ -308,6 +394,25 @@ public class MapSetting(object value)
 
 		return result.ValueAs<Color>();
 	}
+
+	/// <summary>
+	/// Attempts to retrieve a color setting by name from the settings dictionary.
+	/// </summary>
+	/// <param name="settings">
+	/// The dictionary of settings keyed by their 32‑bit hashed identifiers.
+	/// </param>
+	/// <param name="name">
+	/// The name of the setting to retrieve. This value is hashed using <c>Cache32</c>
+	/// before performing the lookup.
+	/// </param>
+	/// <param name="setting">
+	/// When this method returns, contains the resolved <see cref="Color"/> value 
+	/// if the lookup succeeded; otherwise the default color.
+	/// </param>
+	/// <returns>
+	/// <c>true</c> if the setting was found and returned successfully;
+	/// <c>false</c> if the lookup failed or the setting does not exist.
+	/// </returns>
 	public static bool TryGetColorSetting(Dictionary<uint, MapSetting> settings, string name, out Color setting)
 	{
 		try
@@ -321,6 +426,7 @@ public class MapSetting(object value)
 			return false;
 		}
 	}
+
 
 	/// <summary>
 	/// Retrieves a string setting by name, often used for labels, scripts, or tags.
@@ -342,6 +448,25 @@ public class MapSetting(object value)
 
 		return result.ValueAs<string>();
 	}
+
+	/// <summary>
+	/// Attempts to retrieve a string setting by name from the settings dictionary.
+	/// </summary>
+	/// <param name="settings">
+	/// The dictionary of settings keyed by their 32‑bit hashed identifiers.
+	/// </param>
+	/// <param name="name">
+	/// The name of the setting to retrieve. This value is hashed using <c>Cache32</c>
+	/// before performing the lookup.
+	/// </param>
+	/// <param name="setting">
+	/// When this method returns, contains the resolved string value if the lookup 
+	/// succeeded; otherwise <c>null</c>.
+	/// </param>
+	/// <returns>
+	/// <c>true</c> if the setting was found and returned successfully;
+	/// <c>false</c> if the lookup failed or the setting does not exist.
+	/// </returns>
 	public static bool TryGetStringSetting(Dictionary<uint, MapSetting> settings, string name, out string setting)
 	{
 		try
@@ -376,6 +501,25 @@ public class MapSetting(object value)
 
 		return result.ValueAs<string>();
 	}
+
+	/// <summary>
+	/// Attempts to retrieve a file‑path setting by name from the settings dictionary.
+	/// </summary>
+	/// <param name="settings">
+	/// The dictionary of settings keyed by their 32‑bit hashed identifiers.
+	/// </param>
+	/// <param name="name">
+	/// The name of the setting to retrieve. This value is hashed using <c>Cache32</c>
+	/// before performing the lookup.
+	/// </param>
+	/// <param name="setting">
+	/// When this method returns, contains the resolved file‑path string if the lookup 
+	/// succeeded; otherwise <c>null</c>.
+	/// </param>
+	/// <returns>
+	/// <c>true</c> if the setting was found and returned successfully;
+	/// <c>false</c> if the lookup failed or the setting does not exist.
+	/// </returns>
 	public static bool TryGetFilePathSetting(Dictionary<uint, MapSetting> settings, string name, out string setting)
 	{
 		try
@@ -389,6 +533,7 @@ public class MapSetting(object value)
 			return false;
 		}
 	}
+
 
 	/// <summary>
 	/// Retrieves a tile setting that refers to a graphic frame or marker tile.
@@ -410,6 +555,25 @@ public class MapSetting(object value)
 
 		return result.ValueAs<MapTile>();
 	}
+
+	/// <summary>
+	/// Attempts to retrieve a tile setting by name from the settings dictionary.
+	/// </summary>
+	/// <param name="settings">
+	/// The dictionary of settings keyed by their 32‑bit hashed identifiers.
+	/// </param>
+	/// <param name="name">
+	/// The name of the setting to retrieve. This value is hashed using <c>Cache32</c>
+	/// before performing the lookup.
+	/// </param>
+	/// <param name="setting">
+	/// When this method returns, contains the resolved <see cref="MapTile"/> value 
+	/// if the lookup succeeded; otherwise the default tile value.
+	/// </param>
+	/// <returns>
+	/// <c>true</c> if the setting was found and returned successfully;
+	/// <c>false</c> if the lookup failed or the setting does not exist.
+	/// </returns>
 	public static bool TryGetTileSetting(Dictionary<uint, MapSetting> settings, string name, out MapTile setting)
 	{
 		try
@@ -445,6 +609,25 @@ public class MapSetting(object value)
 
 		return result.ValueAs<MapEntityRef>();
 	}
+
+	/// <summary>
+	/// Attempts to retrieve an entity‑reference setting by name from the settings dictionary.
+	/// </summary>
+	/// <param name="settings">
+	/// The dictionary of settings keyed by their 32‑bit hashed identifiers.
+	/// </param>
+	/// <param name="name">
+	/// The name of the setting to retrieve. This value is hashed using <c>Cache32</c>
+	/// before performing the lookup.
+	/// </param>
+	/// <param name="setting">
+	/// When this method returns, contains the resolved <see cref="MapEntityRef"/> value 
+	/// if the lookup succeeded; otherwise the default entity reference.
+	/// </param>
+	/// <returns>
+	/// <c>true</c> if the setting was found and returned successfully;
+	/// <c>false</c> if the lookup failed or the setting does not exist.
+	/// </returns>
 	public static bool TryGetEntityRefSetting(Dictionary<uint, MapSetting> settings, string name, out MapEntityRef setting)
 	{
 		try
@@ -458,6 +641,7 @@ public class MapSetting(object value)
 			return false;
 		}
 	}
+
 
 	/// <summary>
 	/// Retrieves and parses an enum value from a string-based setting field.
@@ -480,7 +664,30 @@ public class MapSetting(object value)
 
 		return (TEnum)Enum.Parse(typeof(TEnum), result.ValueAs<string>(), true);
 	}
-	public static bool TryGetEnumSetting<TEnum>(Dictionary<uint, MapSetting> settings, string name, out TEnum setting) where TEnum : Enum
+
+	/// <summary>
+	/// Attempts to retrieve an enum setting by name from the settings dictionary.
+	/// </summary>
+	/// <typeparam name="TEnum">
+	/// The enum type to retrieve. Must be a valid <see cref="Enum"/>.
+	/// </typeparam>
+	/// <param name="settings">
+	/// The dictionary of settings keyed by their 32‑bit hashed identifiers.
+	/// </param>
+	/// <param name="name">
+	/// The name of the setting to retrieve. This value is hashed using <c>Cache32</c>
+	/// before performing the lookup.
+	/// </param>
+	/// <param name="setting">
+	/// When this method returns, contains the resolved <typeparamref name="TEnum"/> value 
+	/// if the lookup succeeded; otherwise the default enum value.
+	/// </param>
+	/// <returns>
+	/// <c>true</c> if the setting was found and returned successfully;
+	/// <c>false</c> if the lookup failed or the setting does not exist.
+	/// </returns>
+	public static bool TryGetEnumSetting<TEnum>(Dictionary<uint, MapSetting> settings, string name, out TEnum setting)
+		where TEnum : Enum
 	{
 		try
 		{
@@ -493,8 +700,6 @@ public class MapSetting(object value)
 			return false;
 		}
 	}
-
-
 
 	/// <summary>
 	/// Retrieves a list of boolean values from a field setting by name.
@@ -520,6 +725,25 @@ public class MapSetting(object value)
 
 		return result.ValueAs<List<bool>>();
 	}
+
+	/// <summary>
+	/// Attempts to retrieve a boolean array setting by name from the settings dictionary.
+	/// </summary>
+	/// <param name="settings">
+	/// The dictionary of settings keyed by their 32‑bit hashed identifiers.
+	/// </param>
+	/// <param name="name">
+	/// The name of the setting to retrieve. This value is hashed using <c>Cache32</c>
+	/// before performing the lookup.
+	/// </param>
+	/// <param name="setting">
+	/// When this method returns, contains the resolved read‑only list of boolean values 
+	/// if the lookup succeeded; otherwise <c>null</c>.
+	/// </param>
+	/// <returns>
+	/// <c>true</c> if the setting was found and returned successfully;
+	/// <c>false</c> if the lookup failed or the setting does not exist.
+	/// </returns>
 	public static bool TryGetBoolArraySetting(Dictionary<uint, MapSetting> settings, string name, out IReadOnlyList<bool> setting)
 	{
 		try
@@ -533,8 +757,6 @@ public class MapSetting(object value)
 			return false;
 		}
 	}
-
-
 
 	/// <summary>
 	/// Retrieves a list of integer values from a setting field.
@@ -556,6 +778,25 @@ public class MapSetting(object value)
 
 		return result.ValueAs<List<int>>();
 	}
+
+	/// <summary>
+	/// Attempts to retrieve an integer array setting by name from the settings dictionary.
+	/// </summary>
+	/// <param name="settings">
+	/// The dictionary of settings keyed by their 32‑bit hashed identifiers.
+	/// </param>
+	/// <param name="name">
+	/// The name of the setting to retrieve. This value is hashed using <c>Cache32</c>
+	/// before performing the lookup.
+	/// </param>
+	/// <param name="setting">
+	/// When this method returns, contains the resolved read‑only list of integers 
+	/// if the lookup succeeded; otherwise <c>null</c>.
+	/// </param>
+	/// <returns>
+	/// <c>true</c> if the setting was found and returned successfully;
+	/// <c>false</c> if the lookup failed or the setting does not exist.
+	/// </returns>
 	public static bool TryGetIntArraySetting(Dictionary<uint, MapSetting> settings, string name, out IReadOnlyList<int> setting)
 	{
 		try
@@ -569,6 +810,7 @@ public class MapSetting(object value)
 			return false;
 		}
 	}
+
 
 	/// <summary>
 	/// Retrieves a list of floating-point values from a map field.
@@ -590,6 +832,25 @@ public class MapSetting(object value)
 
 		return result.ValueAs<List<float>>();
 	}
+
+	/// <summary>
+	/// Attempts to retrieve a floating‑point array setting by name from the settings dictionary.
+	/// </summary>
+	/// <param name="settings">
+	/// The dictionary of settings keyed by their 32‑bit hashed identifiers.
+	/// </param>
+	/// <param name="name">
+	/// The name of the setting to retrieve. This value is hashed using <c>Cache32</c>
+	/// before performing the lookup.
+	/// </param>
+	/// <param name="setting">
+	/// When this method returns, contains the resolved read‑only list of floating‑point values 
+	/// if the lookup succeeded; otherwise <c>null</c>.
+	/// </param>
+	/// <returns>
+	/// <c>true</c> if the setting was found and returned successfully;
+	/// <c>false</c> if the lookup failed or the setting does not exist.
+	/// </returns>
 	public static bool TryGetFloatArraySetting(Dictionary<uint, MapSetting> settings, string name, out IReadOnlyList<float> setting)
 	{
 		try
@@ -603,6 +864,7 @@ public class MapSetting(object value)
 			return false;
 		}
 	}
+
 
 	/// <summary>
 	/// Retrieves a list of 2D points from a vector-type field.
@@ -624,6 +886,25 @@ public class MapSetting(object value)
 
 		return result.ValueAs<List<Vect2>>();
 	}
+
+	/// <summary>
+	/// Attempts to retrieve a 2D point array setting by name from the settings dictionary.
+	/// </summary>
+	/// <param name="settings">
+	/// The dictionary of settings keyed by their 32‑bit hashed identifiers.
+	/// </param>
+	/// <param name="name">
+	/// The name of the setting to retrieve. This value is hashed using <c>Cache32</c>
+	/// before performing the lookup.
+	/// </param>
+	/// <param name="setting">
+	/// When this method returns, contains the resolved read‑only list of <see cref="Vect2"/> 
+	/// values if the lookup succeeded; otherwise <c>null</c>.
+	/// </param>
+	/// <returns>
+	/// <c>true</c> if the setting was found and returned successfully;
+	/// <c>false</c> if the lookup failed or the setting does not exist.
+	/// </returns>
 	public static bool TryGetPointArraySetting(Dictionary<uint, MapSetting> settings, string name, out IReadOnlyList<Vect2> setting)
 	{
 		try
@@ -637,6 +918,7 @@ public class MapSetting(object value)
 			return false;
 		}
 	}
+
 
 	/// <summary>
 	/// Retrieves a list of colors from a setting field.
@@ -658,6 +940,25 @@ public class MapSetting(object value)
 
 		return result.ValueAs<List<Color>>();
 	}
+
+	/// <summary>
+	/// Attempts to retrieve a color array setting by name from the settings dictionary.
+	/// </summary>
+	/// <param name="settings">
+	/// The dictionary of settings keyed by their 32‑bit hashed identifiers.
+	/// </param>
+	/// <param name="name">
+	/// The name of the setting to retrieve. This value is hashed using <c>Cache32</c>
+	/// before performing the lookup.
+	/// </param>
+	/// <param name="setting">
+	/// When this method returns, contains the resolved read‑only list of <see cref="Color"/> 
+	/// values if the lookup succeeded; otherwise <c>null</c>.
+	/// </param>
+	/// <returns>
+	/// <c>true</c> if the setting was found and returned successfully;
+	/// <c>false</c> if the lookup failed or the setting does not exist.
+	/// </returns>
 	public static bool TryGetColorArraySetting(Dictionary<uint, MapSetting> settings, string name, out IReadOnlyList<Color> setting)
 	{
 		try
@@ -671,6 +972,7 @@ public class MapSetting(object value)
 			return false;
 		}
 	}
+
 
 	/// <summary>
 	/// Retrieves a list of string values from a field entry.
@@ -692,6 +994,25 @@ public class MapSetting(object value)
 
 		return result.ValueAs<List<string>>();
 	}
+
+	/// <summary>
+	/// Attempts to retrieve a string array setting by name from the settings dictionary.
+	/// </summary>
+	/// <param name="settings">
+	/// The dictionary of settings keyed by their 32‑bit hashed identifiers.
+	/// </param>
+	/// <param name="name">
+	/// The name of the setting to retrieve. This value is hashed using <c>Cache32</c>
+	/// before performing the lookup.
+	/// </param>
+	/// <param name="setting">
+	/// When this method returns, contains the resolved read‑only list of strings 
+	/// if the lookup succeeded; otherwise <c>null</c>.
+	/// </param>
+	/// <returns>
+	/// <c>true</c> if the setting was found and returned successfully;
+	/// <c>false</c> if the lookup failed or the setting does not exist.
+	/// </returns>
 	public static bool TryGetStringArraySetting(Dictionary<uint, MapSetting> settings, string name, out IReadOnlyList<string> setting)
 	{
 		try
@@ -705,6 +1026,7 @@ public class MapSetting(object value)
 			return false;
 		}
 	}
+
 
 	/// <summary>
 	/// Retrieves a list of file path strings from the setting metadata.
@@ -726,6 +1048,25 @@ public class MapSetting(object value)
 
 		return result.ValueAs<List<string>>();
 	}
+
+	/// <summary>
+	/// Attempts to retrieve a file‑path array setting by name from the settings dictionary.
+	/// </summary>
+	/// <param name="settings">
+	/// The dictionary of settings keyed by their 32‑bit hashed identifiers.
+	/// </param>
+	/// <param name="name">
+	/// The name of the setting to retrieve. This value is hashed using <c>Cache32</c>
+	/// before performing the lookup.
+	/// </param>
+	/// <param name="setting">
+	/// When this method returns, contains the resolved read‑only list of file‑path strings 
+	/// if the lookup succeeded; otherwise <c>null</c>.
+	/// </param>
+	/// <returns>
+	/// <c>true</c> if the setting was found and returned successfully;
+	/// <c>false</c> if the lookup failed or the setting does not exist.
+	/// </returns>
 	public static bool TryGetFilePathArraySetting(Dictionary<uint, MapSetting> settings, string name, out IReadOnlyList<string> setting)
 	{
 		try
@@ -760,7 +1101,29 @@ public class MapSetting(object value)
 
 		return result.ValueAs<List<MapTile>>();
 	}
-	public static bool TryGetTileArraySetting(Dictionary<uint, MapSetting> settings, string name, out IReadOnlyList<MapTile> setting)
+
+	/// <summary>
+	/// Attempts to retrieve a tile array setting by name from the settings dictionary.
+	/// </summary>
+	/// <param name="settings">
+	/// The dictionary of settings keyed by their 32‑bit hashed identifiers.
+	/// </param>
+	/// <param name="name">
+	/// The name of the setting to retrieve. This value is hashed using <c>Cache32</c>
+	/// before performing the lookup.
+	/// </param>
+	/// <param name="setting">
+	/// When this method returns, contains the resolved read‑only list of 
+	/// <see cref="MapTile"/> values if the lookup succeeded; otherwise <c>null</c>.
+	/// </param>
+	/// <returns>
+	/// <c>true</c> if the setting was found and returned successfully;
+	/// <c>false</c> if the lookup failed or the setting does not exist.
+	/// </returns>
+	public static bool TryGetTileArraySetting(
+		Dictionary<uint, MapSetting> settings,
+		string name,
+		out IReadOnlyList<MapTile> setting)
 	{
 		try
 		{
@@ -794,7 +1157,29 @@ public class MapSetting(object value)
 
 		return result.ValueAs<List<MapEntityRef>>();
 	}
-	public static bool TryGetEntityRefArraySetting(Dictionary<uint, MapSetting> settings, string name, out IReadOnlyList<MapEntityRef> setting)
+
+	/// <summary>
+	/// Attempts to retrieve an entity‑reference array setting by name from the settings dictionary.
+	/// </summary>
+	/// <param name="settings">
+	/// The dictionary of settings keyed by their 32‑bit hashed identifiers.
+	/// </param>
+	/// <param name="name">
+	/// The name of the setting to retrieve. This value is hashed using <c>Cache32</c>
+	/// before performing the lookup.
+	/// </param>
+	/// <param name="setting">
+	/// When this method returns, contains the resolved read‑only list of 
+	/// <see cref="MapEntityRef"/> values if the lookup succeeded; otherwise <c>null</c>.
+	/// </param>
+	/// <returns>
+	/// <c>true</c> if the setting was found and returned successfully;
+	/// <c>false</c> if the lookup failed or the setting does not exist.
+	/// </returns>
+	public static bool TryGetEntityRefArraySetting(
+		Dictionary<uint, MapSetting> settings,
+		string name,
+		out IReadOnlyList<MapEntityRef> setting)
 	{
 		try
 		{
@@ -841,7 +1226,33 @@ public class MapSetting(object value)
 
 		return enumResult;
 	}
-	public static bool TryGetEnumArraySetting<TEnum>(Dictionary<uint, MapSetting> settings, string name, out IReadOnlyList<TEnum> setting) where TEnum : Enum
+
+	/// <summary>
+	/// Attempts to retrieve an enum array setting by name from the settings dictionary.
+	/// </summary>
+	/// <typeparam name="TEnum">
+	/// The enum type to retrieve. Must be a valid <see cref="Enum"/>.
+	/// </typeparam>
+	/// <param name="settings">
+	/// The dictionary of settings keyed by their 32‑bit hashed identifiers.
+	/// </param>
+	/// <param name="name">
+	/// The name of the setting to retrieve. This value is hashed using <c>Cache32</c>
+	/// before performing the lookup.
+	/// </param>
+	/// <param name="setting">
+	/// When this method returns, contains the resolved read‑only list of 
+	/// <typeparamref name="TEnum"/> values if the lookup succeeded; otherwise <c>null</c>.
+	/// </param>
+	/// <returns>
+	/// <c>true</c> if the setting was found and returned successfully;
+	/// <c>false</c> if the lookup failed or the setting does not exist.
+	/// </returns>
+	public static bool TryGetEnumArraySetting<TEnum>(
+		Dictionary<uint, MapSetting> settings,
+		string name,
+		out IReadOnlyList<TEnum> setting
+	) where TEnum : Enum
 	{
 		try
 		{

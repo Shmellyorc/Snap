@@ -147,25 +147,68 @@ public static class DiscoverableHelper
 		return matches.Count == 1 ? matches[0] : null;
 	}
 
-
+	/// <summary>
+	/// Finds a single discoverable type whose name and category match the given values.
+	/// </summary>
+	/// <typeparam name="T">
+	/// The base type or interface that the discovered type must inherit or implement.
+	/// </typeparam>
+	/// <param name="name">The name to match against discoverable types.</param>
+	/// <param name="category">The category value to match, provided as an enum.</param>
+	/// <returns>
+	/// The matching type if exactly one result is found; otherwise <c>null</c>.
+	/// </returns>
 	public static Type FindSingleByNameAndCategory<T>(string name, Enum category)
 	{
 		var matches = FindManyByNameAndCategory<T>(name, category);
 		return matches.Count == 1 ? matches[0] : null;
 	}
 
+	/// <summary>
+	/// Finds a single discoverable type whose name and category match the given values.
+	/// </summary>
+	/// <typeparam name="T">
+	/// The base type or interface that the discovered type must inherit or implement.
+	/// </typeparam>
+	/// <param name="name">The name to match, provided as an enum.</param>
+	/// <param name="category">The category to match against discoverable types.</param>
+	/// <returns>
+	/// The matching type if exactly one result is found; otherwise <c>null</c>.
+	/// </returns>
 	public static Type FindSingleByNameAndCategory<T>(Enum name, string category)
 	{
 		var matches = FindManyByNameAndCategory<T>(name, category);
 		return matches.Count == 1 ? matches[0] : null;
 	}
 
+	/// <summary>
+	/// Finds a single discoverable type whose name and category match the given enum values.
+	/// </summary>
+	/// <typeparam name="T">
+	/// The base type or interface that the discovered type must inherit or implement.
+	/// </typeparam>
+	/// <param name="name">The enum value representing the name to match.</param>
+	/// <param name="category">The enum value representing the category to match.</param>
+	/// <returns>
+	/// The matching type if exactly one result is found; otherwise <c>null</c>.
+	/// </returns>
 	public static Type FindSingleByNameAndCategory<T>(Enum name, Enum category)
 	{
 		var matches = FindManyByNameAndCategory<T>(name, category);
 		return matches.Count == 1 ? matches[0] : null;
 	}
 
+	/// <summary>
+	/// Finds a single discoverable type whose name and category match the given string values.
+	/// </summary>
+	/// <typeparam name="T">
+	/// The base type or interface that the discovered type must inherit or implement.
+	/// </typeparam>
+	/// <param name="name">The name to match against discoverable types.</param>
+	/// <param name="category">The category to match against discoverable types.</param>
+	/// <returns>
+	/// The matching type if exactly one result is found; otherwise <c>null</c>.
+	/// </returns>
 	public static Type FindSingleByNameAndCategory<T>(string name, string category)
 	{
 		var matches = FindManyByNameAndCategory<T>(name, category);

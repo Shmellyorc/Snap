@@ -164,6 +164,18 @@ public sealed class LDTKProject : IAsset
 		return entity;
 	}
 
+	/// <summary>
+	/// Attempts to retrieve an entity instance by its identifier.
+	/// </summary>
+	/// <param name="id">The unique entity identifier to look up.</param>
+	/// <param name="value">
+	/// When this method returns, contains the resolved <see cref="MapEntityInstance"/> 
+	/// if the lookup succeeded; otherwise <c>null</c>.
+	/// </param>
+	/// <returns>
+	/// <c>true</c> if the entity was found and returned successfully; 
+	/// <c>false</c> if the lookup failed or the identifier does not exist.
+	/// </returns>
 	public bool TryGetEntityById(string id, out MapEntityInstance value)
 	{
 		try
@@ -196,6 +208,18 @@ public sealed class LDTKProject : IAsset
 		return layer;
 	}
 
+	/// <summary>
+	/// Attempts to retrieve a layer by its identifier.
+	/// </summary>
+	/// <param name="id">The unique layer identifier to look up.</param>
+	/// <param name="value">
+	/// When this method returns, contains the resolved <see cref="MapLayer"/> 
+	/// if the lookup succeeded; otherwise <c>null</c>.
+	/// </param>
+	/// <returns>
+	/// <c>true</c> if the layer was found and returned successfully;
+	/// <c>false</c> if the lookup failed or the identifier does not exist.
+	/// </returns>
 	public bool TryGetLayerById(string id, out MapLayer value)
 	{
 		try
@@ -331,6 +355,19 @@ public sealed class LDTKProject : IAsset
 
 		return tilemap;
 	}
+
+	/// <summary>
+	/// Attempts to retrieve a tileset by its numeric identifier.
+	/// </summary>
+	/// <param name="id">The unique tileset identifier to look up.</param>
+	/// <param name="value">
+	/// When this method returns, contains the resolved <see cref="MapTileset"/>
+	/// if the lookup succeeded; otherwise <c>null</c>.
+	/// </param>
+	/// <returns>
+	/// <c>true</c> if the tileset was found and returned successfully;
+	/// <c>false</c> if the lookup failed or the identifier does not exist.
+	/// </returns>
 	public bool TryGetTilesetId(uint id, out MapTileset value)
 	{
 		try
@@ -349,9 +386,6 @@ public sealed class LDTKProject : IAsset
 	/// Retrieves a tileset from the project by matching its name.
 	/// </summary>
 	/// <param name="name">The name of the tileset as defined in the project.</param>
-	/// <param name="ignoreCase">
-	/// If <c>true</c>, performs a case-insensitive comparison; otherwise, name matching is case-sensitive.
-	/// </param>
 	/// <returns>The matching <see cref="MapTileset"/> instance.</returns>
 	/// <exception cref="ArgumentNullException">
 	/// Thrown if <paramref name="name"/> is null or an empty string.
@@ -369,6 +403,19 @@ public sealed class LDTKProject : IAsset
 
 		return tileset;
 	}
+
+	/// <summary>
+	/// Attempts to retrieve a tileset by its name.
+	/// </summary>
+	/// <param name="name">The tileset name to look up.</param>
+	/// <param name="value">
+	/// When this method returns, contains the resolved <see cref="MapTileset"/>
+	/// if the lookup succeeded; otherwise <c>null</c>.
+	/// </param>
+	/// <returns>
+	/// <c>true</c> if the tileset was found and returned successfully;
+	/// <c>false</c> if the lookup failed or the name does not exist.
+	/// </returns>
 	public bool TryGetTilesetByName(string name, out MapTileset value)
 	{
 		try
