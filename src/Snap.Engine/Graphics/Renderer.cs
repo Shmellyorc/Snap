@@ -55,6 +55,14 @@ public sealed class Renderer
 	private long _seqCounter = 0;
 	private int _vertexBufferSize, _batches;
 	private Camera _camera;
+	private readonly List<SFVertex[]> _rentedQuads = new(256);
+	private static readonly ObjectPool<SFVertex[]> QuadPool =
+		new(() => new SFVertex[6], quad =>
+		{
+			// Clear the array for reuse
+			for (int i = 0; i < 6; i++)
+				quad[i] = default;
+		});
 
 	/// <summary>
 	/// Gets the number of individual draw calls issued during the current frame.
@@ -702,67 +710,70 @@ public sealed class Renderer
 		float rotation,
 		TextureEffects effects)
 	{
+		// var result = new SFVertex[MaxVerticies];
+		var result = QuadPool.Rent();
+		_rentedQuads.Add(result);
 
-		var result = new SFVertex[MaxVerticies];
+		QuadBuilder.BuildQuad(result, dstRect, srcRect, color, origin, scale, rotation, effects, texture);
 
 		// Compute a pivot that accounts for both origin and scale exactly once:
-		float pivotX = origin.X * dstRect.Width * scale.X;
-		float pivotY = origin.Y * dstRect.Height * scale.Y;
+		// float pivotX = origin.X * dstRect.Width * scale.X;
+		// float pivotY = origin.Y * dstRect.Height * scale.Y;
 
-		// Build “local” corner positions already multiplied by scale:
-		var localPos = new SFVectF[4];
-		localPos[0] = new SFVectF(-pivotX, -pivotY);
-		localPos[1] = new SFVectF(dstRect.Width * scale.X - pivotX, -pivotY);
-		localPos[2] = new SFVectF(dstRect.Width * scale.X - pivotX, dstRect.Height * scale.Y - pivotY);
-		localPos[3] = new SFVectF(-pivotX, dstRect.Height * scale.Y - pivotY);
+		// // Build “local” corner positions already multiplied by scale:
+		// var localPos = new SFVectF[4];
+		// localPos[0] = new SFVectF(-pivotX, -pivotY);
+		// localPos[1] = new SFVectF(dstRect.Width * scale.X - pivotX, -pivotY);
+		// localPos[2] = new SFVectF(dstRect.Width * scale.X - pivotX, dstRect.Height * scale.Y - pivotY);
+		// localPos[3] = new SFVectF(-pivotX, dstRect.Height * scale.Y - pivotY);
 
-		float cos = MathF.Cos(rotation);
-		float sin = MathF.Sin(rotation);
+		// float cos = MathF.Cos(rotation);
+		// float sin = MathF.Sin(rotation);
 
-		// Rotate each corner and then translate by (dstRect.X, dstRect.Y) + pivot
-		for (int i = 0; i < localPos.Length; i++)
-		{
-			float x = localPos[i].X;
-			float y = localPos[i].Y;
+		// // Rotate each corner and then translate by (dstRect.X, dstRect.Y) + pivot
+		// for (int i = 0; i < localPos.Length; i++)
+		// {
+		// 	float x = localPos[i].X;
+		// 	float y = localPos[i].Y;
 
-			localPos[i].X = cos * x - sin * y + dstRect.X + pivotX;
-			localPos[i].Y = sin * x + cos * y + dstRect.Y + pivotY;
-		}
+		// 	localPos[i].X = cos * x - sin * y + dstRect.X + pivotX;
+		// 	localPos[i].Y = sin * x + cos * y + dstRect.Y + pivotY;
+		// }
 
-		// Texture coordinates (UVs)
-		float u1 = srcRect.Left;
-		float v1 = srcRect.Top;
-		float u2 = srcRect.Right;
-		float v2 = srcRect.Bottom;
+		// // Texture coordinates (UVs)
+		// float u1 = srcRect.Left;
+		// float v1 = srcRect.Top;
+		// float u2 = srcRect.Right;
+		// float v2 = srcRect.Bottom;
 
-		if (effects.HasFlag(TextureEffects.FlipHorizontal))
-		{
-			(u1, u2) = (u2, u1);
-		}
-		if (effects.HasFlag(TextureEffects.FlipVertical))
-		{
-			(v1, v2) = (v2, v1);
-		}
+		// if (effects.HasFlag(TextureEffects.FlipHorizontal))
+		// {
+		// 	(u1, u2) = (u2, u1);
+		// }
+		// if (effects.HasFlag(TextureEffects.FlipVertical))
+		// {
+		// 	(v1, v2) = (v2, v1);
+		// }
 
-		if (EngineSettings.Instance.HalfTexelOffset)
-		{
-			float texelOffsetX = TexelOffset / texture.Size.X;
-			float texelOffsetY = TexelOffset / texture.Size.Y;
+		// if (EngineSettings.Instance.HalfTexelOffset)
+		// {
+		// 	float texelOffsetX = TexelOffset / texture.Size.X;
+		// 	float texelOffsetY = TexelOffset / texture.Size.Y;
 
-			if (u1 < u2) { u1 += texelOffsetX; u2 -= texelOffsetX; }
-			else { u1 -= texelOffsetX; u2 += texelOffsetX; }
+		// 	if (u1 < u2) { u1 += texelOffsetX; u2 -= texelOffsetX; }
+		// 	else { u1 -= texelOffsetX; u2 += texelOffsetX; }
 
-			if (v1 < v2) { v1 += texelOffsetY; v2 -= texelOffsetY; }
-			else { v1 -= texelOffsetY; v2 += texelOffsetY; }
-		}
+		// 	if (v1 < v2) { v1 += texelOffsetY; v2 -= texelOffsetY; }
+		// 	else { v1 -= texelOffsetY; v2 += texelOffsetY; }
+		// }
 
-		// Build two triangles (6 vertices)
-		result[0] = new SFVertex(localPos[0], color, new SFVectF(u1, v1));
-		result[1] = new SFVertex(localPos[1], color, new SFVectF(u2, v1));
-		result[2] = new SFVertex(localPos[3], color, new SFVectF(u1, v2));
-		result[3] = new SFVertex(localPos[1], color, new SFVectF(u2, v1));
-		result[4] = new SFVertex(localPos[2], color, new SFVectF(u2, v2));
-		result[5] = new SFVertex(localPos[3], color, new SFVectF(u1, v2));
+		// // Build two triangles (6 vertices)
+		// result[0] = new SFVertex(localPos[0], color, new SFVectF(u1, v1));
+		// result[1] = new SFVertex(localPos[1], color, new SFVectF(u2, v1));
+		// result[2] = new SFVertex(localPos[3], color, new SFVectF(u1, v2));
+		// result[3] = new SFVertex(localPos[1], color, new SFVectF(u2, v1));
+		// result[4] = new SFVertex(localPos[2], color, new SFVectF(u2, v2));
+		// result[5] = new SFVertex(localPos[3], color, new SFVectF(u1, v2));
 
 		return result;
 	}
@@ -829,6 +840,8 @@ public sealed class Renderer
 		// reset for next frame
 		_drawCommands.Clear();
 		_seqCounter = 0;
+
+		ReturnAllQuads();
 	}
 
 	private void EnsureVertexBufferCapacity(int neededSize)
@@ -872,6 +885,15 @@ public sealed class Renderer
 		});
 
 		_batches++;
+	}
+
+	private void ReturnAllQuads()
+	{
+		foreach (var quad in _rentedQuads)
+		{
+			QuadPool.Return(quad);
+		}
+		_rentedQuads.Clear();
 	}
 }
 

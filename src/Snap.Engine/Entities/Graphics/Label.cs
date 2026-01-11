@@ -1,5 +1,3 @@
-using Snap.Engine.Graphics.Markup;
-
 namespace Snap.Engine.Entities.Graphics;
 
 /// <summary>
