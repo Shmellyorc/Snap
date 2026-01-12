@@ -73,6 +73,12 @@ public sealed class AnimatedSprite : Entity
 	private Rect2[] _currentFrames;
 	private float _currentDuration;
 
+
+
+	public Vect2 Offset { get; set; }
+
+
+
 	/// <summary>
 	/// Gets a value indicating whether an animation is currently playing.
 	/// </summary>
@@ -244,7 +250,7 @@ public sealed class AnimatedSprite : Entity
 			throw new ArgumentOutOfRangeException(nameof(speed));
 		if (grid.X <= 0 || grid.Y <= 0) throw new ArgumentOutOfRangeException(
 			nameof(grid), grid, "Grid cell with and height must both be greaer than zero.");
-		
+
 		var tilesPerRow = (int)(texture.Size.X / grid.X);
 
 		var rects = frames.Select(idx =>
@@ -436,19 +442,22 @@ public sealed class AnimatedSprite : Entity
 		var offsetX = AlignHelpers.AlignWidth(Size.X, size.X, HAlign);
 		var offsetY = AlignHelpers.AlignHeight(Size.Y, size.Y, VAlign);
 
+		offsetX -= Origin.X * size.X;
+		offsetY -= Origin.Y * size.Y;
+
 		if (_rt != null)
 		{
 			// world-space origin of the RT and into RT-local coords
 			var world = this.GetGlobalPosition();
 			var rtWorld = _rt.GetGlobalPosition();
 			var local = world - rtWorld;
-			var final = new Vect2(local.X + offsetX, local.Y + offsetY);
+			var final = new Vect2(local.X + offsetX, local.Y + offsetY) + Offset;
 
 			_rt.Draw(Current.Texture, final, frame, Color, Origin, Scale, Rotation, Effects, Layer);
 		}
 		else
 		{
-			var final = new Vect2(Position.X + offsetX, Position.Y + offsetY);
+			var final = new Vect2(Position.X + offsetX, Position.Y + offsetY) + Offset;
 
 			Renderer.Draw(Current.Texture, final, frame, Color, Origin, Scale, Rotation, Effects, Layer);
 		}

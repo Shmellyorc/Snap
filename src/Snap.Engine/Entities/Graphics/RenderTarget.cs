@@ -10,11 +10,11 @@ namespace Snap.Engine.Entities.Graphics;
 /// <param name="entities">Optional child entities to add to this panel.</param>
 public class RenderTarget(params Entity[] entities) : Panel(entities)
 {
-	private const int MaxDrawCalls = 256;
+	private const int MaxDrawCalls = 8192;
 	private const int MaxVerticies = 6;
 	private const float TexelOffset = 0.05f;
 
-	private readonly Dictionary<uint, List<DrawCommand>> _drawCommands = new(32);
+	private readonly Dictionary<uint, List<DrawCommand>> _drawCommands = new(64);
 	private int _vertexBufferSize, _batches;
 	private SFRenderTexture _rendTexture;
 	private SFVertexBuffer _vertexBuffer;
@@ -88,7 +88,7 @@ public class RenderTarget(params Entity[] entities) : Panel(entities)
 		}
 
 		_vertexBufferSize = MaxDrawCalls;
-		_vertexBuffer = new((uint)_vertexBufferSize, SFPrimitiveType.Triangles, SFVertexBuffer.UsageSpecifier.Dynamic);
+		_vertexBuffer = new((uint)_vertexBufferSize, SFPrimitiveType.Triangles, SFVertexBuffer.UsageSpecifier.Stream);
 		_vertexCache = new SFVertex[_vertexBufferSize];
 		_view = new SFView(new SFRectF(0, 0, Size.X, Size.Y));
 		_rendTexture.SetView(_view);
@@ -100,47 +100,96 @@ public class RenderTarget(params Entity[] entities) : Panel(entities)
 	{
 		if (!_drawCommands.TryGetValue(texHandle, out var list))
 		{
-			list = [];
+			list = new List<DrawCommand>(32);
 			_drawCommands[texHandle] = list;
 		}
 
-		list.Add(new DrawCommand(tex, quad, depth, _seqCounter++));
+		list.Add(new DrawCommand(tex, quad, depth, _seqCounter++, 0));
 
 		// _allCommands.Add(cmd);
 	}
 
 
+
+	private class DrawCommandComparer : IComparer<DrawCommand>
+	{
+		public static readonly DrawCommandComparer Instance = new();
+
+		public int Compare(DrawCommand x, DrawCommand y)
+		{
+			int depthCompare = x.Depth.CompareTo(y.Depth);
+			if (depthCompare != 0) return depthCompare;
+
+			return x.Sequence.CompareTo(y.Sequence);
+		}
+	}
+
+	private readonly List<DrawCommand> _tempCommandList = new(1024);
+
 	internal void RenderAll()
 	{
+		if (_drawCommands.Count == 0)  // Nothing to render
+		{
+			_batches = 0;
+			ReturnAllQuads();
+			return;
+		}
+
 		var index = 0;
 		SFTexture currentTexture = null;
-		var allCommands = _drawCommands.Values
-			.SelectMany(list => list)
-			.OrderBy(cmd => cmd.Depth)
-			.ThenBy(cmd => cmd.Sequence);
 
-		foreach (ref readonly var cmd in CollectionsMarshal.AsSpan(allCommands.ToList()))
+		// var allCommands = _drawCommands.Values
+		// 	.SelectMany(list => list)
+		// 	.OrderBy(cmd => cmd.Depth)
+		// 	.ThenBy(cmd => cmd.Sequence);
+		var totalCommands = _drawCommands.Values.Sum(l => l.Count);
+		// var allCommands = new List<DrawCommand>(totalCommands);
+		// foreach (var list in _drawCommands.Values)
+		// 	allCommands.AddRange(list);
+
+		_tempCommandList.Clear();
+		_tempCommandList.EnsureCapacity(totalCommands);
+		foreach(var list in _drawCommands.Values)
 		{
-			bool willOverflow = index + cmd.Vertex.Length > _vertexBufferSize;
-			bool textureChanged = currentTexture != null && currentTexture != cmd.Texture;
+			_tempCommandList.AddRange(list);
+		}
 
-			if (willOverflow || textureChanged)
+		_tempCommandList.Sort(DrawCommandComparer.Instance);
+
+		unsafe
+		{
+			foreach (ref readonly var cmd in CollectionsMarshal.AsSpan(_tempCommandList))
 			{
-				if (index > 0 && currentTexture != null)
-					Flush(index, _vertexCache, currentTexture);
-				index = 0;
+				bool willOverflow = index + cmd.Vertex.Length > _vertexBufferSize;
+				bool textureChanged = currentTexture != null && currentTexture != cmd.Texture;
 
-				if (willOverflow)
-					EnsureVertexBufferCapacity(index + cmd.Vertex.Length);
+				if (willOverflow || textureChanged)
+				{
+					if (index > 0 && currentTexture != null)
+						Flush(index, _vertexCache, currentTexture);
+					index = 0;
+
+					if (willOverflow)
+						EnsureVertexBufferCapacity(index + cmd.Vertex.Length);
+				}
+
+				int vertexCount = cmd.Vertex.Length;
+				int byteCount = vertexCount * sizeof(SFVertex);
+
+				fixed (SFVertex* srcPtr = cmd.Vertex)
+				fixed (SFVertex* dstPtr = &_vertexCache[index])
+				{
+					Buffer.MemoryCopy(srcPtr, dstPtr, byteCount, byteCount);
+				}
+
+				// copy verts into the cache
+				// var src = cmd.Vertex.AsSpan();
+				// var dst = _vertexCache.AsSpan(index, src.Length);
+				// src.CopyTo(dst);
+
+				index += vertexCount;
+				currentTexture = cmd.Texture;
 			}
-
-			// copy verts into the cache
-			var src = cmd.Vertex.AsSpan();
-			var dst = _vertexCache.AsSpan(index, src.Length);
-			src.CopyTo(dst);
-			index += src.Length;
-
-			currentTexture = cmd.Texture;
 		}
 
 		// Final flush
@@ -148,8 +197,7 @@ public class RenderTarget(params Entity[] entities) : Panel(entities)
 			Flush(index, _vertexCache, currentTexture);
 
 		_drawCommands.Clear();
-		_seqCounter = 0;
-
+		_batches = 0;
 		ReturnAllQuads();
 	}
 
@@ -159,14 +207,19 @@ public class RenderTarget(params Entity[] entities) : Panel(entities)
 			return;
 
 		// double the size until big enough:
-		int newSize = _vertexBufferSize;
+		// int newSize = _vertexBufferSize;
+		// while (newSize < neededSize)
+		// 	newSize += EngineSettings.Instance.BatchIncreasment;
+		int newSize = Math.Max(_vertexBufferSize * 2, _vertexBufferSize + EngineSettings.Instance.BatchIncreasment);
 		while (newSize < neededSize)
-			newSize += EngineSettings.Instance.BatchIncreasment;
+		{
+			newSize = Math.Max(newSize * 2, newSize + EngineSettings.Instance.BatchIncreasment);
+		}
 
 		Logger.Instance.Log(LogLevel.Info, $"Resizing Render Target Vertex buffer to {newSize}");
 
 		_vertexBuffer.Dispose();
-		_vertexBuffer = new SFVertexBuffer((uint)newSize, SFPrimitiveType.Triangles, SFVertexBuffer.UsageSpecifier.Dynamic);
+		_vertexBuffer = new SFVertexBuffer((uint)newSize, SFPrimitiveType.Triangles, SFVertexBuffer.UsageSpecifier.Stream);
 
 		Array.Resize(ref _vertexCache, newSize);
 
@@ -178,12 +231,12 @@ public class RenderTarget(params Entity[] entities) : Panel(entities)
 		if (vertexCount == 0 || texture == null || texture.IsInvalid)
 			return;
 
-		// ZERO OUT any leftover verts so they don't draw
 		var totalVerts = vertices.Length;
 		if (vertexCount < totalVerts)
 			Array.Clear(vertices, vertexCount, totalVerts - vertexCount);
 
-		_vertexBuffer.Update(vertices);
+		// Update entire cleared array
+		_vertexBuffer.Update(vertices, (uint)totalVerts, 0);
 
 		_rendTexture.Draw(_vertexBuffer, new SFRenderStates
 		{
@@ -246,6 +299,7 @@ public class RenderTarget(params Entity[] entities) : Panel(entities)
 		Renderer.DrawBypassAtlas(_texture, Position, _color, Layer);
 
 		IsRendering = false;
+		_seqCounter = 0;
 
 		// if (EngineSettings.Instance.DebugDraw)
 		// 	BE.Renderer.DrawRectangleOutline(Bounds.X, Bounds.Y, Bounds.Width, Bounds.Height, 1f, BoxColor.AllShades.Teal);
@@ -793,8 +847,8 @@ public class RenderTarget(params Entity[] entities) : Panel(entities)
 	TextureEffects effects = TextureEffects.None,
 	int depth = 0)
 	{
-		// if (!texture.IsValid)
-		// 	texture.Load();
+		if (!texture.IsValid)
+			texture.Load();
 
 		var quad = DrawQuad(
 			texture,
@@ -814,7 +868,7 @@ public class RenderTarget(params Entity[] entities) : Panel(entities)
 			_drawCommands[textureId] = list;
 		}
 
-		list.Add(new DrawCommand(texture, quad, depth, _seqCounter++));
+		list.Add(new DrawCommand(texture, quad, depth, _seqCounter++, 0));
 	}
 
 	private void EngineDraw(
@@ -868,6 +922,8 @@ public class RenderTarget(params Entity[] entities) : Panel(entities)
 
 	private void ReturnAllQuads()
 	{
+		if (_rentedQuads.Count == 0) return;
+
 		foreach (var quad in _rentedQuads)
 		{
 			QuadPool.Return(quad);

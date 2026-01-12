@@ -99,10 +99,10 @@ public class Game : IDisposable
 	/// Gets a hashed representation of the current <see cref="Version"/>.
 	/// </summary>
 	/// <remarks>
-	/// Uses <see cref="HashHelpers.Hash64(string)"/> to generate a 64-bit hash of the version string,
+	/// Uses <see cref="HashHelpers.Cache64(string)"/> to generate a 64-bit hash of the version string,
 	/// formatted as an 8-character hexadecimal value.
 	/// </remarks>
-	public string VersionHash => $"{HashHelpers.Hash64(Version):X8}";
+	public string VersionHash => $"{HashHelpers.Cache64(Version):X8}";
 
 	/// <summary>
 	/// Gets the input map for the game.

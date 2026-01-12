@@ -37,8 +37,7 @@ public class Entity
 	/// <returns>
 	/// A list containing all child entities that are of type <typeparamref name="T"/>.
 	/// </returns>
-	public IReadOnlyList<T> ChildrenAs<T>() where T : Entity =>
-		Children.OfType<T>().ToList();
+	public IReadOnlyList<T> ChildrenAs<T>() where T : Entity => [.. Children.OfType<T>()];
 
 	/// <summary>
 	/// The number of child entities attached to this one.
@@ -83,7 +82,9 @@ public class Entity
 	/// <summary>
 	/// The index of this entity among its siblings.
 	/// </summary>
-	public int ChildIndex => Children.IndexOf(this);
+	public int ChildIndex => Parent != null
+		? Parent.Children.IndexOf(this)
+		: Children.IndexOf(this);
 
 	/// <summary>
 	/// If true, prevents the engine from removing this entity automatically.
@@ -94,37 +95,32 @@ public class Entity
 		{
 			if (IsChild)
 				return _parent.KeepAlive || _keepAlive;
-
 			return _keepAlive;
 		}
 		set
 		{
 			if (_keepAlive == value)
 				return;
-
 			_keepAlive = value;
 
 			if (_screen == null)
 			{
 				CoroutineManager.Start(WaitForNullScreen(() => _screen.SetDirtyState(DirtyState.Sort)));
-				// CoroutineManager.Start(CoroutineHelpers.WaitWhileThan(() => _screen == null,
-				// 	() => _screen.UpdateDirtyState(DirtyState.Update)));
+				return;
 			}
-			else
-				_screen.SetDirtyState(DirtyState.Update);
+			_screen.SetDirtyState(DirtyState.Update);
 		}
 	}
 
 	/// <summary>
 	/// Controls whether this entity is visible.
 	/// </summary>
-	public bool IsVisible
+	public bool Visible
 	{
 		get
 		{
 			if (IsChild)
-				return _parent.IsVisible && _visible;
-
+				return _parent.Visible && _visible;
 			return _visible;
 		}
 		set => _visible = value;
@@ -175,11 +171,11 @@ public class Entity
 
 			if (_screen == null)
 			{
-				// CoroutineManager.Start(CoroutineHelpers.WaitWhileThan(() => _screen == null,
 				CoroutineManager.Start(WaitForNullScreen(() => _screen.SetDirtyState(DirtyState.Sort)));
+				return;
 			}
-			else
-				_screen.SetDirtyState(DirtyState.Sort);
+
+			_screen.SetDirtyState(DirtyState.Sort);
 		}
 	}
 
@@ -192,16 +188,9 @@ public class Entity
 		{
 			if (IsChild)
 				return _parent.Position + _position;
-
 			return _position;
 		}
-		set
-		{
-			if (_position == value)
-				return;
-
-			_position = value;
-		}
+		set => _position = value;
 	}
 
 	/// <summary>
@@ -853,9 +842,6 @@ public class Entity
 
 		var toRemove = _children.ToArray();
 		_children.Clear();
-
-		// for (int i = toRemove.Length - 1; i >= 0; i--)
-		// 	toRemove[i]._parent = null;
 
 		_screen.RemoveEntity(toRemove);
 	}

@@ -13,8 +13,10 @@ public class Screen
 	private int _layer;
 	private bool _visible = true;
 	private DirtyState _dirtyState = DirtyState.Sort | DirtyState.Update;
-	private readonly List<Entity> _entities = [];
-	private List<Entity> _updateEntities = [];
+	private readonly List<Entity> _entities = [], _updateEntities = [];
+	private Entity[] _entityArrayBuffer = new Entity[256];
+	private int[] _indexBuffer = new int[256];
+	private static readonly Comparison<Entity> SortComparison = (a, b) => a.Layer.CompareTo(b.Layer);
 
 	/// <summary>
 	/// Unique identifier for this screen, assigned by the <see cref="ScreenManager"/>.
@@ -499,14 +501,12 @@ public class Screen
 	}
 	#endregion
 
-
-
 	internal void EngineOnUpdate(bool isActive, bool isTopmostScreen) // Hot Path
 	{
 		IsActive = isActive;
 		IsTopmostScreen = isTopmostScreen;
 
-		Camera?.Update(Clock.DeltaTime);
+		Camera.Update(Clock.DeltaTime);
 
 		if (_entities.Count == 0)
 		{
@@ -520,16 +520,51 @@ public class Screen
 
 			if (_dirtyState.HasFlag(DirtyState.Update))
 			{
-				pipeline = pipeline
-					.Where(x => x is not null && !x.IsExiting && (x.HasAncestorOfType<RenderTarget>()
-						|| x.Bounds.Intersects(Camera.CullBounds)
-						|| x.KeepAlive));
+				_updateEntities.Clear();
+				_updateEntities.EnsureCapacity(_entities.Count);
+
+				for (int i = 0; i < _entities.Count; i++)
+				{
+					var entity = _entities[i];
+
+					if (entity != null
+					&& !entity.IsExiting
+					&& (entity.HasAncestorOfType<RenderTarget>()
+					|| entity.Bounds.Intersects(Camera.CullBounds) || entity.KeepAlive))
+					{
+						_updateEntities.Add(entity);
+					}
+				}
 			}
 
 			if (_dirtyState.HasFlag(DirtyState.Sort))
-				pipeline = pipeline.OrderBy(x => x.Layer);
+			{
+				var list = _updateEntities;
+				int count = list.Count;
 
-			_updateEntities = pipeline.ToList();
+				if (_entityArrayBuffer.Length < count)
+				{
+					_entityArrayBuffer = new Entity[count];
+					_indexBuffer = new int[count];
+				}
+
+				list.CopyTo(_entityArrayBuffer, 0);
+				for (int i = 0; i < count; i++) _indexBuffer[i] = i;
+
+				var tempArray = new Entity[count];
+				Array.Copy(_entityArrayBuffer, tempArray, count);
+				Array.Sort(_indexBuffer, 0, count, Comparer<int>.Create((a, b) =>
+				{
+					int primary = SortComparison(tempArray[a], tempArray[b]);
+					return primary != 0 ? primary : a.CompareTo(b);
+				}));
+
+				list.Clear();
+				for (int i = 0; i < count; i++)
+				{
+					list.Add(_entityArrayBuffer[_indexBuffer[i]]);
+				}
+			}
 
 			_dirtyState = DirtyState.None;
 		}
@@ -538,7 +573,7 @@ public class Screen
 		{
 			var e = _updateEntities[i];
 
-			if (!e.IsVisible)
+			if (!e.Visible)
 				continue;
 
 			e.EngineOnUpdate();

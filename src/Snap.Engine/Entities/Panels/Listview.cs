@@ -22,7 +22,7 @@ public class ListItem : Entity
 	/// </summary>
 	/// <param name="listview">The parent listview.</param>
 	/// <param name="selectedIndex">The global index of the selected item.</param>
-	public virtual void OnSelectedChanged(Listview listview, int selectedIndex) { }
+	public virtual void OnSelectionChanged(Listview listview, int selectedIndex) { }
 
 	/// <summary>
 	/// Gets or sets whether this item is currently selected.
@@ -33,19 +33,19 @@ public class ListItem : Entity
 		get => _selected;
 		set
 		{
-			bool oldValue = _selected;
+			// bool oldValue = _selected;
 			if (_selected == value)
 				return;
 			_selected = value;
 
 			if (_bar != null)
-				_bar.IsVisible = _selected;
+				_bar.Visible = _selected;
 
 			if (_selected)
 				OnSelected((Listview)Parent, ChildIndex);
 
-			if (_selected != oldValue)
-				OnSelectedChanged(ParentAs<Listview>(), ChildIndex);
+			// if (_selected != oldValue)
+			// OnSelectedChanged(ParentAs<Listview>(), ChildIndex);
 		}
 	}
 
@@ -68,7 +68,7 @@ public class ListItem : Entity
 			{
 				Size = Size,
 				Color = SelectionColor,
-				IsVisible = _selected,
+				Visible = _selected,
 			}
 		);
 
@@ -350,7 +350,7 @@ public sealed class Listview : RenderTarget
 		for (int i = 0; i < Children.Count; i++)
 		{
 			var c = (ListItem)Children[i];
-			if (!c.IsVisible) continue;
+			if (!c.Visible) continue;
 
 			c.Position = Direction == ListviewDirection.Vertical
 				? new Vect2(0, offset)
@@ -362,12 +362,16 @@ public sealed class Listview : RenderTarget
 				OnItemSelected?.Invoke(this);
 			}
 
+			c.OnSelectionChanged(this, _scrollIndex + _selectedIndex);
+
 			index++;
 
 			// advance by itemSize + spacing
 			offset += Direction == ListviewDirection.Vertical
 				? _avgSize.Y + _spacing
 				: _avgSize.X + _spacing;
+
+
 		}
 
 		base.OnDirty(state);

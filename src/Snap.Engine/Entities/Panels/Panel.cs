@@ -1,3 +1,5 @@
+using System.Drawing;
+
 namespace Snap.Engine.Entities.Panels;
 
 /// <summary>
@@ -8,6 +10,21 @@ public class Panel : Entity
 {
 	private readonly List<Entity> _entityAdd;
 	private DirtyState _state;
+
+	public new Vect2 Size
+	{
+		get => base.Size;
+		set
+		{
+			Vect2 oldSize = base.Size;
+			if (oldSize == value) return;
+
+			base.Size = value;
+
+			foreach (var p in this.GetAncestorsOfType<Panel>())
+				p.SetDirtyState(DirtyState.Update | DirtyState.Sort);
+		}
+	}
 
 	/// <summary>
 	/// Marks this panel as needing a layout or sort update using the given dirty state flags.
@@ -24,7 +41,7 @@ public class Panel : Entity
 		if (entities == null || entities.Length == 0)
 			return;
 
-		_entityAdd = new List<Entity>(entities);
+		_entityAdd = [.. entities];
 	}
 
 	/// <summary>
@@ -40,9 +57,6 @@ public class Panel : Entity
 	{
 		if (_entityAdd != null)
 		{
-			// for (int i = _entityAdd.Count - 1; i >= 0 ; i--)
-			// 	_entityAdd[i].Position = Position;
-
 			base.AddChild([.. _entityAdd]);
 			_entityAdd.Clear();
 
@@ -72,6 +86,11 @@ public class Panel : Entity
 	/// <param name="state">The combined dirty state flags.</param>
 	protected virtual void OnDirty(DirtyState state) { }
 
+	protected virtual Vect2 OnResize(IEnumerable<Entity> children)
+	{
+		return Vect2.Zero;
+	}
+
 	/// <summary>
 	/// Adds one or more child entities to the panel and marks the layout as dirty.
 	/// </summary>
@@ -89,10 +108,14 @@ public class Panel : Entity
 			base.AddChild(children);
 
 			SetDirtyState(DirtyState.Update | DirtyState.Sort);
+
+			for (int i = 0; i < children.Length; i++)
+				OnChildAdded(children[i]);
 		}
 
 		StartRoutine(Routine(children));
 	}
+	protected virtual void OnChildAdded(Entity entity) { }
 
 	/// <summary>
 	/// Removes one or more child entities from the panel and marks the layout as dirty.
@@ -107,11 +130,15 @@ public class Panel : Entity
 		{
 			SetDirtyState(DirtyState.Update);
 
+			for (int i = 0; i < children.Length; i++)
+				OnChildRemoved(children[i]);
+
 			return true;
 		}
 
 		return false;
 	}
+	protected virtual void OnChildRemoved(Entity entity) { }
 
 	/// <summary>
 	/// Removes all child entities from the panel and marks the layout as dirty.
@@ -122,6 +149,12 @@ public class Panel : Entity
 			return;
 
 		if (base.RemoveChild([.. Children]))
+		{
+			OnChildrenCleared();
+
 			SetDirtyState(DirtyState.Update);
+		}
 	}
+	protected virtual void OnChildrenCleared() { }
+
 }

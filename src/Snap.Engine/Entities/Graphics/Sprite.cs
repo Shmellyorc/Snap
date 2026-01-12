@@ -9,6 +9,10 @@ public class Sprite : Entity
 	private RenderTarget _rt;
 	private bool _rtChecked;
 
+
+	public Vect2 Offset { get; set; }
+
+
 	/// <summary>
 	/// The rectangular portion of the texture to render.
 	/// </summary>
@@ -88,13 +92,16 @@ public class Sprite : Entity
 		var offsetX = AlignHelpers.AlignWidth(Size.X, Source.Size.X, HAlign);
 		var offsetY = AlignHelpers.AlignHeight(Size.Y, Source.Size.Y, VAlign);
 
+		offsetX -= Origin.X * Size.X;
+		offsetY -= Origin.Y * Size.Y;
+
 		if (_rt != null)
 		{
 			// world-space origin of the RT and into RT-local coords
 			var world = this.GetGlobalPosition();
 			var rtWorld = _rt.GetGlobalPosition();
 			var local = world - rtWorld;
-			var final = new Vect2(local.X + offsetX, local.Y + offsetY);
+			var final = new Vect2(local.X + offsetX, local.Y + offsetY) + Offset;
 
 			if (_texture.RepeatedTexture) // don't add repeated textures into the atlas... creates massive amount of source rects
 				_rt.DrawBypassAtlas(_texture, final, Source, Color, Origin, Scale, Rotation, Effects, Layer);
@@ -103,7 +110,7 @@ public class Sprite : Entity
 		}
 		else
 		{
-			var final = new Vect2(Position.X + offsetX, Position.Y + offsetY);
+			var final = new Vect2(Position.X + offsetX, Position.Y + offsetY) + Offset;
 
 			if (_texture.RepeatedTexture)
 				Renderer.DrawBypassAtlas(_texture, final, Source, Color, Origin, Scale, Rotation, Effects, Layer);

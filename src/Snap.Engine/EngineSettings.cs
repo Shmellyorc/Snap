@@ -16,7 +16,7 @@ public sealed class EngineSettings
 	private const uint MinimumAtlasPageSize = 512;
 	private const uint MinPages = 3;
 	private const uint MaxPages = 8;
-	private const int MinBatchIncrease = 32, MaxBatchIncrease = 1024;
+	private const int MinBatchIncrease = 1024, MaxBatchIncrease = 1024 * 4;
 	private const uint MinimumDrawllCallCacheSize = 512;
 	private const uint MaxLogFileSizeBytes = 50;
 	private const uint BytesPerMB = 1_048_576;

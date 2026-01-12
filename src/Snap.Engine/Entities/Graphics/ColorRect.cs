@@ -48,7 +48,7 @@ public sealed class ColorRect : Entity
 			_rtChecked = true;
 		}
 
-		if (Color.A <= 0 || !IsVisible)
+		if (Color.A <= 0 || !Visible)
 			return;
 
 		if (_rt != null)

@@ -62,6 +62,22 @@ public sealed class Ninepatch : Entity
 		}
 	}
 
+
+
+	public new bool Visible
+	{
+		get => base.Visible;
+		set
+		{
+			if (base.Visible == value)
+				return;
+			base.Visible = value;
+
+			_dirtyFlags |= NinePatchDirtyFlags.Dest | NinePatchDirtyFlags.Source;
+		}
+	}
+
+
 	/// <summary>
 	/// Initializes a new instance of the <see cref="Ninepatch"/> class with the given texture,
 	/// source rectangle defining the full texture region, and corner sizes for patch slicing.

@@ -55,6 +55,8 @@ public sealed class ScreenManager
 
 	internal ScreenManager() => Instance ??= this;
 
+	private static readonly Comparison<Screen> SortComparison = (a, b) => a.Layer.CompareTo(b.Layer);
+
 	internal void Update() // Hot Path
 	{
 		if (_screens.Count == 0)
@@ -71,39 +73,53 @@ public sealed class ScreenManager
 				{
 					var s = _screens[i];
 
-					if (s.IsExiting)
-						continue;
-					if (!s.IsVisible)
-						continue;
-
-					_updateScreens.Add(s);
+					if (s != null && !s.IsExiting)
+						_updateScreens.Add(s);
 				}
 			}
 
 			if (_dirtyState.HasFlag(DirtyState.Sort))
-				_updateScreens.Sort((a, b) => a.Layer.CompareTo(b.Layer));
+				_updateScreens.Sort(SortComparison);
 
 			_dirtyState = DirtyState.None;
 		}
 
 		var isActive = Game.Instance.IsActive;
-		var topmostScreen = _updateScreens
-			.LastOrDefault(x => !x.IsUiScreen);
+		Screen topmostScreen = null;
 
-		foreach (var screen in _updateScreens)
+		for (int i = _updateScreens.Count - 1; i >= 0; i--)
 		{
-			if (EngineSettings.Instance.DebugDraw)
-				DebugRenderer.Instance.Begin();
+			var screen = _updateScreens[i];
 
-			Renderer.Instance.Begin(screen.Camera);
+			if (screen != null && !screen.IsUiScreen)
+			{
+				topmostScreen = screen;
+				break; // Found it, exit early
+			}
+		}
+		
+		if (EngineSettings.Instance.DebugDraw)
+			DebugRenderer.Instance.Begin();
+
+		Renderer.Instance.Begin();
+
+		for (int i = 0; i < _updateScreens.Count; i++)
+		{
+			var screen = _updateScreens[i];
+
+			if (!screen.IsVisible)
+				continue;
+
+			Renderer.Instance.SetCamera(screen.Camera);
 
 			screen.EngineOnUpdate(isActive, screen == topmostScreen);
 
-			Renderer.Instance.End();
-
-			if (EngineSettings.Instance.DebugDraw)
-				DebugRenderer.Instance.End();
 		}
+
+		Renderer.Instance.End();
+
+		if (EngineSettings.Instance.DebugDraw)
+			DebugRenderer.Instance.End();
 	}
 
 

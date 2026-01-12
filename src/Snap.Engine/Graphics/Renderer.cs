@@ -1,3 +1,4 @@
+
 namespace Snap.Engine.Graphics;
 
 internal readonly struct DrawCommand
@@ -6,13 +7,15 @@ internal readonly struct DrawCommand
 	public SFVertex[] Vertex { get; }
 	public int Depth { get; }
 	public long Sequence { get; }
+	public int CameraId { get; }
 
-	internal DrawCommand(SFTexture texture, SFVertex[] vertex, int depth, long seq)
+	internal DrawCommand(SFTexture texture, SFVertex[] vertex, int depth, long seq, int cameraId)
 	{
 		Texture = texture;
 		Vertex = vertex;
 		Depth = depth;
 		Sequence = seq;
+		CameraId = cameraId;
 	}
 }
 
@@ -49,13 +52,19 @@ public sealed class Renderer
 	private const int MaxVerticies = 6;
 	private const float TexelOffset = 0.05f;
 
+	private int _activeVertexCount = 0;
 	private SFVertexBuffer _vertexBuffer;
 	private SFVertex[] _vertexCache;
-	private readonly Dictionary<uint, List<DrawCommand>> _drawCommands = new(16);
-	private long _seqCounter = 0;
+	private readonly Dictionary<uint, List<DrawCommand>> _drawCommands = new(1024);
+	private static long _seqCounter = 0;
 	private int _vertexBufferSize, _batches;
 	private Camera _camera;
-	private readonly List<SFVertex[]> _rentedQuads = new(256);
+	// Add these fields at the top of the class
+	private int _currentCameraId = 0;
+	private int _nextCameraId = 1;
+	private readonly Dictionary<Camera, int> _cameraIdMap = new();
+	private readonly Dictionary<int, Camera> _cameraById = new();
+	private readonly List<SFVertex[]> _rentedQuads = new(1024);
 	private static readonly ObjectPool<SFVertex[]> QuadPool =
 		new(() => new SFVertex[6], quad =>
 		{
@@ -100,12 +109,12 @@ public sealed class Renderer
 	/// </remarks>
 	public Vect2 Size => EngineSettings.Instance.Viewport;
 
-	internal Renderer(int maxDrawCalls = 512)
+	internal Renderer(int maxDrawCalls = 8192)
 	{
 		Instance ??= this;
 
 		_vertexBufferSize = maxDrawCalls;
-		_vertexBuffer = new((uint)_vertexBufferSize, SFPrimitiveType.Triangles, SFVertexBuffer.UsageSpecifier.Dynamic);
+		_vertexBuffer = new((uint)_vertexBufferSize, SFPrimitiveType.Triangles, SFVertexBuffer.UsageSpecifier.Stream);
 		_vertexCache = new SFVertex[_vertexBufferSize];
 	}
 
@@ -174,7 +183,7 @@ public sealed class Renderer
 		}
 
 		// list.Add(new DrawCommand(tex, quad, depth, _seqCounter++));
-		var cmd = new DrawCommand(tex, quad, depth, _seqCounter++);
+		var cmd = new DrawCommand(tex, quad, depth, _seqCounter++, _currentCameraId);
 
 		InsertSorted(list, cmd);
 	}
@@ -191,6 +200,9 @@ public sealed class Renderer
 
 		public int Compare(DrawCommand x, DrawCommand y)
 		{
+			int cameraCompare = x.CameraId.CompareTo(y.CameraId);
+			if (cameraCompare != 0) return cameraCompare;
+
 			int depthCompare = x.Depth.CompareTo(y.Depth);
 			if (depthCompare != 0) return depthCompare;
 
@@ -691,8 +703,23 @@ public sealed class Renderer
 			list = [];
 			_drawCommands[textureId] = list;
 		}
-		list.Add(new DrawCommand(texture, quad, depth, _seqCounter++));
+		list.Add(new DrawCommand(texture, quad, depth, _seqCounter++, _currentCameraId));
 	}
+
+
+	private Camera GetCurrentCamera()
+	{
+		// Try to find camera by current ID
+		foreach (var kvp in _cameraIdMap)
+		{
+			if (kvp.Value == _currentCameraId)
+				return kvp.Key;
+		}
+
+		// Fallback to _camera field
+		return _camera;
+	}
+
 
 	private void EngineDraw(
 	Texture texture,
@@ -705,7 +732,9 @@ public sealed class Renderer
 	TextureEffects effects = TextureEffects.None,
 	int depth = 0)
 	{
-		if (!_camera.CullBounds.Intersects(dstRect))
+		Camera currentCamera = GetCurrentCamera();
+
+		if (!currentCamera.CullBounds.Intersects(dstRect))
 			return;
 		if (!texture.IsValid)
 			texture.Load();
@@ -801,57 +830,110 @@ public sealed class Renderer
 
 
 
-	internal void Begin(Camera camera)
+	// internal void Begin(Camera camera)
+	internal void Begin()
 	{
-		Game.Instance.ToRenderer.SetView(camera.ToEngine);
-
-		_camera = camera;
+		// Game.Instance.ToRenderer.SetView(camera.ToEngine);
+		// _camera = camera;
 
 		DrawCalls = (int)_vertexBuffer.VertexCount;
 		Batches = _batches;
 
 		_drawCommands.Clear();
+		_cameraIdMap.Clear();
+		_cameraById.Clear();
+		_nextCameraId = 1;
+		_currentCameraId = 0;
 		_batches = 0;
 	}
 
 
-
+	private readonly List<DrawCommand> _tempCommandList = new(1024);
 
 
 	internal void End()
 	{
 		var index = 0;
 		SFTexture currentTexture = null;
+		int currentCameraId = -1;
+		Camera currentCamera = null;
 
-		// var allCommands = _drawCommands.Values
-		// 	.SelectMany(list => list)
-		// 	.OrderBy(cmd => cmd.Depth)
-		// 	.ThenBy(cmd => cmd.Sequence);
-		var allCommands = _drawCommands.Values
-			.SelectMany(list => list);
+		var totalCommands = _drawCommands.Values.Sum(l => l.Count);
+		// var allCommands = new List<DrawCommand>(totalCommands);
+		// foreach (var list in _drawCommands.Values)
+		// 	allCommands.AddRange(list);
 
-		foreach (ref readonly var cmd in CollectionsMarshal.AsSpan(allCommands.ToList()))
+		_tempCommandList.Clear();
+		_tempCommandList.EnsureCapacity(totalCommands);
+		foreach (var list in _drawCommands.Values)
+			_tempCommandList.AddRange(list);
+
+		_tempCommandList.Sort(DrawCommandComparer.Instance);
+
+		foreach (ref readonly var cmd in CollectionsMarshal.AsSpan(_tempCommandList.ToList()))
 		{
 			bool willOverflow = index + cmd.Vertex.Length > _vertexBufferSize;
 			bool textureChanged = currentTexture != null && currentTexture != cmd.Texture;
+			bool cameraChanged = currentCameraId != cmd.CameraId;
 
-			if (willOverflow || textureChanged)
+			if (willOverflow || textureChanged || cameraChanged)
 			{
 				if (index > 0 && currentTexture != null)
+				{
+					_activeVertexCount = index;
 					Flush(index, _vertexCache, currentTexture);
+				}
+				_activeVertexCount = 0;
 				index = 0;
 
 				if (willOverflow)
 				{
 					EnsureVertexBufferCapacity(_vertexBufferSize + cmd.Vertex.Length);
 				}
+
+				if (cameraChanged)
+				{
+					var command = cmd;
+
+					// Find which camera this command belongs to
+					// currentCamera = _cameraIdMap.FirstOrDefault(x => x.Value == command.CameraId).Key;
+					_cameraById.TryGetValue(cmd.CameraId, out currentCamera);
+					if (currentCamera != null)
+					{
+						// Update SFML view for this camera's batch
+						Game.Instance.ToRenderer.SetView(currentCamera.ToEngine);
+					}
+					currentCameraId = cmd.CameraId;
+				}
+			}
+
+			unsafe
+			{
+				int vertexCount = cmd.Vertex.Length;
+
+				// Calculate size in bytes
+				int byteCount = vertexCount * sizeof(SFVertex);
+
+				fixed (SFVertex* srcPtr = cmd.Vertex)
+				fixed (SFVertex* dstPtr = &_vertexCache[index])
+				{
+					// Buffer.MemoryCopy is slightly faster than Span.CopyTo for large copies
+					Buffer.MemoryCopy(
+						srcPtr,           // source
+						dstPtr,           // destination  
+						byteCount,        // destination size in bytes
+						byteCount         // bytes to copy
+					);
+				}
+
+				index += vertexCount;
 			}
 
 			// copy verts into the cache
-			var src = cmd.Vertex.AsSpan();
-			var dst = _vertexCache.AsSpan(index, src.Length);
-			src.CopyTo(dst);
-			index += src.Length;
+			// var src = cmd.Vertex.AsSpan();
+			// var dst = _vertexCache.AsSpan(index, src.Length);
+			// src.CopyTo(dst);
+			// index += src.Length;
 
 			currentTexture = cmd.Texture;
 		}
@@ -862,6 +944,7 @@ public sealed class Renderer
 
 		// reset for next frame
 		_drawCommands.Clear();
+		_cameraById.Clear();
 		_seqCounter = 0;
 
 		ReturnAllQuads();
@@ -873,14 +956,19 @@ public sealed class Renderer
 			return;
 
 		// double the size until big enough:
-		int newSize = _vertexBufferSize;
+		// int newSize = _vertexBufferSize;
+		// while (newSize < neededSize)
+		// 	newSize += EngineSettings.Instance.BatchIncreasment;
+		int newSize = Math.Max(_vertexBufferSize * 2, _vertexBufferSize + EngineSettings.Instance.BatchIncreasment);
 		while (newSize < neededSize)
-			newSize += EngineSettings.Instance.BatchIncreasment;
+		{
+			newSize = Math.Max(newSize * 2, newSize + EngineSettings.Instance.BatchIncreasment);
+		}
 
 		Logger.Instance.Log(LogLevel.Info, $"[Renderer]: Resizing vertex buffer array to {newSize}");
 
 		_vertexBuffer.Dispose();
-		_vertexBuffer = new SFVertexBuffer((uint)newSize, SFPrimitiveType.Triangles, SFVertexBuffer.UsageSpecifier.Dynamic);
+		_vertexBuffer = new SFVertexBuffer((uint)newSize, SFPrimitiveType.Triangles, SFVertexBuffer.UsageSpecifier.Stream);
 
 		Array.Resize(ref _vertexCache, newSize);
 
@@ -889,16 +977,15 @@ public sealed class Renderer
 
 	internal void Flush(int vertexCount, SFVertex[] vertices, SFTexture texture)
 	{
-		if (vertexCount == 0 || texture == null)
+		if (vertexCount == 0 || texture == null || texture.IsInvalid)
 			return;
 
-		// ZERO OUT any leftover verts so they don't draw
 		var totalVerts = vertices.Length;
-
 		if (vertexCount < totalVerts)
 			Array.Clear(vertices, vertexCount, totalVerts - vertexCount);
 
-		_vertexBuffer.Update(vertices);
+		// Update entire cleared array
+		_vertexBuffer.Update(vertices, (uint)totalVerts, 0);  // Update ALL
 
 		Game.Instance.ToRenderer.Draw(_vertexBuffer, new SFRenderStates
 		{
@@ -907,16 +994,35 @@ public sealed class Renderer
 			BlendMode = SFBlendMode.Alpha,
 		});
 
+		// VertexArrayPool.Return(exactVertices);
 		_batches++;
 	}
 
 	private void ReturnAllQuads()
 	{
+		if (_rentedQuads.Count == 0) return;
+
 		foreach (var quad in _rentedQuads)
 		{
 			QuadPool.Return(quad);
 		}
 		_rentedQuads.Clear();
+	}
+
+	internal void SetCamera(Camera camera)
+	{
+		_camera = camera;
+
+		// Get or create ID for this camera
+		if (!_cameraIdMap.TryGetValue(camera, out int cameraId))
+		{
+			cameraId = _nextCameraId++;
+			_cameraIdMap[camera] = cameraId;
+			_cameraById[cameraId] = camera;
+		}
+
+		_currentCameraId = cameraId;
+		Game.Instance.ToRenderer.SetView(camera.ToEngine);
 	}
 }
 
