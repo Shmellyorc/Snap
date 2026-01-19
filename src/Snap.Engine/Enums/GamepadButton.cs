@@ -5,6 +5,8 @@ namespace Snap.Engine.Enums;
 /// </summary>
 public enum GamepadButton
 {
+	None,
+	
 	/// <summary>
 	/// The Y face button.
 	/// </summary>

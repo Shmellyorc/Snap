@@ -156,5 +156,4 @@ public class Panel : Entity
 		}
 	}
 	protected virtual void OnChildrenCleared() { }
-
 }

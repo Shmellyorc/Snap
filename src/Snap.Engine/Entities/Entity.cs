@@ -123,7 +123,22 @@ public class Entity
 				return _parent.Visible && _visible;
 			return _visible;
 		}
-		set => _visible = value;
+		set
+		{
+			if(_visible == value)
+				return;
+			_visible = value;
+
+			// Issue Fixed: If visibility is changed during gameplay and the top
+			// entity goes invisible. The children wont move up. This forces
+			// StackPanels to update, or any panel containing "Panel".
+
+			if(Parent != null)
+			{
+				foreach(var panel in this.GetAncestorsOfType<Panel>())
+					panel.SetDirtyState(DirtyState.Sort | DirtyState.Update);
+			}
+		}
 	}
 
 	/// <summary>
@@ -269,32 +284,31 @@ public class Entity
 	/// <summary>
 	/// Casts a given entity to the specified type or throws an exception if the cast fails.
 	/// </summary>
-	/// <typeparam name="TParent">The type to cast the entity to. Must inherit from <see cref="Entity"/>.</typeparam>
-	/// <param name="entity">The entity instance to cast.</param>
+	/// <typeparam name="TEntity">The type to cast the entity to. Must inherit from <see cref="Entity"/>.</typeparam>
 	/// <returns>The entity cast as the specified type.</returns>
 	/// <exception cref="InvalidOperationException">Thrown if the provided entity is null.</exception>
 	/// <exception cref="InvalidCastException">Thrown if the entity cannot be cast to the requested type.</exception>
-	public TParent EntityAs<TParent>(Entity entity) where TParent : Entity
+	public TEntity EntityAs<TEntity>() where TEntity : Entity
 	{
-		if (entity == null)
+		if (this == null)
 			throw new InvalidOperationException("Cannot get parent: no parent is set.");
 
-		if (entity is TParent parent)
+		if (this is TEntity parent)
 			return parent;
 
 		throw new InvalidCastException(
-			$"Parent is of type {entity.GetType().Name}, not {typeof(TParent).Name}");
+			$"Entity is of type {GetType().Name}, not {typeof(TEntity).Name}");
 	}
 
 	/// <summary>
 	/// Casts this entity's parent to the specified type.
 	/// </summary>
-	/// <typeparam name="TEntity">The type to cast the parent to. Must inherit from <see cref="Entity"/>.</typeparam>
+	/// <typeparam name="TParent">The type to cast the parent to. Must inherit from <see cref="Entity"/>.</typeparam>
 	/// <returns>The parent cast as the specified type.</returns>
 	/// <exception cref="InvalidOperationException">Thrown if no parent is set.</exception>
 	/// <exception cref="InvalidCastException">Thrown if the parent cannot be cast to the requested type.</exception>
-	public TEntity ParentAs<TEntity>() where TEntity : Entity =>
-		EntityAs<TEntity>(_parent);
+	public TParent ParentAs<TParent>() where TParent : Entity
+		=> _parent.EntityAs<TParent>();
 
 	/// <summary>
 	/// Provides access to the shared logging system.

@@ -17,6 +17,7 @@ public sealed class SoundBank
 	}
 
 	private float _volume = 1.0f, _pan = 0f, _pitch = 0f;
+	private DateTime _lastMaintenceCheck = DateTime.UtcNow;
 	private readonly float _evictAfterMinutes;
 	private readonly Dictionary<Sound, List<SoundInstanceWrapped>> _instances = new(128);
 
@@ -59,14 +60,14 @@ public sealed class SoundBank
 	}
 
 	/// <summary>
-	/// Gets the number of sound instances that are currently invalid.
+	/// Gets the number of sound instances that are currently valid.
 	/// </summary>
 	/// <remarks>
 	/// This property flattens all <see cref="SoundInstanceWrapped"/> collections in <c>_instances</c> and counts
-	/// the number of entries where <see cref="SoundInstance.IsValid"/> is <c>false</c>.  
-	/// It provides a quick way to determine how many sound instances have expired or are no longer usable.
+	/// the number of entries where <see cref="SoundInstance.IsValid"/> is <c>true</c>.
+	/// It provides a quick way to determine how many sound instances are currently active and usable.
 	/// </remarks>
-	public int Count => _instances.SelectMany(x => x.Value).Count(x => !x.Instance.IsValid);
+	public int Count => _instances.SelectMany(x => x.Value).Count(x => x.Instance.IsValid);
 
 	/// <summary>
 	/// Gets the unique identifier assigned to this sound manager or entity.
@@ -89,11 +90,19 @@ public sealed class SoundBank
 		get => _pan;
 		set
 		{
-			if (_pan == value)
+			if (MathF.Abs(_pan - value) < 0.001f)
 				return;
 			_pan = Math.Clamp(value, -1f, 1f);
 
-			Update();
+			foreach (var soundPair in _instances)
+			{
+				foreach (var wrapped in soundPair.Value)
+				{
+					wrapped.Instance.Pan = _pan;
+				}
+			}
+
+			Logger.Instance.Log(LogLevel.Info, $"SoundBank {Id} pan set to {_pan}");
 		}
 	}
 
@@ -109,11 +118,19 @@ public sealed class SoundBank
 		get => _volume;
 		set
 		{
-			if (_volume == value)
+			if (MathF.Abs(_volume - value) < 0.001f)
 				return;
 			_volume = Math.Clamp(value, 0f, 1f);
 
-			Update();
+			foreach (var soundPair in _instances)
+			{
+				foreach (var wrapped in soundPair.Value)
+				{
+					wrapped.Instance.Volume = _volume;
+				}
+			}
+
+			Logger.Instance.Log(LogLevel.Info, $"SoundBank {Id} volume set to {_volume}");
 		}
 	}
 
@@ -130,11 +147,19 @@ public sealed class SoundBank
 		get => _pitch;
 		set
 		{
-			if (_pitch == value)
+			if (MathF.Abs(_pitch - value) < 0.001f)
 				return;
 			_pitch = Math.Clamp(value, -3f, 3f);
 
-			Update();
+			foreach (var soundPair in _instances)
+			{
+				foreach (var wrapped in soundPair.Value)
+				{
+					wrapped.Instance.Pitch = _pitch;
+				}
+			}
+
+			Logger.Instance.Log(LogLevel.Info, $"SoundBank {Id} pitch set to {_pitch}");
 		}
 	}
 
@@ -153,6 +178,8 @@ public sealed class SoundBank
 				var item = kv.Value[i];
 				if (item == null) continue;
 
+				UnsubscribeFromInstance(item.Instance);
+
 				item.Instance.Stop();
 				item.Instance.Dispose();
 
@@ -168,70 +195,100 @@ public sealed class SoundBank
 	}
 
 
-	private void EvictSound(List<SoundInstanceWrapped> items)
+	// private void EvictSound(List<SoundInstanceWrapped> items)
+	// {
+	// 	if (items.Count == 0)
+	// 		return;
+
+	// 	DateTime now = DateTime.UtcNow;
+	// 	TimeSpan evictAfter = TimeSpan.FromMinutes(_evictAfterMinutes);
+	// 	var toEvict = new List<SoundInstanceWrapped>(items.Count);
+
+	// 	for (int i = items.Count - 1; i >= 0; i--)
+	// 	{
+	// 		var inst = items[i];
+
+	// 		if (inst.Instance.IsValid)
+	// 			continue;
+
+	// 		var age = now - inst.LastAccessFrame;
+	// 		if (age >= evictAfter)
+	// 		{
+	// 			inst.Instance.Dispose();
+	// 			toEvict.Add(inst);
+	// 		}
+	// 	}
+
+	// 	if (toEvict.Count > 0)
+	// 	{
+	// 		for (int i = toEvict.Count - 1; i >= 0; i--)
+	// 			items.Remove(toEvict[i]);
+
+	// 		Logger.Instance.Log(LogLevel.Info, $"Sound bank evicted {toEvict.Count} sound instances.");
+	// 	}
+	// }
+
+	private void PerformQuickMaintenance()
 	{
-		if (items.Count == 0)
+		DateTime now = DateTime.UtcNow;
+		if ((now - _lastMaintenceCheck).TotalSeconds < 30)
 			return;
 
-		DateTime now = DateTime.UtcNow;
-		TimeSpan evictAfter = TimeSpan.FromMinutes(_evictAfterMinutes);
-		var toEvict = new List<SoundInstanceWrapped>(items.Count);
+		_lastMaintenceCheck = now;
 
-		for (int i = items.Count - 1; i >= 0; i--)
+		int removedCount = 0;
+		TimeSpan threshold = TimeSpan.FromMinutes(_evictAfterMinutes);
+
+		foreach (var soundPair in _instances)
 		{
-			var inst = items[i];
-
-			if (inst.Instance.IsValid)
-				continue;
-
-			var age = now - inst.LastAccessFrame;
-			if (age >= evictAfter)
+			var instances = soundPair.Value;
+			for (int i = instances.Count - 1; i >= 0; i--)
 			{
-				inst.Instance.Dispose();
-				toEvict.Add(inst);
+				var wrapped = instances[i];
+
+				if (!wrapped.Instance.IsValid || (now - wrapped.LastAccessFrame) >= threshold)
+				{
+					wrapped.Instance.Dispose();
+					instances.RemoveAt(i);
+					removedCount++;
+				}
+			}
+
+			if (instances.Count == 0)
+			{
+				_instances.Remove(soundPair.Key);
 			}
 		}
 
-		if (toEvict.Count > 0)
+		if (removedCount > 0)
 		{
-			for (int i = toEvict.Count - 1; i >= 0; i--)
-				items.Remove(toEvict[i]);
-
-			Logger.Instance.Log(LogLevel.Info, $"Sound bank evicted {toEvict.Count} sound instances.");
+			Logger.Instance.Log(LogLevel.Info,
+				$"SoundBank {Id} safety cleanup removed {removedCount} instances");
 		}
 	}
 
-	private void Update()
-	{
-		if (_instances.Count == 0)
-			return;
 
-		// flatten the dictionary into one big list of items
-		var flat = _instances
-			.SelectMany(x => x.Value)
-			.ToList();
 
-		EvictSound(flat);
 
-		foreach (var item in flat)
-		{
-			item.Instance.Volume = _volume;
-			item.Instance.Pan = _pan;
-			item.Instance.Pitch = _pitch;
-		}
-	}
 
 	internal SoundInstance Add(Sound sound)
 	{
 		if (sound == null)
 			return null;
 		if (!_instances.TryGetValue(sound, out var instances))
-			_instances[sound] = instances = [];
+		{
+			instances = [];
+			_instances[sound] = instances;
+		}
 
 		// clear dead old instances:
-		EvictSound(instances);
+		PerformQuickMaintenance();
+		// EvictSound(instances);
 
 		var inst = sound.CreateInstance();
+
+		SubscribeToInstance(inst);
+
 		inst.Volume = Volume;
 		inst.Pan = Pan;
 		inst.Pitch = Pitch;
@@ -254,15 +311,18 @@ public sealed class SoundBank
 		for (int i = inst.Count - 1; i >= 0; i--)
 		{
 			var item = inst[i];
-			if (item == null || item.Instance.IsValid) continue;
+			if (item == null) continue;
 
 			item.Instance.Stop();
 			item.Instance.Dispose();
+			UnsubscribeFromInstance(item.Instance);
 		}
+
+		var removed = _instances.Remove(sound);
 
 		Logger.Instance.Log(LogLevel.Info, $"Sound channel {Id} removed sound ID {sound.Id}.");
 
-		return _instances.Remove(sound);
+		return removed;
 	}
 
 	internal SoundBank(uint id, float evictAfterMinutes, float volume = 1f, float pan = 0f, float pitch = 1f)
@@ -296,5 +356,63 @@ public sealed class SoundBank
 			.Where(x => x.Instance.IsPlaying)
 			.Select(x => x.Instance)
 			.FirstOrDefault();
+	}
+
+
+
+
+	private void SubscribeToInstance(SoundInstance instance)
+	{
+		instance.OnPlaybackFinished += HandleSoundFinished;
+		instance.OnDisposed += HandleSoundDisposed;
+	}
+	private void UnsubscribeFromInstance(SoundInstance instance)
+	{
+		instance.OnPlaybackFinished -= HandleSoundFinished;
+		instance.OnDisposed -= HandleSoundDisposed;
+	}
+
+	private void HandleSoundFinished(SoundInstance instance)
+	{
+		// O(1) removal instead of scanning loops!
+		RemoveInstanceDirect(instance);
+
+		Logger.Instance.Log(LogLevel.Info,
+			$"Sound {instance.Id} finished playing in bank {Id}");
+	}
+
+	private void HandleSoundDisposed(SoundInstance instance)
+	{
+		RemoveInstanceDirect(instance);
+	}
+
+	private bool RemoveInstanceDirect(SoundInstance instance)
+	{
+		bool removed = false;
+
+		foreach (var kv in _instances)
+		{
+			var instances = kv.Value;
+			for (int i = instances.Count - 1; i >= 0; i--)
+			{
+				if (instances[i].Instance == instance)
+				{
+					UnsubscribeFromInstance(instance);
+					instances.RemoveAt(i);
+					removed = true;
+
+					if (instances.Count == 0)
+					{
+						_instances.Remove(kv.Key);
+					}
+
+					break;
+				}
+			}
+
+			if (removed) break;
+		}
+
+		return removed;
 	}
 }

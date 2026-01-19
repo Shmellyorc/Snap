@@ -37,12 +37,60 @@ public class SoundInstance : IDisposable
 {
 	#region Fields
 	private readonly uint _soundId;
-	private SFSound _sound;
+	private SFSound _sfSound;
 	private float _volume, _pitch, _pan;
 	private bool _isDisposed;
+	private CancellationTokenSource _monitorCts;
 	#endregion
 
+
+	#region Events
+	public event Action<SoundInstance> OnPlaybackFinished;
+	public event Action<SoundInstance> OnDisposed;
+
+	public TimeSpan PlayingOffset
+	{
+		get => IsValid ? _sfSound.PlayingOffset.ToTimeSpan() : TimeSpan.Zero;
+		set
+		{
+			if (IsValid)
+				_sfSound.PlayingOffset = SFTime.FromSeconds((float)value.TotalSeconds);
+		}
+	}
+
+	private async void MonitorPlayback()
+	{
+		if (Status != SoundStatus.Playing)
+			return;
+
+		_monitorCts?.Cancel();
+		_monitorCts = new CancellationTokenSource();
+
+		try
+		{
+			while (Status == SoundStatus.Playing
+			&& !_monitorCts.Token.IsCancellationRequested)
+			{
+				await Task.Delay(50, _monitorCts.Token);
+			}
+
+			if (!_monitorCts.Token.IsCancellationRequested)
+			{
+				OnPlaybackFinished?.Invoke(this);
+			}
+		}
+		catch (TaskCanceledException) { }
+	}
+	#endregion
+
+
+
+
 	#region Properties
+	public Sound Sound { get; private set; }
+
+	public DateTime LastUsedTime { get; internal set; }
+
 	/// <summary>
 	/// Gets the unique identifier assigned to this sound instance.
 	/// </summary>
@@ -69,7 +117,7 @@ public class SoundInstance : IDisposable
 	/// is not marked as invalid, and its status is not <c>SFSoundStatus.Stopped</c>.  
 	/// This property ensures that only usable sound instances are treated as valid.
 	/// </remarks>
-	public bool IsValid => _sound != null && !_sound.IsInvalid && _sound.Status != SFSoundStatus.Stopped;
+	public bool IsValid => _sfSound != null && !_sfSound.IsInvalid;
 
 	/// <summary>
 	/// Gets the current playback status of this sound instance.
@@ -78,7 +126,7 @@ public class SoundInstance : IDisposable
 	/// If the sound is valid, this property maps the underlying <c>SFSoundStatus</c> to <see cref="SoundStatus"/>.  
 	/// If the sound is invalid, the status defaults to <see cref="SoundStatus.Stopped"/>.
 	/// </remarks>
-	public SoundStatus Status => IsValid ? (SoundStatus)_sound.Status : SoundStatus.Stopped;
+	public SoundStatus Status => IsValid ? (SoundStatus)_sfSound.Status : SoundStatus.Stopped;
 
 	/// <summary>
 	/// Gets or sets the stereo pan value for this sound instance.
@@ -112,18 +160,18 @@ public class SoundInstance : IDisposable
 			{
 				if (_pan < 0f || _pan > 0f)
 				{
-					_sound.RelativeToListener = true;
-					_sound.Attenuation = 0f;
-					_sound.MinDistance = 0f;
+					_sfSound.RelativeToListener = true;
+					_sfSound.Attenuation = 0f;
+					_sfSound.MinDistance = 0f;
 				}
 				else
 				{
-					_sound.RelativeToListener = false;
-					_sound.Attenuation = 1f;
-					_sound.MinDistance = 1f;
+					_sfSound.RelativeToListener = false;
+					_sfSound.Attenuation = 1f;
+					_sfSound.MinDistance = 1f;
 				}
 
-				_sound.Position = new(_pan, 0, 0);
+				_sfSound.Position = new(_pan, 0, 0);
 			}
 		}
 	}
@@ -150,7 +198,7 @@ public class SoundInstance : IDisposable
 			_volume = Math.Clamp(value, 0f, 1f);
 
 			if (IsValid)
-				_sound.Volume = Math.Clamp(_volume * 100f, 0f, 100f);
+				_sfSound.Volume = Math.Clamp(_volume * 100f, 0f, 100f);
 		}
 	}
 
@@ -176,7 +224,7 @@ public class SoundInstance : IDisposable
 			_pitch = Math.Clamp(value, -3f, 3f);
 
 			if (IsValid)
-				_sound.Pitch = _pitch;
+				_sfSound.Pitch = _pitch;
 		}
 	}
 	#endregion
@@ -187,8 +235,9 @@ public class SoundInstance : IDisposable
 	{
 		Id = id;
 		_soundId = sound.Id;
+		Sound = sound;
 
-		_sound = new SFSound(buffer)
+		_sfSound = new SFSound(buffer)
 		{
 			// set volume to zero so it doesnt make any pops/weird 
 			// sounds when it is intialized
@@ -225,13 +274,15 @@ public class SoundInstance : IDisposable
 		if (IsPlaying)
 			return;
 
-		if (_sound.IsInvalid)
-			_sound = new(_sound.SoundBuffer);
+		if (_sfSound.IsInvalid)
+			_sfSound = new(Sound.Buffer);
 
-		_sound.Volume = Math.Clamp(_volume * 100f, 0f, 100f);
-		_sound.Position = new(_pan, 0, 0);
-		_sound.Pitch = _pitch;
-		_sound.Play();
+		_sfSound.Volume = Math.Clamp(_volume * 100f, 0f, 100f);
+		_sfSound.Position = new(_pan, 0, 0);
+		_sfSound.Pitch = _pitch;
+		_sfSound.Play();
+
+		MonitorPlayback();
 	}
 
 	/// <summary>
@@ -244,7 +295,7 @@ public class SoundInstance : IDisposable
 	public void Pause()
 	{
 		if (!IsValid || Status != SoundStatus.Playing) return;
-		_sound.Pause();
+		_sfSound.Pause();
 	}
 
 	/// <summary>
@@ -257,7 +308,7 @@ public class SoundInstance : IDisposable
 	public void Resume()
 	{
 		if (!IsValid || Status != SoundStatus.Paused) return;
-		_sound.Play();
+		_sfSound.Play();
 	}
 
 	/// <summary>
@@ -271,7 +322,8 @@ public class SoundInstance : IDisposable
 	public void Stop()
 	{
 		if (!IsValid || Status == SoundStatus.Stopped) return;
-		_sound.Stop();
+		_sfSound.Stop();
+		_monitorCts.Cancel();
 	}
 	#endregion
 
@@ -293,7 +345,13 @@ public class SoundInstance : IDisposable
 	{
 		if (!_isDisposed)
 		{
-			_sound.Dispose();
+			_monitorCts?.Cancel();
+			_monitorCts?.Dispose();
+
+			OnDisposed?.Invoke(this);
+			SoundInstancePool.ReleaseInstance(this);
+
+			_sfSound.Dispose();
 			Logger.Instance.Log(LogLevel.Info, $"Unloaded asset with ID {Id}, type: '{GetType().Name}' from Sound ID {_soundId}.");
 
 			_isDisposed = true;
@@ -314,4 +372,26 @@ public class SoundInstance : IDisposable
 		GC.SuppressFinalize(this);
 	}
 	#endregion
+
+
+
+	
+
+
+
+	internal void Reset(Sound newSound)
+	{
+		if (Sound != null && Sound.Id != newSound.Id)
+		{
+			SoundInstancePool.OnSoundDispose(Sound);
+		}
+
+		Sound = newSound;
+
+		_sfSound.Volume = 0f;
+		_sfSound.Pitch = 1f;
+		_sfSound.Position = new(0, 0, 0);
+		_sfSound.RelativeToListener = false;
+		_sfSound.Loop = newSound.IsLooped;
+	}
 }

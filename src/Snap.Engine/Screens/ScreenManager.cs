@@ -113,7 +113,6 @@ public sealed class ScreenManager
 			Renderer.Instance.SetCamera(screen.Camera);
 
 			screen.EngineOnUpdate(isActive, screen == topmostScreen);
-
 		}
 
 		Renderer.Instance.End();

@@ -12,17 +12,17 @@ public class ListItem : Entity
 	/// Called when this item becomes selected in its parent listview.
 	/// Override to define selection behavior.
 	/// </summary>
-	/// <param name="listview">The parent listview.</param>
+	/// <param name="parent">The parent listview.</param>
 	/// <param name="selectedIndex">The global index of the selected item.</param>
-	public virtual void OnSelected(Listview listview, int selectedIndex) { }
+	public virtual void OnSelected(Entity parent, int selectedIndex) { }
 
 	/// <summary>
 	/// Called when the selected state of this item changes.
 	/// Override to respond to selection toggling.
 	/// </summary>
-	/// <param name="listview">The parent listview.</param>
+	/// <param name="parent">The parent listview.</param>
 	/// <param name="selectedIndex">The global index of the selected item.</param>
-	public virtual void OnSelectionChanged(Listview listview, int selectedIndex) { }
+	public virtual void OnSelectionChanged(Entity parent, int selectedIndex) { }
 
 	/// <summary>
 	/// Gets or sets whether this item is currently selected.
@@ -42,7 +42,7 @@ public class ListItem : Entity
 				_bar.Visible = _selected;
 
 			if (_selected)
-				OnSelected((Listview)Parent, ChildIndex);
+				OnSelected(Parent, ChildIndex);
 
 			// if (_selected != oldValue)
 			// OnSelectedChanged(ParentAs<Listview>(), ChildIndex);

@@ -170,7 +170,7 @@ public sealed class Label : Entity
 				var final = new Vect2(local.X + offsetX, local.Y + offsetY + offset);
 
 				if (Shadow)
-					_rt.DrawText(_font, txt, final + ShadowOffset + Offset, ShadowColor, Layer);
+					_rt.DrawText(_font, txt, final + ShadowOffset + Offset, Color.Multiply(Color, ShadowColor), Layer);
 
 				_rt.DrawText(_font, txt, final + Offset, Color, Layer + 1);
 			}
@@ -179,7 +179,7 @@ public sealed class Label : Entity
 				var final = new Vect2(Position.X + offsetX, Position.Y + offsetY + offset);
 
 				if (Shadow)
-					Renderer.DrawText(_font, txt, final + ShadowOffset + Offset, ShadowColor, Layer);
+					Renderer.DrawText(_font, txt, final + ShadowOffset + Offset, Color.Multiply(Color, ShadowColor), Layer);
 
 				Renderer.DrawText(_font, txt, final + Offset, Color, Layer + 1);
 			}

@@ -851,7 +851,7 @@ public sealed class Renderer
 	private readonly List<DrawCommand> _tempCommandList = new(1024);
 
 
-	internal void End()
+	internal void End() //  Hot Path
 	{
 		var index = 0;
 		SFTexture currentTexture = null;

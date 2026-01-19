@@ -28,6 +28,9 @@ public class Screen
 	/// </summary>
 	public IReadOnlyList<Entity> Entities => _entities;
 
+	public IReadOnlyList<TEntity> EntitiesAs<TEntity>() where TEntity : Entity
+		=> [.. Entities.OfType<TEntity>()];
+
 	/// <summary>
 	/// Subset of <see cref="Entities"/> that are currently active and updated.
 	/// </summary>

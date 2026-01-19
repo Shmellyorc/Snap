@@ -24,7 +24,7 @@ public enum ActiveInput
 public class InputMap
 {
 	private readonly uint _joyCount;
-	private bool _mouseJustPressed, _keyJustPressed, _joystickJustPressed;
+	// private bool _mouseJustPressed, _keyJustPressed, _joystickJustPressed;
 	private readonly Dictionary<uint, bool> _joysticks = new();
 	internal readonly Dictionary<uint, List<InputMapEntry>> _actions = new(20);
 	private readonly List<SdlControllerEntry> _allEntries = [];
@@ -103,7 +103,13 @@ public class InputMap
 	/// </summary>
 	/// <param name="button">The keyboard key to check.</param>
 	/// <returns><c>true</c> if the key is not pressed; otherwise, <c>false</c>.</returns>
-	public bool IsKeyReleased(KeyboardButton button) => !IsKeyPressed(button);
+	public bool IsKeyReleased(KeyboardButton button)
+	{
+		if (!Game.Instance.IsActive)
+			return false;
+
+		return !IsKeyPressed(button);
+	}
 
 	/// <summary>
 	/// Checks if the specified keyboard key was just pressed once (debounced).
@@ -116,13 +122,16 @@ public class InputMap
 	/// </remarks>
 	public bool IsKeyJustPressed(KeyboardButton button)
 	{
-		if (_keyJustPressed)
+		if (!Game.Instance.IsActive)
 			return false;
+
+		if (_keysJustPressed.Contains(button))
+			return false; // Already handled this press
 
 		if (IsKeyPressed(button))
 		{
-			_keyJustPressed = true;
-
+			// _keyJustPressed = true;
+			_keysJustPressed.Add(button);
 
 			return true;
 		}
@@ -154,7 +163,13 @@ public class InputMap
 	/// </summary>
 	/// <param name="button">The mouse button to check.</param>
 	/// <returns><c>true</c> if the button is not pressed; otherwise, <c>false</c>.</returns>
-	public bool IsMouseReleased(MouseButton button) => !IsMousePressed(button);
+	public bool IsMouseReleased(MouseButton button)
+	{
+		if (!Game.Instance.IsActive)
+			return false;
+
+		return !IsMousePressed(button);
+	}
 
 	/// <summary>
 	/// Checks if the specified mouse button was just pressed once (debounced).
@@ -167,14 +182,15 @@ public class InputMap
 	/// </remarks>
 	public bool IsMouseJustPressed(MouseButton button)
 	{
+		if (!Game.Instance.IsActive)
+			return false;
 
-		if (_mouseJustPressed)
+		if (_mouseJustPressed.Contains(button))
 			return false;
 
 		if (IsMousePressed(button))
 		{
-			_mouseJustPressed = true;
-
+			_mouseJustPressed.Add(button);
 			return true;
 		}
 
@@ -213,12 +229,13 @@ public class InputMap
 	{
 		if (!Game.Instance.IsActive)
 			return false;
-		if (_joystickJustPressed)
+
+		if (_gamepadJustPressed.Contains(button))
 			return false;
 
 		if (IsGamepadPressed(button))
 		{
-			_joystickJustPressed = true;
+			_gamepadJustPressed.Add(button);
 			return true;
 		}
 
@@ -294,15 +311,15 @@ public class InputMap
 					GamepadButton.DPadRight => GetPovX(joyId) > 0f ? 1f : 0f,
 					GamepadButton.DPadDown => GetPovY(joyId) < 0f ? 1f : 0f,
 					GamepadButton.DPadUp => GetPovY(joyId) > 0f ? 1f : 0f,
-					GamepadButton.LeftStickLeft => MathF.Max(0f, GetAxis(joyId, SFJoystickAxis.X)),
+					GamepadButton.LeftStickLeft => MathF.Max(0f, -GetAxis(joyId, SFJoystickAxis.X)),
 					GamepadButton.LeftStickRight => MathF.Max(0f, GetAxis(joyId, SFJoystickAxis.X)),
-					GamepadButton.LeftStickUp => MathF.Max(0f, GetAxis(joyId, SFJoystickAxis.Y)),
+					GamepadButton.LeftStickUp => MathF.Max(0f, -GetAxis(joyId, SFJoystickAxis.Y)),
 					GamepadButton.LeftStickDown => MathF.Max(0f, GetAxis(joyId, SFJoystickAxis.Y)),
-					GamepadButton.RightStickLeft => MathF.Max(0f, GetAxis(joyId, SFJoystickAxis.U)),
+					GamepadButton.RightStickLeft => MathF.Max(0f, -GetAxis(joyId, SFJoystickAxis.U)),
 					GamepadButton.RightStickRight => MathF.Max(0f, GetAxis(joyId, SFJoystickAxis.U)),
-					GamepadButton.RightStickUp => MathF.Max(0f, GetAxis(joyId, SFJoystickAxis.V)),
+					GamepadButton.RightStickUp => MathF.Max(0f, -GetAxis(joyId, SFJoystickAxis.V)),
 					GamepadButton.RightStickDown => MathF.Max(0f, GetAxis(joyId, SFJoystickAxis.V)),
-					GamepadButton.LeftTrigger => MathF.Max(0f, GetAxis(joyId, SFJoystickAxis.Z)),
+					GamepadButton.LeftTrigger => MathF.Max(0f, -GetAxis(joyId, SFJoystickAxis.Z)),
 					GamepadButton.RightTrigger => MathF.Max(0f, GetAxis(joyId, SFJoystickAxis.Z)),
 					_ => 0f
 				};
@@ -462,9 +479,41 @@ public class InputMap
 		w.KeyReleased -= OnKeyReleased;
 	}
 
-	private void OnKeyReleased(object sender, SFKeyEventArgs e) => _keyJustPressed = false;
-	private void OnMouseButtonReleased(object sender, SFMouseButtonEventArgs e) => _mouseJustPressed = false;
-	private void OnJoystickButtonReleased(object sender, SFJoystickButtonEventArgs e) => _joystickJustPressed = false;
+	private readonly HashSet<KeyboardButton> _keysJustPressed = [];
+	private void OnKeyReleased(object sender, SFKeyEventArgs e)
+	{
+		var button = (KeyboardButton)e.Code;
+		_keysJustPressed.Remove(button);
+	}
+
+	private readonly HashSet<MouseButton> _mouseJustPressed = [];
+	private void OnMouseButtonReleased(object sender, SFMouseButtonEventArgs e)
+	{
+		var button = (MouseButton)e.Button;
+		_mouseJustPressed.Remove(button);
+	}
+
+	private readonly HashSet<GamepadButton> _gamepadJustPressed = [];
+	private void OnJoystickButtonReleased(object sender, SFJoystickButtonEventArgs e)
+	{
+		GamepadButton button = e.Button switch
+		{
+			0 => GamepadButton.AButton,
+			1 => GamepadButton.BButton,
+			2 => GamepadButton.XButton,
+			3 => GamepadButton.YButton,
+			4 => GamepadButton.LeftBumper,
+			5 => GamepadButton.RightBumper,
+			6 => GamepadButton.Back,
+			7 => GamepadButton.Start,
+			8 => GamepadButton.LeftStick,
+			9 => GamepadButton.RightStick,
+			_ => GamepadButton.None
+		};
+
+		_gamepadJustPressed.Remove(button);
+	}
+
 	private void OnJoystickDisconnected(object sender, SFJoystickConnectEventArgs e)
 	{
 		SFJoystick.Update();
@@ -822,22 +871,19 @@ public class InputMap
 		return button switch
 		{
 			GamepadButton.DPadUp
-		  or GamepadButton.DPadDown
-		  or GamepadButton.DPadLeft
-		  or GamepadButton.DPadRight
-
-		  or GamepadButton.LeftStickLeft
-		  or GamepadButton.LeftStickRight
-		  or GamepadButton.LeftStickUp
-		  or GamepadButton.LeftStickDown
-
-		  or GamepadButton.RightStickLeft
-		  or GamepadButton.RightStickRight
-		  or GamepadButton.RightStickUp
-		  or GamepadButton.RightStickDown
-
-		  or GamepadButton.LeftTrigger
-		  or GamepadButton.RightTrigger
+				or GamepadButton.DPadDown
+				or GamepadButton.DPadLeft
+				or GamepadButton.DPadRight
+				or GamepadButton.LeftStickLeft
+				or GamepadButton.LeftStickRight
+				or GamepadButton.LeftStickUp
+				or GamepadButton.LeftStickDown
+				or GamepadButton.RightStickLeft
+				or GamepadButton.RightStickRight
+				or GamepadButton.RightStickUp
+				or GamepadButton.RightStickDown
+				or GamepadButton.LeftTrigger
+				or GamepadButton.RightTrigger
 
 			=> true,
 

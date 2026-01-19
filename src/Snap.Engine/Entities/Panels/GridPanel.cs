@@ -140,37 +140,54 @@ public class GridPanel : Panel
 	/// <param name="state">The dirty state triggering the layout update.</param>
 	protected override void OnDirty(DirtyState state)
 	{
-		var children = Children
+		var visible = Children
 			.Where(x => x.Visible && !x.IsExiting)
+			.Select(x => x.EntityAs<ListItem>())
 			.ToList();
 
-		if (children.Count == 0)
+		if (visible.Count == 0)
 		{
 			Size = Vect2.Zero;
 			base.OnDirty(state);
 			return;
 		}
 
-		Size = OnResize(children);
+		Size = OnResize(visible);
 
-		float maxWidth = children.Max(x => x.Size.X);
-		float maxHeight = children.Max(x => x.Size.Y);
+		float maxWidth = visible.Max(x => x.Size.X);
+		float maxHeight = visible.Max(x => x.Size.Y);
 
-		for (int i = 0; i < children.Count; i++)
+		for (int i = 0; i < visible.Count; i++)
 		{
 			int row = i / _columns;
 			int col = i % _columns;
+			var item = visible[i];
 
-			children[i].Position = new Vect2(
+			item.Position = new Vect2(
 				col * (maxWidth + _spacing),
 				row * (maxHeight + _spacing)
 			);
 		}
 
+		UpdateSelectionChanged(visible);
+
 		if (IsTopmostScreen || Parent == null)
 			Screen?.SetDirtyState(DirtyState.Sort | DirtyState.Update);
 
 		base.OnDirty(state);
+	}
+
+	private void UpdateSelectionChanged(IEnumerable<ListItem> children)
+	{
+		var index = 0;
+		foreach (ListItem child in children)
+		{
+			child.OnSelectionChanged(child, _selectedIndex);
+
+			if (index == _selectedIndex)
+				child.OnSelected(this, _selectedIndex);
+			index++;
+		}
 	}
 
 	protected override Vect2 OnResize(IEnumerable<Entity> children)
@@ -212,6 +229,7 @@ public class GridPanel : Panel
 		{
 			SelectedIndex--;
 			_itemTimeout += PerItemTimeout;
+			UpdateSelectionChanged(ChildrenAs<ListItem>());
 		}
 	}
 
@@ -227,6 +245,7 @@ public class GridPanel : Panel
 		{
 			SelectedIndex++;
 			_itemTimeout += PerItemTimeout;
+			UpdateSelectionChanged(ChildrenAs<ListItem>());
 		}
 	}
 
@@ -248,6 +267,7 @@ public class GridPanel : Panel
 
 			SelectedIndex = newIndex;
 			_itemTimeout += PerItemTimeout;
+			UpdateSelectionChanged(ChildrenAs<ListItem>());
 		}
 	}
 
@@ -269,6 +289,7 @@ public class GridPanel : Panel
 
 			SelectedIndex = newIndex;
 			_itemTimeout += PerItemTimeout;
+			UpdateSelectionChanged(ChildrenAs<ListItem>());
 		}
 	}
 
@@ -278,7 +299,10 @@ public class GridPanel : Panel
 	public void SelectFirst()
 	{
 		if (ChildCount > 0)
+		{
 			SelectedIndex = 0;
+			UpdateSelectionChanged(ChildrenAs<ListItem>());
+		}
 	}
 
 	/// <summary>
@@ -287,7 +311,10 @@ public class GridPanel : Panel
 	public void SelectLast()
 	{
 		if (ChildCount > 0)
+		{
 			SelectedIndex = ChildCount - 1;
+			UpdateSelectionChanged(ChildrenAs<ListItem>());
+		}
 	}
 
 	/// <summary>

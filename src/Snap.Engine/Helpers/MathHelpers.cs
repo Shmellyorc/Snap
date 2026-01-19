@@ -66,8 +66,6 @@ public static class MathHelpers
 			: (current - target) / 2f;
 	}
 
-	
-
 	/// <summary>
 	/// Wraps an integer value into the range [<paramref name="min"/>, <paramref name="max"/>).
 	/// </summary>

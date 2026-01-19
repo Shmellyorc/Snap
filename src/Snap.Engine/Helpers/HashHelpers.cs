@@ -5,8 +5,8 @@ namespace Snap.Engine.Helpers;
 /// </summary>
 public static class HashHelpers
 {
-	private static readonly Dictionary<string, uint> _cache32 = [];
-	private static readonly Dictionary<string, ulong> _cache64 = [];
+	private static readonly Dictionary<string, uint> s_cache32 = [];
+	private static readonly Dictionary<string, ulong> s_cache64 = [];
 
 	/// <summary>
 	/// Gets a cached 32-bit hash for the given name, computing and storing it if needed.
@@ -18,12 +18,12 @@ public static class HashHelpers
 	/// </returns>
 	public static uint Cache32(string name)
 	{
-		if (_cache32.TryGetValue(name, out var id))
+		if (s_cache32.TryGetValue(name, out var id))
 			return id;
 
 		uint hash = Hash32(name);
 
-		_cache32[name] = hash;
+		s_cache32[name] = hash;
 		return hash;
 	}
 
@@ -37,12 +37,12 @@ public static class HashHelpers
 	/// </returns>
 	public static ulong Cache64(string name)
 	{
-		if (_cache64.TryGetValue(name, out var id))
+		if (s_cache64.TryGetValue(name, out var id))
 			return id;
 
 		ulong hash = Hash64(name);
 
-		_cache64[name] = hash;
+		s_cache64[name] = hash;
 		return hash;
 	}
 
@@ -53,14 +53,14 @@ public static class HashHelpers
 	/// <returns>The 32‑bit FNV‑1a hash value.</returns>
 	public static uint Hash32(byte[] data)
 	{
-		const uint OffsetBasis = 2166136261u;
-		const uint Prime = 16777619u;
+		const uint offsetBasis = 2166136261u;
+		const uint prime = 16777619u;
 
-		uint hash = OffsetBasis;
+		uint hash = offsetBasis;
 		for (int i = 0; i < data.Length; i++)
 		{
 			hash ^= data[i];
-			hash *= Prime;
+			hash *= prime;
 		}
 		return hash;
 	}
@@ -72,14 +72,14 @@ public static class HashHelpers
 	/// <returns>The 64‑bit FNV‑1a hash value.</returns>
 	public static ulong Hash64(byte[] data)
 	{
-		const ulong OffsetBasis = 1469598103934665603ul;
-		const ulong Prime = 1099511628211ul;
+		const ulong offsetBasis = 1469598103934665603ul;
+		const ulong prime = 1099511628211ul;
 
-		ulong hash = OffsetBasis;
+		ulong hash = offsetBasis;
 		for (int i = 0; i < data.Length; i++)
 		{
 			hash ^= data[i];
-			hash *= Prime;
+			hash *= prime;
 		}
 		return hash;
 	}

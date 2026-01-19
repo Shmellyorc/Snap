@@ -5,6 +5,28 @@ namespace Snap.Engine.Helpers;
 /// </summary>
 public static class InstanceHelpers
 {
+	private static readonly List<Assembly> GameAssemblies = [];
+	private static readonly Dictionary<string, Type> TypeCache = new(StringComparer.OrdinalIgnoreCase);
+	private static readonly object CacheLock = new();
+
+	static InstanceHelpers()
+	{
+		GameAssemblies.EnsureCapacity(AppDomain.CurrentDomain.GetAssemblies().Length);
+
+		foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+		{
+			var name = assembly.GetName().Name;
+			
+			if (!name.StartsWith("System.") &&
+				!name.StartsWith("Microsoft.") &&
+				name != "netstandard" &&
+				name != "mscorlib")
+			{
+				GameAssemblies.Add(assembly);
+			}
+		}
+	}
+
 	/// <summary>
 	/// Attempts to create an instance of type <typeparamref name="T"/> by searching loaded assemblies for the given type name.
 	/// </summary>
@@ -88,34 +110,75 @@ public static class InstanceHelpers
 	/// </returns>
 	public static T CreateInstance<T>(string name, bool ignoreCase, object[] args)
 	{
-		if (name.IsEmpty())
+		if (string.IsNullOrEmpty(name))
 			return default!;
 
-		var ap = AppDomain.CurrentDomain.GetAssemblies();
-		var ignoreType = ignoreCase
-			? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
-
-		for (int i = ap.Length - 1; i >= 0; i--)
+		var comparison = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+		string cacheKey = $"{typeof(T).FullName}:{name}";
+		Type type;
+		
+		lock (CacheLock)
 		{
-			var asm = ap[i];
-			var foundType = asm.GetType(name, false, ignoreCase);
-
-			if (foundType == null)
+			if (!TypeCache.TryGetValue(cacheKey, out type))
 			{
-				foundType = asm.GetTypes()
-					.FirstOrDefault(x => string.Equals(x.Name, name, ignoreType));
+				type = FindType<T>(name, comparison);
+				if (type != null)
+					TypeCache[cacheKey] = type;
 			}
-
-			if (foundType == null)
-				continue;
-
-			if (!typeof(T).IsAssignableFrom(foundType))
-				continue;
-
-			return (T)Activator.CreateInstance(foundType, args)!;
 		}
 
-		return default;
+		if (type != null)
+		{
+			try
+			{
+				return (T)Activator.CreateInstance(type, args)!;
+			}
+			catch
+			{
+				lock (CacheLock)
+				{
+					TypeCache.Remove(cacheKey);
+				}
+				return default!;
+			}
+		}
+
+		return default!;
+	}
+
+	private static Type FindType<T>(string name, StringComparison comparison)
+	{
+		foreach (var assembly in GameAssemblies)
+		{
+			try
+			{
+				var types = assembly.GetTypes();
+				foreach (var type in types)
+				{
+					if (type.Name.Equals(name, comparison) && typeof(T).IsAssignableFrom(type))
+						return type;
+				}
+			}
+			catch (ReflectionTypeLoadException ex)
+			{
+				if (ex.Types != null)
+				{
+					foreach (var type in ex.Types)
+					{
+						if (type != null &&
+							type.Name.Equals(name, comparison) &&
+							typeof(T).IsAssignableFrom(type))
+							return type;
+					}
+				}
+			}
+			catch
+			{
+				continue;
+			}
+		}
+
+		return null;
 	}
 
 	/// <summary>

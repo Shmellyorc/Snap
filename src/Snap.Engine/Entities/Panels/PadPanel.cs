@@ -41,8 +41,8 @@ public sealed class PadPanel : Panel
 		if (visible.Count == 0)
 			return Vect2.Zero;
 
-		float maxWidth = Children.Max(x => x.Size.X);
-		float maxHeight = Children.Max(x => x.Size.Y);
+		float maxWidth = visible.Max(x => x.Size.X);
+		float maxHeight = visible.Max(x => x.Size.Y);
 
 		return new Vect2(maxWidth + _left + _right, maxHeight + _top + _bottom);
 	}

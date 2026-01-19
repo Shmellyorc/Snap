@@ -231,8 +231,8 @@ public class Camera
 			float offsetY = FastRandom.Instance.RangeFloat(-1, 1f) * currentMag;
 			desired += new Vect2(offsetX, offsetY);
 
-			if (_shakeTimeRemaining <= 0)
-				desired = _orginalOffset;
+			// if (_shakeTimeRemaining <= 0)
+			// 	desired = _orginalOffset;
 		}
 
 		Position = desired;

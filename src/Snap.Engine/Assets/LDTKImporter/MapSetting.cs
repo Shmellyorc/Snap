@@ -153,7 +153,7 @@ public class MapSetting(object value)
 	/// <c>true</c> if an entry with the hashed name exists in <paramref name="settings"/>; 
 	/// otherwise <c>false</c>.
 	/// </returns>
-	public static bool Contains(Dictionary<uint, MapSetting> settings, string name)
+	public static bool Contains(IReadOnlyDictionary<uint, MapSetting> settings, string name)
 		=> settings.ContainsKey(HashHelpers.Cache32(name));
 
 	/// <summary>
@@ -199,7 +199,7 @@ public class MapSetting(object value)
 	/// <c>true</c> if the setting was found and returned successfully;
 	/// <c>false</c> if the lookup failed or the setting does not exist.
 	/// </returns>
-	public static bool TryGetBoolSetting(Dictionary<uint, MapSetting> settings, string name, out bool setting)
+	public static bool TryGetBoolSetting(IReadOnlyDictionary<uint, MapSetting> settings, string name, out bool setting)
 	{
 		try
 		{
@@ -222,7 +222,7 @@ public class MapSetting(object value)
 	/// <exception cref="Exception">
 	/// Thrown if the setting is not found or is not an integer.
 	/// </exception>
-	public static int GetIntSetting(Dictionary<uint, MapSetting> settings, string name)
+	public static int GetIntSetting(IReadOnlyDictionary<uint, MapSetting> settings, string name)
 	{
 		if (name.IsEmpty())
 			throw new ArgumentNullException(nameof(name));
@@ -252,7 +252,7 @@ public class MapSetting(object value)
 	/// <c>true</c> if the setting was found and returned successfully;
 	/// <c>false</c> if the lookup failed or the setting does not exist.
 	/// </returns>
-	public static bool TryGetIntSetting(Dictionary<uint, MapSetting> settings, string name, out int setting)
+	public static bool TryGetIntSetting(IReadOnlyDictionary<uint, MapSetting> settings, string name, out int setting)
 	{
 		try
 		{
@@ -275,7 +275,7 @@ public class MapSetting(object value)
 	/// <exception cref="Exception">
 	/// Thrown if the setting is not found or cannot be cast to a float.
 	/// </exception>
-	public static float GetFloatSetting(Dictionary<uint, MapSetting> settings, string name)
+	public static float GetFloatSetting(IReadOnlyDictionary<uint, MapSetting> settings, string name)
 	{
 		if (name.IsEmpty())
 			throw new ArgumentNullException(nameof(name));
@@ -305,7 +305,7 @@ public class MapSetting(object value)
 	/// <c>true</c> if the setting was found and returned successfully;
 	/// <c>false</c> if the lookup failed or the setting does not exist.
 	/// </returns>
-	public static bool TryGetFloatSetting(Dictionary<uint, MapSetting> settings, string name, out float setting)
+	public static bool TryGetFloatSetting(IReadOnlyDictionary<uint, MapSetting> settings, string name, out float setting)
 	{
 		try
 		{
@@ -329,7 +329,7 @@ public class MapSetting(object value)
 	/// <exception cref="Exception">
 	/// Thrown if the setting is not found or is not a <see cref="Vect2"/>.
 	/// </exception>
-	public static Vect2 GetPointSetting(Dictionary<uint, MapSetting> settings, string name)
+	public static Vect2 GetPointSetting(IReadOnlyDictionary<uint, MapSetting> settings, string name)
 	{
 		if (name.IsEmpty())
 			throw new ArgumentNullException(nameof(name));
@@ -359,7 +359,7 @@ public class MapSetting(object value)
 	/// <c>true</c> if the setting was found and returned successfully;
 	/// <c>false</c> if the lookup failed or the setting does not exist.
 	/// </returns>
-	public static bool TryGetPointSetting(Dictionary<uint, MapSetting> settings, string name, out Vect2 setting)
+	public static bool TryGetPointSetting(IReadOnlyDictionary<uint, MapSetting> settings, string name, out Vect2 setting)
 	{
 		try
 		{
@@ -383,7 +383,7 @@ public class MapSetting(object value)
 	/// <exception cref="Exception">
 	/// Thrown if the setting is missing or its value is not a color.
 	/// </exception>
-	public static Color GetColorSetting(Dictionary<uint, MapSetting> settings, string name)
+	public static Color GetColorSetting(IReadOnlyDictionary<uint, MapSetting> settings, string name)
 	{
 		if (name.IsEmpty())
 			throw new ArgumentNullException(nameof(name));
@@ -413,7 +413,7 @@ public class MapSetting(object value)
 	/// <c>true</c> if the setting was found and returned successfully;
 	/// <c>false</c> if the lookup failed or the setting does not exist.
 	/// </returns>
-	public static bool TryGetColorSetting(Dictionary<uint, MapSetting> settings, string name, out Color setting)
+	public static bool TryGetColorSetting(IReadOnlyDictionary<uint, MapSetting> settings, string name, out Color setting)
 	{
 		try
 		{
@@ -467,7 +467,7 @@ public class MapSetting(object value)
 	/// <c>true</c> if the setting was found and returned successfully;
 	/// <c>false</c> if the lookup failed or the setting does not exist.
 	/// </returns>
-	public static bool TryGetStringSetting(Dictionary<uint, MapSetting> settings, string name, out string setting)
+	public static bool TryGetStringSetting(IReadOnlyDictionary<uint, MapSetting> settings, string name, out string setting)
 	{
 		try
 		{
@@ -490,7 +490,7 @@ public class MapSetting(object value)
 	/// <exception cref="Exception">
 	/// Thrown if the setting doesn't exist or is not a string.
 	/// </exception>
-	public static string GetFilePathSetting(Dictionary<uint, MapSetting> settings, string name)
+	public static string GetFilePathSetting(IReadOnlyDictionary<uint, MapSetting> settings, string name)
 	{
 		if (name.IsEmpty())
 			throw new ArgumentNullException(nameof(name));
@@ -520,7 +520,7 @@ public class MapSetting(object value)
 	/// <c>true</c> if the setting was found and returned successfully;
 	/// <c>false</c> if the lookup failed or the setting does not exist.
 	/// </returns>
-	public static bool TryGetFilePathSetting(Dictionary<uint, MapSetting> settings, string name, out string setting)
+	public static bool TryGetFilePathSetting(IReadOnlyDictionary<uint, MapSetting> settings, string name, out string setting)
 	{
 		try
 		{
@@ -544,7 +544,7 @@ public class MapSetting(object value)
 	/// <exception cref="Exception">
 	/// Thrown if the tile value is missing or incompatible.
 	/// </exception>
-	public static MapTile GetTileSetting(Dictionary<uint, MapSetting> settings, string name)
+	public static MapTile GetTileSetting(IReadOnlyDictionary<uint, MapSetting> settings, string name)
 	{
 		if (name.IsEmpty())
 			throw new ArgumentNullException(nameof(name));
@@ -574,7 +574,7 @@ public class MapSetting(object value)
 	/// <c>true</c> if the setting was found and returned successfully;
 	/// <c>false</c> if the lookup failed or the setting does not exist.
 	/// </returns>
-	public static bool TryGetTileSetting(Dictionary<uint, MapSetting> settings, string name, out MapTile setting)
+	public static bool TryGetTileSetting(IReadOnlyDictionary<uint, MapSetting> settings, string name, out MapTile setting)
 	{
 		try
 		{
@@ -598,7 +598,7 @@ public class MapSetting(object value)
 	/// <exception cref="Exception">
 	/// Thrown if no entity reference is found or the type is incorrect.
 	/// </exception>
-	public static MapEntityRef GetEntityRefSetting(Dictionary<uint, MapSetting> settings, string name)
+	public static MapEntityRef GetEntityRefSetting(IReadOnlyDictionary<uint, MapSetting> settings, string name)
 	{
 		if (name.IsEmpty())
 			throw new ArgumentNullException(nameof(name));
@@ -628,7 +628,7 @@ public class MapSetting(object value)
 	/// <c>true</c> if the setting was found and returned successfully;
 	/// <c>false</c> if the lookup failed or the setting does not exist.
 	/// </returns>
-	public static bool TryGetEntityRefSetting(Dictionary<uint, MapSetting> settings, string name, out MapEntityRef setting)
+	public static bool TryGetEntityRefSetting(IReadOnlyDictionary<uint, MapSetting> settings, string name, out MapEntityRef setting)
 	{
 		try
 		{
@@ -653,7 +653,7 @@ public class MapSetting(object value)
 	/// <exception cref="Exception">
 	/// Thrown if the setting doesn't exist or is not a string compatible with the target enum.
 	/// </exception>
-	public static TEnum GetEnumSetting<TEnum>(Dictionary<uint, MapSetting> settings, string name) where TEnum : Enum
+	public static TEnum GetEnumSetting<TEnum>(IReadOnlyDictionary<uint, MapSetting> settings, string name) where TEnum : Enum
 	{
 		if (name.IsEmpty())
 			throw new ArgumentNullException(nameof(name));
@@ -686,7 +686,7 @@ public class MapSetting(object value)
 	/// <c>true</c> if the setting was found and returned successfully;
 	/// <c>false</c> if the lookup failed or the setting does not exist.
 	/// </returns>
-	public static bool TryGetEnumSetting<TEnum>(Dictionary<uint, MapSetting> settings, string name, out TEnum setting)
+	public static bool TryGetEnumSetting<TEnum>(IReadOnlyDictionary<uint, MapSetting> settings, string name, out TEnum setting)
 		where TEnum : Enum
 	{
 		try
@@ -714,7 +714,7 @@ public class MapSetting(object value)
 	///   <item><description>The value is not a <see cref="List{T}"/> of <see cref="bool"/>.</description></item>
 	/// </list>
 	/// </exception>
-	public static IReadOnlyList<bool> GetBoolArraySetting(Dictionary<uint, MapSetting> settings, string name)
+	public static IReadOnlyList<bool> GetBoolArraySetting(IReadOnlyDictionary<uint, MapSetting> settings, string name)
 	{
 		if (name.IsEmpty())
 			throw new ArgumentNullException(nameof(name));
@@ -744,7 +744,7 @@ public class MapSetting(object value)
 	/// <c>true</c> if the setting was found and returned successfully;
 	/// <c>false</c> if the lookup failed or the setting does not exist.
 	/// </returns>
-	public static bool TryGetBoolArraySetting(Dictionary<uint, MapSetting> settings, string name, out IReadOnlyList<bool> setting)
+	public static bool TryGetBoolArraySetting(IReadOnlyDictionary<uint, MapSetting> settings, string name, out IReadOnlyList<bool> setting)
 	{
 		try
 		{
@@ -767,7 +767,7 @@ public class MapSetting(object value)
 	/// <exception cref="Exception">
 	/// Thrown if the field is missing or not a <see cref="List{Int32}"/>.
 	/// </exception>
-	public static IReadOnlyList<int> GetIntArraySetting(Dictionary<uint, MapSetting> settings, string name)
+	public static IReadOnlyList<int> GetIntArraySetting(IReadOnlyDictionary<uint, MapSetting> settings, string name)
 	{
 		if (name.IsEmpty())
 			throw new ArgumentNullException(nameof(name));
@@ -797,7 +797,7 @@ public class MapSetting(object value)
 	/// <c>true</c> if the setting was found and returned successfully;
 	/// <c>false</c> if the lookup failed or the setting does not exist.
 	/// </returns>
-	public static bool TryGetIntArraySetting(Dictionary<uint, MapSetting> settings, string name, out IReadOnlyList<int> setting)
+	public static bool TryGetIntArraySetting(IReadOnlyDictionary<uint, MapSetting> settings, string name, out IReadOnlyList<int> setting)
 	{
 		try
 		{
@@ -821,7 +821,7 @@ public class MapSetting(object value)
 	/// <exception cref="Exception">
 	/// Thrown if the setting is not found or has an incompatible type.
 	/// </exception>
-	public static IReadOnlyList<float> GetFloatArraySetting(Dictionary<uint, MapSetting> settings, string name)
+	public static IReadOnlyList<float> GetFloatArraySetting(IReadOnlyDictionary<uint, MapSetting> settings, string name)
 	{
 		if (name.IsEmpty())
 			throw new ArgumentNullException(nameof(name));
@@ -851,7 +851,7 @@ public class MapSetting(object value)
 	/// <c>true</c> if the setting was found and returned successfully;
 	/// <c>false</c> if the lookup failed or the setting does not exist.
 	/// </returns>
-	public static bool TryGetFloatArraySetting(Dictionary<uint, MapSetting> settings, string name, out IReadOnlyList<float> setting)
+	public static bool TryGetFloatArraySetting(IReadOnlyDictionary<uint, MapSetting> settings, string name, out IReadOnlyList<float> setting)
 	{
 		try
 		{
@@ -875,7 +875,7 @@ public class MapSetting(object value)
 	/// <exception cref="Exception">
 	/// Thrown if the field is not present or is not a list of <see cref="Vect2"/>.
 	/// </exception>
-	public static IReadOnlyList<Vect2> GetPointArraySetting(Dictionary<uint, MapSetting> settings, string name)
+	public static IReadOnlyList<Vect2> GetPointArraySetting(IReadOnlyDictionary<uint, MapSetting> settings, string name)
 	{
 		if (name.IsEmpty())
 			throw new ArgumentNullException(nameof(name));
@@ -905,7 +905,7 @@ public class MapSetting(object value)
 	/// <c>true</c> if the setting was found and returned successfully;
 	/// <c>false</c> if the lookup failed or the setting does not exist.
 	/// </returns>
-	public static bool TryGetPointArraySetting(Dictionary<uint, MapSetting> settings, string name, out IReadOnlyList<Vect2> setting)
+	public static bool TryGetPointArraySetting(IReadOnlyDictionary<uint, MapSetting> settings, string name, out IReadOnlyList<Vect2> setting)
 	{
 		try
 		{
@@ -929,7 +929,7 @@ public class MapSetting(object value)
 	/// <exception cref="Exception">
 	/// Thrown if the setting is not found or contains invalid types.
 	/// </exception>
-	public static IReadOnlyList<Color> GetColorArraySetting(Dictionary<uint, MapSetting> settings, string name)
+	public static IReadOnlyList<Color> GetColorArraySetting(IReadOnlyDictionary<uint, MapSetting> settings, string name)
 	{
 		if (name.IsEmpty())
 			throw new ArgumentNullException(nameof(name));
@@ -959,7 +959,7 @@ public class MapSetting(object value)
 	/// <c>true</c> if the setting was found and returned successfully;
 	/// <c>false</c> if the lookup failed or the setting does not exist.
 	/// </returns>
-	public static bool TryGetColorArraySetting(Dictionary<uint, MapSetting> settings, string name, out IReadOnlyList<Color> setting)
+	public static bool TryGetColorArraySetting(IReadOnlyDictionary<uint, MapSetting> settings, string name, out IReadOnlyList<Color> setting)
 	{
 		try
 		{
@@ -983,7 +983,7 @@ public class MapSetting(object value)
 	/// <exception cref="Exception">
 	/// Thrown if the setting is absent or not a <see cref="List{String}"/>.
 	/// </exception>
-	public static IReadOnlyList<string> GetStringArraySetting(Dictionary<uint, MapSetting> settings, string name)
+	public static IReadOnlyList<string> GetStringArraySetting(IReadOnlyDictionary<uint, MapSetting> settings, string name)
 	{
 		if (name.IsEmpty())
 			throw new ArgumentNullException(nameof(name));
@@ -1013,7 +1013,7 @@ public class MapSetting(object value)
 	/// <c>true</c> if the setting was found and returned successfully;
 	/// <c>false</c> if the lookup failed or the setting does not exist.
 	/// </returns>
-	public static bool TryGetStringArraySetting(Dictionary<uint, MapSetting> settings, string name, out IReadOnlyList<string> setting)
+	public static bool TryGetStringArraySetting(IReadOnlyDictionary<uint, MapSetting> settings, string name, out IReadOnlyList<string> setting)
 	{
 		try
 		{
@@ -1037,7 +1037,7 @@ public class MapSetting(object value)
 	/// <exception cref="Exception">
 	/// Thrown when the field is missing or not a list of <see cref="string"/>.
 	/// </exception>
-	public static IReadOnlyList<string> GetFilePathArraySetting(Dictionary<uint, MapSetting> settings, string name)
+	public static IReadOnlyList<string> GetFilePathArraySetting(IReadOnlyDictionary<uint, MapSetting> settings, string name)
 	{
 		if (name.IsEmpty())
 			throw new ArgumentNullException(nameof(name));
@@ -1067,7 +1067,7 @@ public class MapSetting(object value)
 	/// <c>true</c> if the setting was found and returned successfully;
 	/// <c>false</c> if the lookup failed or the setting does not exist.
 	/// </returns>
-	public static bool TryGetFilePathArraySetting(Dictionary<uint, MapSetting> settings, string name, out IReadOnlyList<string> setting)
+	public static bool TryGetFilePathArraySetting(IReadOnlyDictionary<uint, MapSetting> settings, string name, out IReadOnlyList<string> setting)
 	{
 		try
 		{
@@ -1090,7 +1090,7 @@ public class MapSetting(object value)
 	/// <exception cref="Exception">
 	/// Thrown if the field is not found or is not a list of <see cref="MapTile"/>.
 	/// </exception>
-	public static IReadOnlyList<MapTile> GetTileArraySetting(Dictionary<uint, MapSetting> settings, string name)
+	public static IReadOnlyList<MapTile> GetTileArraySetting(IReadOnlyDictionary<uint, MapSetting> settings, string name)
 	{
 		if (name.IsEmpty())
 			throw new ArgumentNullException(nameof(name));
@@ -1120,10 +1120,7 @@ public class MapSetting(object value)
 	/// <c>true</c> if the setting was found and returned successfully;
 	/// <c>false</c> if the lookup failed or the setting does not exist.
 	/// </returns>
-	public static bool TryGetTileArraySetting(
-		Dictionary<uint, MapSetting> settings,
-		string name,
-		out IReadOnlyList<MapTile> setting)
+	public static bool TryGetTileArraySetting(IReadOnlyDictionary<uint, MapSetting> settings, string name, out IReadOnlyList<MapTile> setting)
 	{
 		try
 		{
@@ -1146,7 +1143,7 @@ public class MapSetting(object value)
 	/// <exception cref="Exception">
 	/// Thrown if the field is not valid or not a list of <see cref="MapEntityRef"/>.
 	/// </exception>
-	public static IReadOnlyList<MapEntityRef> GetEntityRefArraySetting(Dictionary<uint, MapSetting> settings, string name)
+	public static IReadOnlyList<MapEntityRef> GetEntityRefArraySetting(IReadOnlyDictionary<uint, MapSetting> settings, string name)
 	{
 		if (name.IsEmpty())
 			throw new ArgumentNullException(nameof(name));
@@ -1176,10 +1173,7 @@ public class MapSetting(object value)
 	/// <c>true</c> if the setting was found and returned successfully;
 	/// <c>false</c> if the lookup failed or the setting does not exist.
 	/// </returns>
-	public static bool TryGetEntityRefArraySetting(
-		Dictionary<uint, MapSetting> settings,
-		string name,
-		out IReadOnlyList<MapEntityRef> setting)
+	public static bool TryGetEntityRefArraySetting(IReadOnlyDictionary<uint, MapSetting> settings, string name, out IReadOnlyList<MapEntityRef> setting)
 	{
 		try
 		{
@@ -1203,7 +1197,7 @@ public class MapSetting(object value)
 	/// <exception cref="Exception">
 	/// Thrown if the field is missing or does not contain a list of strings.
 	/// </exception>
-	public static IReadOnlyList<TEnum> GetEnumArraySetting<TEnum>(Dictionary<uint, MapSetting> settings, string name) where TEnum : Enum
+	public static IReadOnlyList<TEnum> GetEnumArraySetting<TEnum>(IReadOnlyDictionary<uint, MapSetting> settings, string name) where TEnum : Enum
 	{
 		if (name.IsEmpty())
 			throw new ArgumentNullException(nameof(name));
@@ -1248,10 +1242,7 @@ public class MapSetting(object value)
 	/// <c>true</c> if the setting was found and returned successfully;
 	/// <c>false</c> if the lookup failed or the setting does not exist.
 	/// </returns>
-	public static bool TryGetEnumArraySetting<TEnum>(
-		Dictionary<uint, MapSetting> settings,
-		string name,
-		out IReadOnlyList<TEnum> setting
+	public static bool TryGetEnumArraySetting<TEnum>(IReadOnlyDictionary<uint, MapSetting> settings, string name, out IReadOnlyList<TEnum> setting
 	) where TEnum : Enum
 	{
 		try

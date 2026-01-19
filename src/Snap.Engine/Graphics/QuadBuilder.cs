@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 namespace Snap.Engine.Graphics;
 
 public static class QuadBuilder
@@ -85,7 +80,7 @@ public static class QuadBuilder
 		int depth = 0)
 	{
 		BuildQuad(output, dstRect, srcRect, color,
-				  Vect2.Zero, Vect2.One, 0f, TextureEffects.None, null);
+			Vect2.Zero, Vect2.One, 0f, TextureEffects.None, null);
 	}
 
 	public static void BuildQuad(
@@ -96,6 +91,6 @@ public static class QuadBuilder
 		Color color)
 	{
 		BuildQuad(output, new Rect2(position, size), srcRect, color,
-				  Vect2.Zero, Vect2.One, 0f, TextureEffects.None, null);
+			Vect2.Zero, Vect2.One, 0f, TextureEffects.None, null);
 	}
 }

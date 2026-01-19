@@ -1,6 +1,5 @@
 namespace Snap.Engine.Entities.Panels;
 
-
 /// <summary>
 /// A vertical layout panel that stacks child entities top to bottom, with configurable spacing and alignment.
 /// </summary>
