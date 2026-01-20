@@ -45,9 +45,41 @@ public class SoundInstance : IDisposable
 
 
 	#region Events
+	/// <summary>
+	/// Occurs when this sound instance has finished playing naturally.
+	/// This event is raised when playback reaches the end of the sound's duration or when it completes looping.
+	/// </summary>
+	/// <remarks>
+	/// Use this event to trigger cleanup actions, play follow-up sounds, or update game state
+	/// when a sound finishes playing. The event provides the completed sound instance as a parameter,
+	/// allowing you to identify which specific sound finished.
+	/// </remarks>
 	public event Action<SoundInstance> OnPlaybackFinished;
+
+	/// <summary>
+	/// Occurs when this sound instance has been disposed and is no longer usable.
+	/// </summary>
+	/// <remarks>
+	/// This event signals that the underlying audio resources have been released.
+	/// After disposal, attempts to use this sound instance will have no effect.
+	/// Use this event for cleanup of references or tracking of active sound instances.
+	/// </remarks>
 	public event Action<SoundInstance> OnDisposed;
 
+	/// <summary>
+	/// Gets or sets the current playback position within the sound.
+	/// </summary>
+	/// <value>
+	/// A <see cref="TimeSpan"/> representing how far into the sound playback has progressed.
+	/// Setting this property seeks to the specified position in the audio.
+	/// Returns <see cref="TimeSpan.Zero"/> if the sound instance is no longer valid.
+	/// </value>
+	/// <remarks>
+	/// Use this property to control or monitor playback progress. When set, the sound will
+	/// immediately jump to the specified position. This is useful for implementing features
+	/// like scrubbing through audio, resuming from saved positions, or creating precise
+	/// audio synchronization.
+	/// </remarks>
 	public TimeSpan PlayingOffset
 	{
 		get => IsValid ? _sfSound.PlayingOffset.ToTimeSpan() : TimeSpan.Zero;
@@ -87,8 +119,32 @@ public class SoundInstance : IDisposable
 
 
 	#region Properties
+	/// <summary>
+	/// Gets the <see cref="Sound"/> asset that this instance is playing.
+	/// </summary>
+	/// <value>
+	/// The original sound asset that was used to create this playback instance.
+	/// This property provides access to the sound's metadata such as duration, format, and original data.
+	/// </value>
+	/// <remarks>
+	/// This property is useful when you need to reference the original sound's properties
+	/// (like duration or audio format) while managing multiple playing instances.
+	/// The value is set when the instance is created and remains constant throughout its lifetime.
+	/// </remarks>
 	public Sound Sound { get; private set; }
 
+	/// <summary>
+	/// Gets the timestamp when this sound instance was last actively used.
+	/// </summary>
+	/// <value>
+	/// A <see cref="DateTime"/> indicating when this sound instance was last played or accessed.
+	/// This property is managed internally by the audio system.
+	/// </value>
+	/// <remarks>
+	/// The audio system uses this timestamp to implement features like sound instance pooling
+	/// or automatic cleanup of inactive sounds. A more recent timestamp indicates the sound
+	/// has been recently played and should be kept available for reuse.
+	/// </remarks>
 	public DateTime LastUsedTime { get; internal set; }
 
 	/// <summary>

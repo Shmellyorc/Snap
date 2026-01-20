@@ -9,9 +9,32 @@ public class Sprite : Entity
 	private RenderTarget _rt;
 	private bool _rtChecked;
 
-
+	/// <summary>
+	/// Gets or sets a positional offset applied to the rendered sprite relative to its base position.
+	/// This offset moves the visual representation of the sprite without affecting its logical position,
+	/// hitbox, or origin point.
+	/// </summary>
+	/// <value>
+	/// A <see cref="Vect2"/> representing the offset in pixels. Positive X moves right, positive Y moves down.
+	/// Default is <see cref="Vect2.Zero"/>.
+	/// </value>
+	/// <remarks>
+	/// <para>
+	/// Unlike <see cref="Origin"/>, which affects rotation and scaling pivot points, the offset
+	/// only changes where the sprite is drawn relative to its actual position in the game world.
+	/// This is useful for:
+	/// <list type="bullet">
+	///   <item><description>Creating visual effects like bobbing or shaking</description></item>
+	///   <item><description>Adjusting sprite alignment without moving the entity</description></item>
+	///   <item><description>Creating offset animations independent of movement</description></item>
+	/// </list>
+	/// </para>
+	/// <para>
+	/// The offset is applied after position calculation but before rendering, making it purely visual.
+	/// It does not affect collision detection, physics, or any other game logic.
+	/// </para>
+	/// </remarks>
 	public Vect2 Offset { get; set; }
-
 
 	/// <summary>
 	/// The rectangular portion of the texture to render.

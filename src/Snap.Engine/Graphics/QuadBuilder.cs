@@ -1,6 +1,6 @@
 namespace Snap.Engine.Graphics;
 
-public static class QuadBuilder
+internal static class QuadBuilder
 {
 	private const float TexelOffset = 0.05f;
 

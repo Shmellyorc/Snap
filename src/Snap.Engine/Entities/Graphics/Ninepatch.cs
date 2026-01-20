@@ -62,8 +62,24 @@ public sealed class Ninepatch : Entity
 		}
 	}
 
-
-
+	/// <summary>
+	/// Gets or sets whether the nine-patch sprite is visible and should be rendered.
+	/// </summary>
+	/// <value>
+	/// <c>true</c> if the nine-patch is visible and will be drawn; otherwise, <c>false</c> to hide it.
+	/// </value>
+	/// <remarks>
+	/// <para>
+	/// Setting this property to a new value marks both the destination and source regions
+	/// as dirty, ensuring that the sprite recalculates its geometry when visibility changes.
+	/// If the visibility state doesn't change from the current value, the property setter
+	/// exits early to avoid unnecessary recalculation.
+	/// </para>
+	/// <para>
+	/// When visibility changes from hidden to visible, the nine-patch will automatically
+	/// regenerate its vertex data on the next render cycle to ensure proper display.
+	/// </para>
+	/// </remarks>
 	public new bool Visible
 	{
 		get => base.Visible;
@@ -76,7 +92,6 @@ public sealed class Ninepatch : Entity
 			_dirtyFlags |= NinePatchDirtyFlags.Dest | NinePatchDirtyFlags.Source;
 		}
 	}
-
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="Ninepatch"/> class with the given texture,

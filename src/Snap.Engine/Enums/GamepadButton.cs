@@ -5,6 +5,10 @@ namespace Snap.Engine.Enums;
 /// </summary>
 public enum GamepadButton
 {
+	/// <summary>
+	/// Represents the absence of a gamepad button or an unassigned button state.
+	/// This value is used as a default/sentinel value and does not correspond to any physical input.
+	/// </summary>
 	None,
 	
 	/// <summary>

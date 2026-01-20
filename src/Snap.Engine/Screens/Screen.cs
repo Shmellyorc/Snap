@@ -28,6 +28,20 @@ public class Screen
 	/// </summary>
 	public IReadOnlyList<Entity> Entities => _entities;
 
+	/// <summary>
+	/// Returns a read-only collection of all entities on this screen that match the specified entity type.
+	/// This provides a convenient way to access specific types of entities for processing or querying.
+	/// </summary>
+	/// <typeparam name="TEntity">The type of entity to filter for. Must inherit from <see cref="Entity"/>.</typeparam>
+	/// <returns>
+	/// A read-only list containing all entities on this screen that are of the specified type.
+	/// Returns an empty list if no matching entities are found.
+	/// </returns>
+	/// <remarks>
+	/// This method is useful when you need to work with a particular category of entities,
+	/// such as finding all enemies, players, or collectibles on the current screen.
+	/// The returned collection provides type-safe access to entities without requiring manual casting.
+	/// </remarks>
 	public IReadOnlyList<TEntity> EntitiesAs<TEntity>() where TEntity : Entity
 		=> [.. Entities.OfType<TEntity>()];
 
@@ -157,7 +171,8 @@ public class Screen
 	/// <param name="repeat">Whether the texture should repeat when drawn beyond its bounds.</param>
 	/// <param name="smooth">Whether the texture should be smoothed (interpolated) when scaled.</param>
 	/// <returns>The loaded <see cref="Texture"/> instance.</returns>
-	public Texture LoadTexture(string filename, bool repeat = false, bool smooth = false) => AssetManager.LoadTexture(filename, repeat, smooth);
+	public Texture LoadTexture(string filename, bool repeat = false, bool smooth = false)
+		=> AssetManager.LoadTexture(filename, repeat, smooth);
 
 	/// <summary>
 	/// Loads a sprite font from the specified file.
@@ -168,22 +183,24 @@ public class Screen
 	/// <param name="smoothing">Whether to apply smoothing to the font rendering.</param>
 	/// <param name="charList">Optional custom character set to load.</param>
 	/// <returns>The loaded <see cref="SpriteFont"/> instance.</returns>
-	public SpriteFont LoadSpriteFont(string filename, float spacing = 0f, float lineSpacing = 0f, bool smoothing = false, string charList = null) =>
-		AssetManager.LoadSpriteFont(filename, spacing, lineSpacing, smoothing, charList);
+	public SpriteFont LoadSpriteFont(string filename, float spacing = 0f, float lineSpacing = 0f, bool smoothing = false, string charList = null)
+		=> AssetManager.LoadSpriteFont(filename, spacing, lineSpacing, smoothing, charList);
 
 	/// <summary>
 	/// Loads an LDTK map project from the specified file.
 	/// </summary>
 	/// <param name="filename">The path to the LDTK project file.</param>
 	/// <returns>The loaded <see cref="LDTKProject"/> instance.</returns>
-	public LDTKProject LoadMap(string filename) => AssetManager.LoadMap(filename);
+	public LDTKProject LoadMap(string filename)
+		=> AssetManager.LoadMap(filename);
 
 	/// <summary>
 	/// Loads a spritesheet from the specified file.
 	/// </summary>
 	/// <param name="filename">The path to the spritesheet definition file.</param>
 	/// <returns>The loaded <see cref="Spritesheet"/> instance.</returns>
-	public Spritesheet LoadSheet(string filename) => AssetManager.LoadSheet(filename);
+	public Spritesheet LoadSheet(string filename)
+		=> AssetManager.LoadSheet(filename);
 
 	/// <summary>
 	/// Loads a sound effect from the specified file.
@@ -191,7 +208,8 @@ public class Screen
 	/// <param name="filename">The path to the sound file.</param>
 	/// <param name="looped">Whether the sound should loop automatically when played.</param>
 	/// <returns>The loaded <see cref="Sound"/> instance.</returns>
-	public Sound LoadSound(string filename, bool looped = false) => AssetManager.LoadSound(filename, looped);
+	public Sound LoadSound(string filename, bool looped = false)
+		=> AssetManager.LoadSound(filename, looped);
 
 
 	/// <summary>
@@ -199,14 +217,16 @@ public class Screen
 	/// </summary>
 	/// <param name="name">The name or path of the texture.</param>
 	/// <returns>The <see cref="Texture"/> if found; otherwise, throws if not found.</returns>
-	public Texture GetTexture(string name) => AssetManager.GetTexture(name);
+	public Texture GetTexture(string name)
+		=> AssetManager.GetTexture(name);
 
 	/// <summary>
 	/// Retrieves a previously loaded texture using an enum as the key.
 	/// </summary>
 	/// <param name="name">The enum key representing the texture name.</param>
 	/// <returns>The <see cref="Texture"/> if found; otherwise, throws if not found.</returns>
-	public Texture GetTexture(Enum name) => AssetManager.GetTexture(name);
+	public Texture GetTexture(Enum name)
+		=> AssetManager.GetTexture(name);
 
 	/// <summary>
 	/// Attempts to retrieve a texture by name.
@@ -214,7 +234,8 @@ public class Screen
 	/// <param name="name">The name or path of the texture.</param>
 	/// <param name="texture">When this method returns, contains the <see cref="Texture"/> if found; otherwise, null.</param>
 	/// <returns><c>true</c> if the texture was found; otherwise, <c>false</c>.</returns>
-	public bool TryGetTexture(string name, out Texture texture) => AssetManager.TryGetTexture(name, out texture);
+	public bool TryGetTexture(string name, out Texture texture)
+		=> AssetManager.TryGetTexture(name, out texture);
 
 	/// <summary>
 	/// Attempts to retrieve a texture using an enum key.
@@ -222,7 +243,8 @@ public class Screen
 	/// <param name="name">The enum key representing the texture name.</param>
 	/// <param name="texture">When this method returns, contains the <see cref="Texture"/> if found; otherwise, null.</param>
 	/// <returns><c>true</c> if the texture was found; otherwise, <c>false</c>.</returns>
-	public bool TryGetTexture(Enum name, out Texture texture) => AssetManager.TryGetTexture(name, out texture);
+	public bool TryGetTexture(Enum name, out Texture texture)
+		=> AssetManager.TryGetTexture(name, out texture);
 
 
 	/// <summary>
