@@ -1,6 +1,4 @@
-﻿using Snap.Engine.Assets;
-
-namespace Snap.Engine;
+﻿namespace Snap.Engine;
 
 /// <summary>
 /// Represents errors that occur during the creation of a game window.
@@ -52,6 +50,7 @@ public class Game : IDisposable
 {
 	private const int TotalFpsQueueSamples = 16;
 	private SFStyles _styles;
+	// private SFState _state;
 	private SFContext _context;
 	SFVideoMode _videoMode;
 	private bool _isDisposed, _initialized;
@@ -308,10 +307,10 @@ public class Game : IDisposable
 
 			if (!Settings.FullScreen)
 			{
-				ToRenderer.Position = new SFVectI(
-					(int)(CurrentMonitor.Width - ToRenderer.Size.X) / 2,
-					(int)(CurrentMonitor.Height - ToRenderer.Size.Y) / 2
-				);
+				// ToRenderer.Position = new SFVectI(
+				// 	(int)(CurrentMonitor.Width - ToRenderer.Size.X) / 2,
+				// 	(int)(CurrentMonitor.Height - ToRenderer.Size.Y) / 2
+				// );
 			}
 
 			Input.Load();
@@ -457,10 +456,10 @@ public class Game : IDisposable
 
 			if (!Settings.FullScreen)
 			{
-				ToRenderer.Position = new SFVectI(
-					(int)(CurrentMonitor.Width - ToRenderer.Size.X) / 2,
-					(int)(CurrentMonitor.Height - ToRenderer.Size.Y) / 2
-				);
+				// ToRenderer.Position = new SFVectI(
+				// 	(int)(CurrentMonitor.Width - ToRenderer.Size.X) / 2,
+				// 	(int)(CurrentMonitor.Height - ToRenderer.Size.Y) / 2
+				// );
 			}
 		}
 		catch (WindowCreationException wex)
@@ -618,13 +617,31 @@ public class Game : IDisposable
 			{
 				_log.Log(LogLevel.Info, $"Adding {Settings.Services.Length} service{(Settings.Services.Length > 1 ? "s" : string.Empty)}.");
 				for (int i = 0; i < Settings.Services.Length; i++)
-					_serviceManager.RegisterService(Settings.Services[i]);
+				{
+					var tService = Settings.Services[i];
+
+					if (!InstanceHelpers.TryCreateInstanceFromType<Service>(tService, [], out var service))
+						continue;
+
+					_serviceManager.RegisterService(service);
+				}
 			}
 
 			if (Settings.Screens?.Length > 0)
 			{
-				_log.Log(LogLevel.Info, $"Adding {Settings.Screens.Length} screen{(Settings.Screens.Length > 1 ? "s" : string.Empty)}.");
-				_screenManager.Add(Settings.Screens);
+				var sResult = new List<Screen>(Settings.Screens.Length);
+				for (int i = 0; i < Settings.Screens.Length; i++)
+				{
+					var tScreen = Settings.Screens[i];
+
+					if (!InstanceHelpers.TryCreateInstanceFromType<Screen>(tScreen, [], out var screen))
+						continue;
+
+					sResult.Add(screen);
+				}
+
+				_log.Log(LogLevel.Info, $"Adding {sResult.Count} screen{(sResult.Count > 1 ? "s" : string.Empty)}.");
+				_screenManager.Add([.. sResult]);
 			}
 		}
 
@@ -734,6 +751,7 @@ public class Game : IDisposable
 	}
 
 
+
 	/// <summary>
 	/// Gets the primary (desktop) monitor's resolution.
 	/// </summary>
@@ -759,26 +777,39 @@ public class Game : IDisposable
 	/// <param name="hRatio">
 	/// The height portion of the target aspect ratio (e.g., 9 for a 16:9 ratio).
 	/// </param>
-	/// <param name="tolerance">
-	/// The allowed margin of error when comparing aspect ratios. Defaults to 0.01f.
-	/// </param>
 	/// <returns>
 	/// A list of <see cref="Monitor"/> objects representing supported resolutions matching the given ratio.
 	/// </returns>
 	/// <remarks>
 	/// This method checks and filters out modes whose aspect ratios do not match the target within the given tolerance.
 	/// </remarks>
-	public List<Monitor> GetSupportedMonitors(int wRatio, int hRatio, float tolerance = 0.01f)
+	public List<Monitor> GetSupportedMonitors(uint wRatio, uint hRatio)
 	{
-		float ratio = (float)wRatio / hRatio;
+		const float tolerance = 0.01f;
 
-		return [.. SFVideoMode.FullscreenModes
-			.Where(mode =>
+		float ratio = (float)wRatio / hRatio;
+		SFVideoMode[] modes = SFVideoMode.FullscreenModes;
+		var resolutionMap = new Dictionary<string, SFVideoMode>(modes.Length);
+
+		foreach (var mode in modes)
+		{
+			float actualRatio = (float)mode.Width / mode.Height;
+
+			if (Math.Abs(actualRatio - ratio) >= tolerance)
+				continue;
+
+			var key = $"{mode.Width}x{mode.Height}";
+
+			if (!resolutionMap.TryGetValue(key, out var exists) ||
+			mode.BitsPerPixel > exists.BitsPerPixel)
 			{
-				float actualRatio = (float)mode.Width / mode.Height;
-				return Math.Abs(actualRatio - ratio) < tolerance;
-			})
-			.Select(x => new Monitor((int)x.Width, (int)x.Height))];
+				resolutionMap[key] = mode;
+			}
+		}
+
+		return [.. resolutionMap.Values
+			.Select(mode => new Monitor((int)mode.Width, (int)mode.Height))
+		];
 	}
 
 	internal SFRenderWindow ToRenderer { get; private set; }

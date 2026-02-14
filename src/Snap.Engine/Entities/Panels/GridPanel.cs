@@ -190,6 +190,22 @@ public class GridPanel : Panel
 		}
 	}
 
+	/// <summary>
+	/// Calculates the total size required to arrange all visible child entities in a grid layout.
+	/// </summary>
+	/// <param name="children">The collection of child entities to be arranged in the grid.</param>
+	/// <returns>
+	/// A <see cref="Vect2"/> representing the total calculated size (width and height) needed 
+	/// to contain all visible children arranged in the grid with specified columns and spacing.
+	/// Returns <see cref="Vect2.Zero"/> if no children are visible.
+	/// </returns>
+	/// <remarks>
+	/// The calculation considers only visible, non-exiting children. The grid arranges children
+	/// from left to right, top to bottom, using the specified <see cref="_columns"/> value to
+	/// determine the maximum number of children per row. Each cell in the grid is sized to
+	/// accommodate the largest child in that dimension, with <see cref="_spacing"/> added between
+	/// rows and columns.
+	/// </remarks>
 	protected override Vect2 OnResize(IEnumerable<Entity> children)
 	{
 		var visibleChildren = children.Where(x => x.Visible && !x.IsExiting).ToList();

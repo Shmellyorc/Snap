@@ -850,7 +850,7 @@ public sealed class Renderer
 
 	private readonly List<DrawCommand> _tempCommandList = new(1024);
 
-
+	[MethodImpl(MethodImplOptions.AggressiveOptimization)]
 	internal void End() //  Hot Path
 	{
 		var index = 0;
@@ -992,6 +992,7 @@ public sealed class Renderer
 			Texture = texture,
 			Transform = SFTransform.Identity,
 			BlendMode = SFBlendMode.Alpha,
+			// CoordinateType = SFML.Graphics.CoordinateType.Pixels
 		});
 
 		// VertexArrayPool.Return(exactVertices);

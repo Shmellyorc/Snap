@@ -11,6 +11,20 @@ public class Panel : Entity
 	private readonly List<Entity> _entityAdd;
 	private DirtyState _state;
 
+	/// <summary>
+	/// Gets or sets the size of the panel.
+	/// </summary>
+	/// <remarks>
+	/// When setting a new size, if the value differs from the current size,
+	/// it triggers a layout update by marking this panel and all ancestor panels as dirty.
+	/// This ensures that parent containers recalculate their layout when child panels change size.
+	/// </remarks>
+	/// <value>
+	/// A <see cref="Vect2"/> representing the width and height of the panel.
+	/// </value>
+	/// <exception cref="ArgumentOutOfRangeException">
+	/// Thrown when attempting to set a size with negative width or height values.
+	/// </exception>
 	public new Vect2 Size
 	{
 		get => base.Size;
@@ -86,6 +100,20 @@ public class Panel : Entity
 	/// <param name="state">The combined dirty state flags.</param>
 	protected virtual void OnDirty(DirtyState state) { }
 
+	/// <summary>
+	/// Calculates the required size for the panel based on its child entities.
+	/// </summary>
+	/// <param name="children">The collection of child entities to be arranged within the panel.</param>
+	/// <returns>
+	/// A <see cref="Vect2"/> representing the calculated width and height needed
+	/// to properly contain and arrange the specified children.
+	/// The base implementation returns <see cref="Vect2.Zero"/>.
+	/// </returns>
+	/// <remarks>
+	/// This method is called during layout updates to determine the panel's size requirements.
+	/// Derived panel classes should override this method to implement specific layout logic
+	/// that calculates size based on their children's dimensions and arrangement rules.
+	/// </remarks>
 	protected virtual Vect2 OnResize(IEnumerable<Entity> children)
 	{
 		return Vect2.Zero;
@@ -115,6 +143,17 @@ public class Panel : Entity
 
 		StartRoutine(Routine(children));
 	}
+
+	/// <summary>
+	/// Called when a child entity is added to this panel.
+	/// </summary>
+	/// <param name="entity">The child entity that was added to the panel.</param>
+	/// <remarks>
+	/// This method provides a hook for derived panel classes to perform custom logic
+	/// when a new child is added. The base implementation does nothing.
+	/// Common use cases include setting up initial layout properties for the child
+	/// or triggering a layout recalculation.
+	/// </remarks>
 	protected virtual void OnChildAdded(Entity entity) { }
 
 	/// <summary>
@@ -138,6 +177,17 @@ public class Panel : Entity
 
 		return false;
 	}
+
+	/// <summary>
+	/// Called when a child entity is removed from this panel.
+	/// </summary>
+	/// <param name="entity">The child entity that was removed from the panel.</param>
+	/// <remarks>
+	/// This method provides a hook for derived panel classes to perform cleanup
+	/// or custom logic when a child is removed. The base implementation does nothing.
+	/// Common use cases include releasing resources associated with the child
+	/// or triggering a layout recalculation.
+	/// </remarks>
 	protected virtual void OnChildRemoved(Entity entity) { }
 
 	/// <summary>
@@ -155,5 +205,14 @@ public class Panel : Entity
 			SetDirtyState(DirtyState.Update);
 		}
 	}
+
+	/// <summary>
+	/// Called when all child entities are cleared from this panel.
+	/// </summary>
+	/// <remarks>
+	/// This method provides a hook for derived panel classes to perform cleanup
+	/// or reset internal state when all children are removed at once.
+	/// The base implementation does nothing.
+	/// </remarks>
 	protected virtual void OnChildrenCleared() { }
 }

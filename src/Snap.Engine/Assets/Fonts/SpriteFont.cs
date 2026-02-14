@@ -195,7 +195,7 @@ public sealed class SpriteFont : Font
 
 		for (int i = 0; i < asciiSequence.Length; i++)
 		{
-			if(i >= componetRects.Count)
+			if (i >= componetRects.Count)
 			{
 				throw new InvalidOperationException(
 					$"LoadTransparentAtlas found {componetRects.Count} cells but expected {asciiSequence.Length} " +

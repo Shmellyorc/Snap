@@ -90,7 +90,7 @@ public class RenderTarget(params Entity[] entities) : Panel(entities)
 		_vertexBufferSize = MaxDrawCalls;
 		_vertexBuffer = new((uint)_vertexBufferSize, SFPrimitiveType.Triangles, SFVertexBuffer.UsageSpecifier.Stream);
 		_vertexCache = new SFVertex[_vertexBufferSize];
-		_view = new SFView(new SFRectF(0, 0, Size.X, Size.Y));
+		_view = new SFView(new SFRectF(new(0, 0), new(Size.X, Size.Y)));
 		_rendTexture.SetView(_view);
 
 		base.OnEnter();
@@ -149,7 +149,7 @@ public class RenderTarget(params Entity[] entities) : Panel(entities)
 
 		_tempCommandList.Clear();
 		_tempCommandList.EnsureCapacity(totalCommands);
-		foreach(var list in _drawCommands.Values)
+		foreach (var list in _drawCommands.Values)
 		{
 			_tempCommandList.AddRange(list);
 		}
@@ -243,6 +243,7 @@ public class RenderTarget(params Entity[] entities) : Panel(entities)
 			Texture = texture,
 			Transform = SFTransform.Identity,
 			BlendMode = SFBlendMode.Alpha,
+			// CoordinateType = SFML.Graphics.CoordinateType.Pixels
 		});
 
 		_batches++;

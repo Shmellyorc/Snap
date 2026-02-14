@@ -16,7 +16,7 @@ public static class InstanceHelpers
 		foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
 		{
 			var name = assembly.GetName().Name;
-			
+
 			if (!name.StartsWith("System.") &&
 				!name.StartsWith("Microsoft.") &&
 				name != "netstandard" &&
@@ -116,7 +116,7 @@ public static class InstanceHelpers
 		var comparison = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
 		string cacheKey = $"{typeof(T).FullName}:{name}";
 		Type type;
-		
+
 		lock (CacheLock)
 		{
 			if (!TypeCache.TryGetValue(cacheKey, out type))
@@ -191,8 +191,8 @@ public static class InstanceHelpers
 	/// A new instance of the same type as <paramref name="obj"/>, cast to <typeparamref name="T"/>,
 	/// or the default value of <typeparamref name="T"/> if instantiation fails.
 	/// </returns>
-	public static T CreateInstanceFromObject<T>(object obj, object[] args) =>
-		CreateInstance<T>(obj.GetType().FullName, true, args);
+	public static T CreateInstanceFromObject<T>(object obj, object[] args)
+		=> CreateInstance<T>(obj.GetType().Name, true, args);
 
 	/// <summary>
 	/// Attempts to create an instance of type <typeparamref name="T"/> using the runtime type of the provided object as the template.
@@ -206,7 +206,7 @@ public static class InstanceHelpers
 	/// <returns><c>true</c> if the instance was created successfully; otherwise, <c>false</c>.</returns>
 	public static bool TryCreateInstanceFromObject<T>(object obj, object[] args, out T instance)
 	{
-		instance = CreateInstanceFromObject<T>(obj.GetType().FullName, args);
+		instance = CreateInstanceFromObject<T>(obj, args);
 
 		return instance != null;
 	}

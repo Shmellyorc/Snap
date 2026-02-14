@@ -24,11 +24,11 @@ public enum ActiveInput
 public class InputMap
 {
 	private readonly uint _joyCount;
-	// private bool _mouseJustPressed, _keyJustPressed, _joystickJustPressed;
-	private readonly Dictionary<uint, bool> _joysticks = new();
-	internal readonly Dictionary<uint, List<InputMapEntry>> _actions = new(20);
+	private readonly Dictionary<uint, bool> _joysticks = [];
 	private readonly List<SdlControllerEntry> _allEntries = [];
 	private readonly Dictionary<uint, Dictionary<char, int>> _controllerMaps = [];
+
+	internal readonly Dictionary<uint, List<InputMapEntry>> Actions = new(20);
 
 	/// <summary>
 	/// Gets the currently active input device type (keyboard/mouse or gamepad).
@@ -75,7 +75,110 @@ public class InputMap
 	#endregion
 
 
+	/// <summary>
+	/// Checks whether any input button is currently being held down across all input devices.
+	/// </summary>
+	/// <returns>
+	/// <c>true</c> if at least one keyboard key, mouse button, or gamepad button is currently pressed;
+	/// otherwise, <c>false</c>.
+	/// </returns>
+	/// <remarks>
+	/// This method aggregates the pressed state from all connected input devices.
+	/// It is useful for detecting when the user is providing any input at all,
+	/// such as for idle timeout detection or input-sensitive UI effects.
+	/// </remarks>
+	public bool AnyInputPressed() =>
+		AnyKeyboardButtonPressed() ||
+		AnyMouseButtonPressed() ||
+		AnyGamepadButtonPressed();
+
+	/// <summary>
+	/// Checks whether any input button was just pressed (transitioned from not pressed to pressed)
+	/// in the current frame across all input devices.
+	/// </summary>
+	/// <returns>
+	/// <c>true</c> if at least one keyboard key, mouse button, or gamepad button was pressed
+	/// in the current frame; otherwise, <c>false</c>.
+	/// </returns>
+	/// <remarks>
+	/// This method detects the initial press frame for any input across all devices.
+	/// It is useful for detecting the first moment of user interaction,
+	/// such as to dismiss a splash screen or capture initial focus.
+	/// </remarks>
+	public bool AnyInputJustPressed() =>
+		AnyKeyboardButtonJustPressed() ||
+		AnyMouseButtonJustPressed() ||
+		AnyGamepadButtonJustPressed();
+
+
+
 	#region Keyboard
+	/// <summary>
+	/// Checks whether any keyboard key is currently being held down.
+	/// </summary>
+	/// <returns>
+	/// <c>true</c> if at least one keyboard key is currently pressed; otherwise, <c>false</c>.
+	/// </returns>
+	/// <remarks>
+	/// This method iterates through all values of the <see cref="KeyboardButton"/> enumeration
+	/// and checks for the pressed state of each key. It returns <c>true</c> on the first
+	/// key found in the pressed state.
+	/// 
+	/// The check is skipped entirely if the game window is not currently active
+	/// (<see cref="Game.IsActive"/> is <c>false</c>).
+	/// 
+	/// This method is useful for detecting continuous keyboard input or when the user
+	/// is holding down any key, such as for input-sensitive UI effects or idle detection.
+	/// </remarks>
+	public bool AnyKeyboardButtonPressed()
+	{
+		if (!Game.Instance.IsActive)
+			return false;
+
+		foreach (var button in Enum.GetValues<KeyboardButton>())
+		{
+			if (!IsKeyPressed(button))
+				continue;
+
+			return true;
+		}
+
+		return false;
+	}
+
+	/// <summary>
+	/// Checks whether any keyboard key was just pressed (transitioned from not pressed to pressed) in the current frame.
+	/// </summary>
+	/// <returns>
+	/// <c>true</c> if at least one keyboard key was pressed in the current frame; otherwise, <c>false</c>.
+	/// </returns>
+	/// <remarks>
+	/// This method iterates through all values of the <see cref="KeyboardButton"/> enumeration
+	/// and checks for the just-pressed state of each key. It returns <c>true</c> on the first
+	/// key found in the just-pressed state.
+	/// 
+	/// The check is skipped entirely if the game window is not currently active
+	/// (<see cref="Game.IsActive"/> is <c>false</c>).
+	/// 
+	/// This method is useful for detecting the initial moment of any keyboard interaction,
+	/// such as waking up from a paused state or capturing initial keyboard focus.
+	/// </remarks>
+	public bool AnyKeyboardButtonJustPressed()
+	{
+		if (!Game.Instance.IsActive)
+			return false;
+
+		foreach (var button in Enum.GetValues<KeyboardButton>())
+		{
+			if (!IsKeyJustPressed(button))
+				continue;
+
+			return true;
+		}
+
+		return false;
+	}
+
 	/// <summary>
 	/// Checks if the specified keyboard key is currently being held down.
 	/// </summary>
@@ -143,6 +246,72 @@ public class InputMap
 
 	#region Mouse
 	/// <summary>
+	/// Checks whether any mouse button is currently being held down.
+	/// </summary>
+	/// <returns>
+	/// <c>true</c> if at least one mouse button is currently pressed; otherwise, <c>false</c>.
+	/// </returns>
+	/// <remarks>
+	/// This method iterates through all values of the <see cref="MouseButton"/> enumeration
+	/// and checks for the pressed state of each button. It returns <c>true</c> on the first
+	/// button found in the pressed state.
+	/// 
+	/// The check is skipped entirely if the game window is not currently active
+	/// (<see cref="Game.IsActive"/> is <c>false</c>).
+	/// 
+	/// This method is useful for detecting continuous mouse input, such as during drag operations
+	/// or when checking for any mouse interaction.
+	/// </remarks>
+	public bool AnyMouseButtonPressed()
+	{
+		if (!Game.Instance.IsActive)
+			return false;
+
+		foreach (var button in Enum.GetValues<MouseButton>())
+		{
+			if (!IsMousePressed(button))
+				continue;
+
+			return true;
+		}
+
+		return false;
+	}
+
+	/// <summary>
+	/// Checks whether any mouse button was just pressed (transitioned from not pressed to pressed) in the current frame.
+	/// </summary>
+	/// <returns>
+	/// <c>true</c> if at least one mouse button was pressed in the current frame; otherwise, <c>false</c>.
+	/// </returns>
+	/// <remarks>
+	/// This method iterates through all values of the <see cref="MouseButton"/> enumeration
+	/// and checks for the just-pressed state of each button. It returns <c>true</c> on the first
+	/// button found in the just-pressed state.
+	/// 
+	/// The check is skipped entirely if the game window is not currently active
+	/// (<see cref="Game.IsActive"/> is <c>false</c>).
+	/// 
+	/// This method is useful for detecting the initial click of any mouse button,
+	/// such as for focus capture or initial interaction detection.
+	/// </remarks>
+	public bool AnyMouseButtonJustPressed()
+	{
+		if (!Game.Instance.IsActive)
+			return false;
+
+		foreach (var button in Enum.GetValues<MouseButton>())
+		{
+			if (!IsMouseJustPressed(button))
+				continue;
+
+			return true;
+		}
+
+		return false;
+	}
+
+	/// <summary>
 	/// Checks if the specified mouse button is currently being held down.
 	/// </summary>
 	/// <param name="button">The mouse button to check.</param>
@@ -200,6 +369,75 @@ public class InputMap
 
 
 	#region Gamepad
+	/// <summary>
+	/// Checks whether any gamepad button is currently being held down on any connected gamepad.
+	/// </summary>
+	/// <returns>
+	/// <c>true</c> if at least one gamepad button is currently pressed on any connected gamepad;
+	/// otherwise, <c>false</c>.
+	/// </returns>
+	/// <remarks>
+	/// This method iterates through all values of the <see cref="GamepadButton"/> enumeration
+	/// and checks for the pressed state of each button across all connected gamepads.
+	/// It returns <c>true</c> on the first button found in the pressed state.
+	/// 
+	/// The check is skipped entirely if the game window is not currently active
+	/// (<see cref="Game.IsActive"/> is <c>false</c>).
+	/// 
+	/// This method is useful for detecting continuous gamepad input from any connected controller,
+	/// such as for idle detection or input-sensitive effects that respond to any controller activity.
+	/// </remarks>
+	public bool AnyGamepadButtonPressed()
+	{
+		if (!Game.Instance.IsActive)
+			return false;
+
+		foreach (var button in Enum.GetValues<GamepadButton>())
+		{
+			if (!IsGamepadPressed(button))
+				continue;
+
+			return true;
+		}
+
+		return false;
+	}
+
+	/// <summary>
+	/// Checks whether any gamepad button was just pressed (transitioned from not pressed to pressed)
+	/// in the current frame on any connected gamepad.
+	/// </summary>
+	/// <returns>
+	/// <c>true</c> if at least one gamepad button was pressed in the current frame on any connected gamepad;
+	/// otherwise, <c>false</c>.
+	/// </returns>
+	/// <remarks>
+	/// This method iterates through all values of the <see cref="GamepadButton"/> enumeration
+	/// and checks for the just-pressed state of each button across all connected gamepads.
+	/// It returns <c>true</c> on the first button found in the just-pressed state.
+	/// 
+	/// The check is skipped entirely if the game window is not currently active
+	/// (<see cref="Game.IsActive"/> is <c>false</c>).
+	/// 
+	/// This method is useful for detecting the initial moment of any gamepad interaction,
+	/// such as waking the game from a paused state or capturing initial controller focus.
+	/// </remarks>
+	public bool AnyGamepadButtonJustPressed()
+	{
+		if (!Game.Instance.IsActive)
+			return false;
+
+		foreach (var button in Enum.GetValues<GamepadButton>())
+		{
+			if (!IsGamepadJustPressed(button))
+				continue;
+
+			return true;
+		}
+
+		return false;
+	}
+
 	/// <summary>
 	/// Checks if the specified gamepad button is currently released (not pressed).
 	/// </summary>
@@ -592,7 +830,7 @@ public class InputMap
 	{
 		var hash = HashHelpers.Cache32(name);
 
-		if (!_actions.TryGetValue(hash, out var actions))
+		if (!Actions.TryGetValue(hash, out var actions))
 			return false;
 
 		foreach (var action in actions)
@@ -686,7 +924,7 @@ public class InputMap
 	{
 		var hash = HashHelpers.Cache32(name);
 
-		if (!_actions.TryGetValue(hash, out var actions))
+		if (!Actions.TryGetValue(hash, out var actions))
 			return 0f;
 
 		foreach (var action in actions)
@@ -744,7 +982,7 @@ public class InputMap
 	{
 		var hash = HashHelpers.Cache32(name);
 
-		if (!_actions.TryGetValue(hash, out var actions))
+		if (!Actions.TryGetValue(hash, out var actions))
 			return false;
 
 		foreach (var action in actions)
@@ -801,7 +1039,7 @@ public class InputMap
 	{
 		var hash = HashHelpers.Cache32(name);
 
-		if (!_actions.TryGetValue(hash, out var actions))
+		if (!Actions.TryGetValue(hash, out var actions))
 			return false;
 
 		foreach (var action in actions)
@@ -857,8 +1095,8 @@ public class InputMap
 	{
 		var hash = HashHelpers.Cache32(name);
 
-		if (!_actions.TryGetValue(hash, out var i))
-			_actions[hash] = new List<InputMapEntry>(GetInputs(inputs));
+		if (!Actions.TryGetValue(hash, out var i))
+			Actions[hash] = new List<InputMapEntry>(GetInputs(inputs));
 		else
 			i.AddRange(GetInputs(inputs));
 	}

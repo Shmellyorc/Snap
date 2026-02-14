@@ -81,7 +81,7 @@ public class TransitionScreen : Screen
 	{
 		AddEntity(_rect = new ColorRect()
 		{
-			Color = Color * 0f,
+			Color = Color.WithAlpha(Color, 0f),
 		});
 
 		StartRoutine(Transition());
@@ -93,7 +93,8 @@ public class TransitionScreen : Screen
 	{
 		var toRemove = ScreenManager.Screens.Where(x => x != this).ToList();
 
-		yield return new Tween<float>(0f, 1f, EaseInTime, EaseIn, MathHelpers.SmoothLerp, (f) => _rect.Color = Color * f);
+		yield return new Tween<float>(0f, 1f, EaseInTime, EaseIn, MathHelpers.SmoothLerp,
+			f => _rect.Color = Color.WithAlpha(Color, f));
 
 		foreach (var screen in toRemove)
 		{
@@ -116,7 +117,8 @@ public class TransitionScreen : Screen
 
 		yield return new WaitForNextFrame();
 
-		yield return new Tween<float>(1f, 0f, EaseOutTime, EaseOut, MathHelpers.SmoothLerp, (f) => _rect.Color = Color * f);
+		yield return new Tween<float>(1f, 0f, EaseOutTime, EaseOut, MathHelpers.SmoothLerp,
+			f => _rect.Color = Color.WithAlpha(Color, f));
 
 		ExitScreen();
 	}

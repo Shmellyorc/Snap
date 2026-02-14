@@ -190,20 +190,20 @@ public sealed class Ninepatch : Entity
 		base.OnUpdate();
 	}
 
-	private void CreatePatches(Rect2 sourceRectangle, Rect2[] patchCache)
+	private void CreatePatches(Rect2 source, Rect2[] patchCache)
 	{
-		float x = sourceRectangle.X;
-		float y = sourceRectangle.Y;
-		float w = sourceRectangle.Width;
-		float h = sourceRectangle.Height;
+		float x = source.X;
+		float y = source.Y;
+		float w = source.Width;
+		float h = source.Height;
 
 		float middleWidth = w - _left - _right;
 		float middleHeight = h - _top - _bottom;
 
-		float[] xs = { x, x + _left, x + w - _right };
-		float[] ys = { y, y + _top, y + h - _bottom };
-		float[] widths = { _left, middleWidth, _right };
-		float[] heights = { _top, middleHeight, _bottom };
+		float[] xs = [x, x + _left, x + w - _right];
+		float[] ys = [y, y + _top, y + h - _bottom];
+		float[] widths = [_left, middleWidth, _right];
+		float[] heights = [_top, middleHeight, _bottom];
 
 		for (int row = 0, i = 0; row < 3; row++)
 		{

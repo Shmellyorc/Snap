@@ -97,7 +97,7 @@ public sealed class ScreenManager
 				break; // Found it, exit early
 			}
 		}
-		
+
 		if (EngineSettings.Instance.DebugDraw)
 			DebugRenderer.Instance.Begin();
 

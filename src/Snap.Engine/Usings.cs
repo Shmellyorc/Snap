@@ -13,6 +13,7 @@ global using System.Text;
 global using System.Text.Json;
 global using System.Xml.Serialization;
 
+global using Snap.Engine.Assets;
 global using Snap.Engine.Assets.Fonts;
 global using Snap.Engine.Assets.LDTKImporter;
 global using Snap.Engine.Assets.LDTKImporter.Instances;
@@ -63,6 +64,7 @@ global using SFRenderWindow = SFML.Graphics.RenderWindow;
 global using SFSound = SFML.Audio.Sound;
 global using SFSoundBuffer = SFML.Audio.SoundBuffer;
 global using SFSoundStatus = SFML.Audio.SoundStatus;
+// global using SFState = SFML.Window.State;
 global using SFStyles = SFML.Window.Styles;
 global using SFTexture = SFML.Graphics.Texture;
 global using SFTime = SFML.System.Time;

@@ -663,7 +663,7 @@ public sealed class EngineSettings
 	{
 		if (value == null)
 			throw new ArgumentNullException(nameof(value), "Input map cannot be null.");
-		if (value._actions.Count == 0)
+		if (value.Actions.Count == 0)
 			throw new InvalidOperationException("Actions collection must contain at least one item.");
 
 		InputMap = value;
@@ -943,7 +943,7 @@ public sealed class EngineSettings
 	/// to the engine. At least one screen must be provided to ensure the
 	/// application has a valid output surface.
 	/// </remarks>
-	internal Screen[] Screens { get; private set; }
+	internal Type[] Screens { get; private set; }
 	
 	/// <summary>
 	/// Sets the collection of screens configured for the application.
@@ -959,7 +959,7 @@ public sealed class EngineSettings
 	/// or an <see cref="ArgumentException"/> if no screens are specified. This ensures
 	/// that the engine always has at least one valid screen to render to.
 	/// </remarks>
-	public EngineSettings WithScreens(params Screen[] values)
+	public EngineSettings WithScreens(params Type[] values)
 	{
 		if (values == null)
 			throw new ArgumentNullException(nameof(values), "Values cannot be null.");
@@ -982,7 +982,7 @@ public sealed class EngineSettings
 	/// audio playback, networking, or other subsystems. At least one service
 	/// must be provided to ensure the engine has valid runtime support.
 	/// </remarks>
-	internal Service[] Services { get; private set; }
+	internal Type[] Services { get; private set; }
 	
 	/// <summary>
 	/// Sets the collection of game services configured for the application.
@@ -998,7 +998,7 @@ public sealed class EngineSettings
 	/// or an <see cref="ArgumentException"/> if no services are specified. This ensures
 	/// the engine always has at least one valid service to manage game functionality.
 	/// </remarks>
-	public EngineSettings WithService(params Service[] values)
+	public EngineSettings WithService(params Type[] values)
 	{
 		if (values == null)
 			throw new ArgumentNullException(nameof(values), "Values cannot be null.");

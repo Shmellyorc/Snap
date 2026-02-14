@@ -1,3 +1,6 @@
+using System.ComponentModel;
+using System.Security.Cryptography.X509Certificates;
+
 using Snap.Content.Abstractions;
 
 namespace Snap.Engine.Assets;
@@ -27,9 +30,30 @@ public static class AssetBootstrap
 	{
 		contentRoot ??= EngineSettings.Instance.AppContentRoot;
 
-		var composite = new CompositeContentProvider(
-			new FileSystemContentProvider(contentRoot)
-		);
+		var composite = new CompositeContentProvider();
+
+		if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+		{
+			var macBundleProvider = new MacBundleContentProvider();
+
+			if (macBundleProvider.IsInBundle)
+			{
+				composite.MountFirst(macBundleProvider);
+				Logger.Instance.Log(LogLevel.Info,
+					$"Detected macOs bundle, using Resources: {macBundleProvider.ResourcePath}");
+
+				composite.MountLast(new FileSystemContentProvider(contentRoot));
+			}
+			else
+			{
+				composite.MountLast(new FileSystemContentProvider(contentRoot));
+			}
+		}
+		else
+		{
+			// Not MacOs, mount normal vs file system
+			composite.MountLast(new FileSystemContentProvider(contentRoot));
+		}
 
 		AssetManager.SetProvider(composite, disposeOld: true, clearCaches: true);
 
@@ -48,7 +72,54 @@ public static class AssetBootstrap
 					$"Content provider initialized (filesystem): '{contentRoot}'.");
 			}
 		}
+
+
+		// old:
+		// var composite = new CompositeContentProvider(
+		// 	new FileSystemContentProvider(contentRoot)
+		// );
+
+		// AssetManager.SetProvider(composite, disposeOld: true, clearCaches: true);
+
+		// if (warnIfEmpty)
+		// {
+		// 	// Soft check: don’t crash first-time users—just nudge them.
+		// 	if (!composite.List("").Any())
+		// 	{
+		// 		Logger.Instance?.Log(LogLevel.Warning,
+		// 			$"No content found under '{contentRoot}'. " +
+		// 			$"Add assets there (e.g., Graphics/, Sound/, etc.).");
+		// 	}
+		// 	else
+		// 	{
+		// 		Logger.Instance?.Log(LogLevel.Info,
+		// 			$"Content provider initialized (filesystem): '{contentRoot}'.");
+		// 	}
+		// }
 	}
+
+
+	/// <summary>
+	/// Creates a provider chain optimized for macOS bundle development
+	/// </summary>
+	public static CompositeContentProvider CreeateMacBundleProviderChain(string developmentContentRoot = null)
+	{
+		developmentContentRoot ??= EngineSettings.Instance.AppContentRoot;
+
+		var composite = new CompositeContentProvider();
+
+		var bundleProvider = new MacBundleContentProvider();
+		if (bundleProvider.IsInBundle)
+		{
+			composite.MountFirst(bundleProvider);
+		}
+
+		composite.MountLast(new FileSystemContentProvider(developmentContentRoot));
+
+		return composite;
+	}
+
+
 
 	/// <summary>
 	/// Switches the content root to a new directory at runtime.
