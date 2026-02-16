@@ -263,7 +263,8 @@ public class Game : IDisposable
 		if (!_canApplyChanges)
 			return;
 
-		if (ToRenderer?.IsInvalid == true)
+		// Clean up existing window if it exists and is valid
+		if (ToRenderer != null && !ToRenderer.IsInvalid && ToRenderer.IsOpen)
 		{
 			Input.Unload();
 
@@ -273,6 +274,7 @@ public class Game : IDisposable
 
 			ToRenderer.Close();
 			ToRenderer.Dispose();
+			ToRenderer = null; // Important to set to null after disposal
 		}
 
 		_videoMode = new SFVideoMode((uint)Settings.Window.X, (uint)Settings.Window.Y);
@@ -424,7 +426,7 @@ public class Game : IDisposable
 		_log.Log(LogLevel.Info, "            ╚══════╝ ╚══╝  ╚═══╝ ╚══╝ ╚══╝ ╚══╝");
 		_log.Log(LogLevel.Info, "────────────────────────────────────────────────────────────");
 		_log.Log(LogLevel.Info, $"         Version: {Version}, Hash: {VersionHash}");
-		_log.Log(LogLevel.Info, "────────────────────────────────────────────────────────────");
+		_log.Log(LogLevel.Info, "────────────────────────────────────────────────────────────");	
 
 		_styles = Settings.WindowResize
 			? SFStyles.Titlebar | SFStyles.Resize | SFStyles.Close
@@ -742,7 +744,7 @@ public class Game : IDisposable
 			sb.Append($"Beacon: {BeaconManager.Instance.Count} | ");
 
 			// // Sounds:
-			sb.Append($"Sound: Playing: {_soundManager.PlayCount}, Banks: {_soundManager.Count}");
+			sb.Append($"Sound: Playing: {_soundManager.PlayCount}, Banks: {_soundManager.Count}, Pool: {SoundInstancePool.AvailbleInstances}/{SoundInstancePool.ActiveInstances}");
 
 			ToRenderer.SetTitle(sb.ToString());
 

@@ -314,9 +314,16 @@ public sealed class SoundManager
 	/// </remarks>
 	public bool TryGetBank(uint bankId, out SoundBank bank)
 	{
-		bank = GetBank(bankId);
-
-		return bank != null;
+		try
+		{
+			bank = GetBank(bankId);
+			return true;
+		}
+		catch
+		{
+			bank = null;
+			return false;
+		}
 	}
 
 

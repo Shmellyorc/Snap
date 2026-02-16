@@ -41,11 +41,14 @@ namespace Snap.Engine.Sounds;
 /// <seealso cref="Sound"/>
 public static class SoundInstancePool
 {
-	private static readonly List<SoundInstance> ActiveInstances = new(256);
-	private static readonly Queue<SoundInstance> AvailbleInstances = new(64);
+	private static readonly List<SoundInstance> _activeInstances = new(256);
+	private static readonly Queue<SoundInstance> _availbleInstances = new(64);
 	private static readonly Dictionary<uint, List<SoundInstance>> SoundToInstances = [];
 	private static readonly object Lock = new();
 	private static uint s_nextInstanceId = 1;
+
+	public static int ActiveInstances => _activeInstances.Count;
+	public static int AvailbleInstances => _availbleInstances.Count;
 
 	/// <summary>
 	/// The maximum number of sound instances that can be active globally across all sounds.
@@ -139,17 +142,17 @@ public static class SoundInstancePool
 				}
 			}
 
-			if (AvailbleInstances.Count > 0)
+			if (_availbleInstances.Count > 0)
 			{
-				var instance = AvailbleInstances.Dequeue();
+				var instance = _availbleInstances.Dequeue();
 				instance.Reset(sound);
 				RegisterInstance(instance, sound);
 				return instance;
 			}
 
-			if (ActiveInstances.Count >= MaxGlobalInstances)
+			if (_activeInstances.Count >= MaxGlobalInstances)
 			{
-				var oldestStopped = ActiveInstances
+				var oldestStopped = _activeInstances
 					.Where(x => x.Status == Sounds.SoundStatus.Stopped)
 					.OrderBy(x => x.LastUsedTime)
 					.FirstOrDefault();
@@ -170,7 +173,7 @@ public static class SoundInstancePool
 
 			var newInstance = new SoundInstance(s_nextInstanceId++, sound, sound.Buffer);
 			RegisterInstance(newInstance, sound);
-			ActiveInstances.Add(newInstance);
+			_activeInstances.Add(newInstance);
 
 			return newInstance;
 		}
@@ -215,7 +218,7 @@ public static class SoundInstancePool
 			UnregisterInstance(instance);
 
 			instance.Stop();
-			AvailbleInstances.Enqueue(instance);
+			_availbleInstances.Enqueue(instance);
 		}
 	}
 
@@ -281,11 +284,11 @@ public static class SoundInstancePool
 		{
 			list.Remove(instance);
 
-			if(list.Count == 0)
+			if (list.Count == 0)
 				SoundToInstances.Remove(instance.Sound.Id);
 		}
 
-		ActiveInstances.Remove(instance);
+		_activeInstances.Remove(instance);
 	}
 
 	/// <summary>
@@ -334,7 +337,7 @@ public static class SoundInstancePool
 				kv => kv.Value.Count
 			);
 
-			return (ActiveInstances.Count, AvailbleInstances.Count, perSoundCounts);
+			return (_activeInstances.Count, _availbleInstances.Count, perSoundCounts);
 		}
 	}
 
@@ -360,9 +363,9 @@ public static class SoundInstancePool
 	/// </remarks>
 	public static bool HasActiveInstances(Sound sound)
 	{
-		lock(Lock)
+		lock (Lock)
 		{
-			if(SoundToInstances.TryGetValue(sound.Id, out var instances))
+			if (SoundToInstances.TryGetValue(sound.Id, out var instances))
 			{
 				return instances.Any(x => x.IsValid && x.Status != SoundStatus.Stopped);
 			}

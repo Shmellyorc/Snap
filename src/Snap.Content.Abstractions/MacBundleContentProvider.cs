@@ -54,8 +54,6 @@ public sealed class MacBundleContentProvider : IContentProvider
         }
     }
 
-
-
     public bool Exists(string path)
     {
         if (!_isInBundle) return false;
@@ -98,8 +96,6 @@ public sealed class MacBundleContentProvider : IContentProvider
 
         return new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read);
     }
-
-
 
     private static string DetectBundlePath()
     {

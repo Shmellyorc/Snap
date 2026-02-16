@@ -21,6 +21,9 @@ public sealed class SoundBank
 	private readonly float _evictAfterMinutes;
 	private readonly Dictionary<Sound, List<SoundInstanceWrapped>> _instances = new(128);
 
+	public Action<SoundBank, SoundInstance> OnInstanceAdded;
+	public Action<SoundBank, SoundInstance> OnInstanceRemoved;
+
 	/// <summary>
 	/// Gets a read-only dictionary mapping each <see cref="Sound"/> to its active <see cref="SoundInstance"/>s.
 	/// </summary>
@@ -67,7 +70,10 @@ public sealed class SoundBank
 	/// the number of entries where <see cref="SoundInstance.IsValid"/> is <c>true</c>.
 	/// It provides a quick way to determine how many sound instances are currently active and usable.
 	/// </remarks>
-	public int Count => _instances.SelectMany(x => x.Value).Count(x => x.Instance.IsValid);
+	public int Count => _instances
+		.SelectMany(x => x.Value)
+		.Count(x => x.Instance.IsPlaying);
+	// .Count(x => x.Instance.IsValid);
 
 	/// <summary>
 	/// Gets the unique identifier assigned to this sound manager or entity.
@@ -93,6 +99,8 @@ public sealed class SoundBank
 			if (MathF.Abs(_pan - value) < 0.001f)
 				return;
 			_pan = Math.Clamp(value, -1f, 1f);
+
+			if (Id == 0) return;
 
 			foreach (var soundPair in _instances)
 			{
@@ -122,13 +130,18 @@ public sealed class SoundBank
 				return;
 			_volume = Math.Clamp(value, 0f, 1f);
 
-			foreach (var soundPair in _instances)
+			if (Id > 0)
 			{
-				foreach (var wrapped in soundPair.Value)
+				foreach (var soundPair in _instances)
 				{
-					wrapped.Instance.Volume = _volume;
+					foreach (var wrapped in soundPair.Value)
+					{
+						wrapped.Instance.Volume = _volume;
+					}
 				}
 			}
+			else
+				SFML.Audio.Listener.GlobalVolume = Math.Clamp(_volume * 100f, 0f, 100f);
 
 			Logger.Instance.Log(LogLevel.Info, $"SoundBank {Id} volume set to {_volume}");
 		}
@@ -150,6 +163,8 @@ public sealed class SoundBank
 			if (MathF.Abs(_pitch - value) < 0.001f)
 				return;
 			_pitch = Math.Clamp(value, -3f, 3f);
+
+			if (Id == 0) return;
 
 			foreach (var soundPair in _instances)
 			{
@@ -228,6 +243,8 @@ public sealed class SoundBank
 	// 	}
 	// }
 
+
+
 	private void PerformQuickMaintenance()
 	{
 		DateTime now = DateTime.UtcNow;
@@ -239,6 +256,7 @@ public sealed class SoundBank
 		int removedCount = 0;
 		TimeSpan threshold = TimeSpan.FromMinutes(_evictAfterMinutes);
 
+		var toRemove = new List<(Sound, SoundInstanceWrapped)>();
 		foreach (var soundPair in _instances)
 		{
 			var instances = soundPair.Value;
@@ -248,16 +266,31 @@ public sealed class SoundBank
 
 				if (!wrapped.Instance.IsValid || (now - wrapped.LastAccessFrame) >= threshold)
 				{
-					wrapped.Instance.Dispose();
-					instances.RemoveAt(i);
-					removedCount++;
+					// wrapped.Instance.Dispose();
+					// instances.RemoveAt(i);
+					toRemove.Add((soundPair.Key, wrapped));
+					// removedCount++;
 				}
 			}
 
+			// if (instances.Count == 0)
+			// {
+			// 	_instances.Remove(soundPair.Key);
+			// }
+		}
+
+		// Now perform the removals
+		foreach (var (sound, wrapped) in toRemove)
+		{
+			if (!_instances.TryGetValue(sound, out var instances))
+				continue;
+
+			wrapped.Instance.Dispose();
+			instances.Remove(wrapped);
+			removedCount++;
+
 			if (instances.Count == 0)
-			{
-				_instances.Remove(soundPair.Key);
-			}
+				_instances.Remove(sound);
 		}
 
 		if (removedCount > 0)
@@ -269,7 +302,44 @@ public sealed class SoundBank
 
 
 
+	// private void PerformQuickMaintenance()
+	// {
+	// 	DateTime now = DateTime.UtcNow;
+	// 	if ((now - _lastMaintenceCheck).TotalSeconds < 30)
+	// 		return;
 
+	// 	_lastMaintenceCheck = now;
+
+	// 	int removedCount = 0;
+	// 	TimeSpan threshold = TimeSpan.FromMinutes(_evictAfterMinutes);
+
+	// 	foreach (var soundPair in _instances)
+	// 	{
+	// 		var instances = soundPair.Value;
+	// 		for (int i = instances.Count - 1; i >= 0; i--)
+	// 		{
+	// 			var wrapped = instances[i];
+
+	// 			if (!wrapped.Instance.IsValid || (now - wrapped.LastAccessFrame) >= threshold)
+	// 			{
+	// 				wrapped.Instance.Dispose();
+	// 				instances.RemoveAt(i);
+	// 				removedCount++;
+	// 			}
+	// 		}
+
+	// 		if (instances.Count == 0)
+	// 		{
+	// 			_instances.Remove(soundPair.Key);
+	// 		}
+	// 	}
+
+	// 	if (removedCount > 0)
+	// 	{
+	// 		Logger.Instance.Log(LogLevel.Info,
+	// 			$"SoundBank {Id} safety cleanup removed {removedCount} instances");
+	// 	}
+	// }
 
 	internal SoundInstance Add(Sound sound)
 	{
@@ -292,9 +362,12 @@ public sealed class SoundBank
 		inst.Volume = Volume;
 		inst.Pan = Pan;
 		inst.Pitch = Pitch;
-		inst.Play();
 
 		instances.Add(new SoundInstanceWrapped { Instance = inst, LastAccessFrame = DateTime.UtcNow });
+
+		OnInstanceAdded?.Invoke(this, inst);
+
+		inst.Play();
 
 		Logger.Instance.Log(LogLevel.Info, $"Sound channel ID {Id} added instance ID {inst.Id} from sound ID {sound.Id}.");
 
@@ -376,6 +449,8 @@ public sealed class SoundBank
 	{
 		// O(1) removal instead of scanning loops!
 		RemoveInstanceDirect(instance);
+
+		OnInstanceRemoved?.Invoke(this, instance);
 
 		Logger.Instance.Log(LogLevel.Info,
 			$"Sound {instance.Id} finished playing in bank {Id}");

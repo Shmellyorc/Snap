@@ -119,8 +119,6 @@ public static class AssetBootstrap
 		return composite;
 	}
 
-
-
 	/// <summary>
 	/// Switches the content root to a new directory at runtime.
 	/// The new provider is still filesystem-based.

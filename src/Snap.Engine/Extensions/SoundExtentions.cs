@@ -276,7 +276,7 @@ public static class SoundExtentions
             foreach(var instance in soundPair.Value)
 				instance.Stop();
         }
-    }
+	}
 
 	/// <summary>
 	/// Generates a formatted string containing comprehensive audio system statistics.
