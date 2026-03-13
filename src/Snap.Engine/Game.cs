@@ -1,4 +1,8 @@
-﻿namespace Snap.Engine;
+﻿using SFML.Window;
+
+using SFState = SFML.Window.State;
+
+namespace Snap.Engine;
 
 /// <summary>
 /// Represents errors that occur during the creation of a game window.
@@ -49,14 +53,16 @@ public sealed class WindowCreationException : Exception
 public class Game : IDisposable
 {
 	private const int TotalFpsQueueSamples = 16;
-	private SFStyles _styles;
-	// private SFState _state;
-	private SFContext _context;
-	SFVideoMode _videoMode;
-	private bool _isDisposed, _initialized;
+
 	private readonly Queue<float> _fpsQueue = [];
-	private float _titleTimeout;
 	private readonly SFImage _icon;
+
+	private SFStyles _styles;
+	private SFState _state;
+	private SFContext _context;
+	private SFVideoMode _videoMode;
+	private bool _isDisposed, _initialized;
+	private float _titleTimeout;
 	private bool _canApplyChanges;
 
 	/// <summary>
@@ -271,25 +277,29 @@ public class Game : IDisposable
 			ToRenderer.Closed -= OnWindowClose;
 			ToRenderer.GainedFocus -= OnGainedFocus;
 			ToRenderer.LostFocus -= OnLostFocus;
+			ToRenderer.Resized -= OnWindowResized;
 
 			ToRenderer.Close();
 			ToRenderer.Dispose();
 			ToRenderer = null; // Important to set to null after disposal
 		}
 
-		_videoMode = new SFVideoMode((uint)Settings.Window.X, (uint)Settings.Window.Y);
+		// _videoMode = new SFVideoMode((uint)Settings.Window.X, (uint)Settings.Window.Y);
+		_state = Settings.FullScreen ? SFState.Fullscreen : SFState.Windowed;
+		_videoMode = new SFVideoMode(new((uint)Settings.Window.X, (uint)Settings.Window.Y));
 		_context = new SFContext { MinorVersion = 3, MajorVersion = 3, AntialiasingLevel = (uint)Settings.Antialiasing };
-
 		_styles = Settings.WindowResize
 			? SFStyles.Titlebar | SFStyles.Resize | SFStyles.Close
-			: SFStyles.Titlebar | SFStyles.Close;
+			: SFStyles.Titlebar | SFStyles.Resize | SFStyles.Close // This fixes until new bug fix.
+																   // : SFStyles.Titlebar | SFStyles.Close
+			;
 
-		if (Settings.FullScreen)
-			_styles |= SFStyles.Fullscreen;
+		// if (Settings.FullScreen)
+		// 	_styles |= SFStyles.Fullscreen;
 
 		try
 		{
-			ToRenderer = new SFRenderWindow(_videoMode, Settings.AppTitle, _styles, _context);
+			ToRenderer = new SFRenderWindow(_videoMode, Settings.AppTitle, _styles, _state, _context);
 
 			if (ToRenderer.IsInvalid || !ToRenderer.IsOpen)
 			{
@@ -300,12 +310,14 @@ public class Game : IDisposable
 
 			_log.Log(LogLevel.Info, "Window successfully created.");
 
-			ToRenderer.SetIcon(_icon.Size.X, _icon.Size.Y, _icon.Pixels);
+			// ToRenderer.SetIcon(_icon.Size.X, _icon.Size.Y, _icon.Pixels);
+			ToRenderer.SetIcon(new(_icon.Size.X, _icon.Size.Y), _icon.Pixels);
 			ToRenderer.SetVerticalSyncEnabled(Settings.VSync);
 			ToRenderer.SetMouseCursorVisible(Settings.Mouse);
 			ToRenderer.Closed += OnWindowClose;
 			ToRenderer.GainedFocus += OnGainedFocus;
 			ToRenderer.LostFocus += OnLostFocus;
+			ToRenderer.Resized += OnWindowResized;
 
 			if (!Settings.FullScreen)
 			{
@@ -335,8 +347,12 @@ public class Game : IDisposable
 		_canApplyChanges = false;
 	}
 
-	private void OnLostFocus(object sender, EventArgs e) => IsActive = false;
-	private void OnGainedFocus(object sender, EventArgs e) => IsActive = true;
+	private void OnWindowResized(object sender, SizeEventArgs e)
+		=> Settings.Window = new Vect2(e.Size.X, e.Size.Y);
+	private void OnLostFocus(object sender, EventArgs e) 
+		=> IsActive = false;
+	private void OnGainedFocus(object sender, EventArgs e)
+		=> IsActive = true;
 
 	private void OnWindowClose(object sender, EventArgs e)
 	{
@@ -426,24 +442,30 @@ public class Game : IDisposable
 		_log.Log(LogLevel.Info, "            ╚══════╝ ╚══╝  ╚═══╝ ╚══╝ ╚══╝ ╚══╝");
 		_log.Log(LogLevel.Info, "────────────────────────────────────────────────────────────");
 		_log.Log(LogLevel.Info, $"         Version: {Version}, Hash: {VersionHash}");
-		_log.Log(LogLevel.Info, "────────────────────────────────────────────────────────────");	
+		_log.Log(LogLevel.Info, "────────────────────────────────────────────────────────────");
 
+		// _styles = Settings.WindowResize
+		// 	? SFStyles.Titlebar | SFStyles.Resize | SFStyles.Close
+		// 	: SFStyles.Titlebar | SFStyles.Close;
 		_styles = Settings.WindowResize
 			? SFStyles.Titlebar | SFStyles.Resize | SFStyles.Close
-			: SFStyles.Titlebar | SFStyles.Close;
+			: SFStyles.Titlebar | SFStyles.Resize | SFStyles.Close // This fixes until new bug fix.
+																   // : SFStyles.Titlebar | SFStyles.Close
+			;
 
-		if (Settings.FullScreen)
-			_styles |= SFStyles.Fullscreen;
+		// if (Settings.FullScreen)
+		// 	_styles |= SFStyles.Fullscreen;
 
 		_log.Log(LogLevel.Info, $"Initializing video mode: {Settings.Window.X}x{Settings.Window.Y}");
-		_videoMode = new SFVideoMode((uint)Settings.Window.X, (uint)Settings.Window.Y);
-
+		// _videoMode = new SFVideoMode((uint)Settings.Window.X, (uint)Settings.Window.Y);
+		_videoMode = new SFVideoMode(new((uint)Settings.Window.X, (uint)Settings.Window.Y));
+		_state = Settings.FullScreen ? SFState.Fullscreen : SFState.Windowed;
 		_context = new SFContext { MajorVersion = 4, MinorVersion = 0, AntialiasingLevel = (uint)Settings.Antialiasing };
 		_log.Log(LogLevel.Info, $"Creating OpenGL context: Version {_context.MajorVersion}.{_context.MinorVersion}, Antialiasing: {_context.AntialiasingLevel}");
 
 		try
 		{
-			ToRenderer = new SFRenderWindow(_videoMode, Settings.AppTitle, _styles, _context);
+			ToRenderer = new SFRenderWindow(_videoMode, Settings.AppTitle, _styles, _state, _context);
 
 			if (ToRenderer.IsInvalid || !ToRenderer.IsOpen)
 			{
@@ -454,7 +476,8 @@ public class Game : IDisposable
 
 			_log.Log(LogLevel.Info, "Window successfully created.");
 
-			ToRenderer.SetIcon(_icon.Size.X, _icon.Size.Y, _icon.Pixels);
+			// ToRenderer.SetIcon(_icon.Size.X, _icon.Size.Y, _icon.Pixels);
+			ToRenderer.SetIcon(new(_icon.Size.X, _icon.Size.Y), _icon.Pixels);
 
 			if (!Settings.FullScreen)
 			{
@@ -479,9 +502,13 @@ public class Game : IDisposable
 			throw new WindowCreationException("Unexpected error while creating SNAP window.", ex);
 		}
 
-		ToRenderer.Closed += (_, _) => ToRenderer.Close();
-		ToRenderer.GainedFocus += (_, _) => IsActive = true;
-		ToRenderer.LostFocus += (_, _) => IsActive = false;
+		// ToRenderer.Closed += (_, _) => ToRenderer.Close();
+		// ToRenderer.GainedFocus += (_, _) => IsActive = true;
+		// ToRenderer.LostFocus += (_, _) => IsActive = false;
+		ToRenderer.Closed += OnWindowClose;
+		ToRenderer.GainedFocus += OnGainedFocus;
+		ToRenderer.LostFocus += OnLostFocus;
+		ToRenderer.Resized += OnWindowResized;
 
 		// Happens only when app crashes, make sure to report:
 		AppDomain.CurrentDomain.UnhandledException += (sender, args) =>
@@ -766,7 +793,8 @@ public class Game : IDisposable
 		{
 			var m = SFVideoMode.DesktopMode;
 
-			return new Monitor((int)m.Width, (int)m.Height);
+			// return new Monitor((int)m.Width, (int)m.Height);
+			return new Monitor((int)m.Size.X, (int)m.Size.Y);
 		}
 	}
 
@@ -795,12 +823,14 @@ public class Game : IDisposable
 
 		foreach (var mode in modes)
 		{
-			float actualRatio = (float)mode.Width / mode.Height;
+			// float actualRatio = (float)mode.Width / mode.Height;
+			float actualRatio = (float)mode.Size.X / mode.Size.Y;
 
 			if (Math.Abs(actualRatio - ratio) >= tolerance)
 				continue;
 
-			var key = $"{mode.Width}x{mode.Height}";
+			// var key = $"{mode.Width}x{mode.Height}";
+			var key = $"{mode.Size.X}x{mode.Size.Y}";
 
 			if (!resolutionMap.TryGetValue(key, out var exists) ||
 			mode.BitsPerPixel > exists.BitsPerPixel)
@@ -810,7 +840,8 @@ public class Game : IDisposable
 		}
 
 		return [.. resolutionMap.Values
-			.Select(mode => new Monitor((int)mode.Width, (int)mode.Height))
+			// .Select(mode => new Monitor((int)mode.Width, (int)mode.Height))
+			.Select(mode => new Monitor((int)mode.Size.X, (int)mode.Size.Y))
 		];
 	}
 

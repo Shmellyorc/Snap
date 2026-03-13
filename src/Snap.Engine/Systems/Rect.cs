@@ -301,7 +301,8 @@ public struct Rect2 : IEquatable<Rect2>
 	/// A new <see cref="SFRectF"/> with the same position and size as the <see cref="Rect2"/>.
 	/// </returns>
 	public static implicit operator SFRectF(in Rect2 v) =>
-		new(v.X, v.Y, v.Width, v.Height);
+		// new(v.X, v.Y, v.Width, v.Height);
+		new(new(v.X, v.Y), new(v.Width, v.Height));
 
 	/// <summary>
 	/// Defines an implicit conversion from <see cref="Rect2"/> to <see cref="SFRectI"/>.
@@ -312,7 +313,8 @@ public struct Rect2 : IEquatable<Rect2>
 	/// with components cast to integers.
 	/// </returns>
 	public static implicit operator SFRectI(in Rect2 v) =>
-		new((int)v.X, (int)v.Y, (int)v.Width, (int)v.Height);
+		// new((int)v.X, (int)v.Y, (int)v.Width, (int)v.Height);
+		new(new((int)v.X, (int)v.Y), new((int)v.Width, (int)v.Height));
 	#endregion
 
 

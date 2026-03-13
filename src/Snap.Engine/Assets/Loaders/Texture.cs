@@ -213,7 +213,8 @@ public class Texture : IAsset
 
 	private ulong CreateTexture()
 	{
-		var sfImage = new SFImage((uint)_texSize.X, (uint)_texSize.Y, _texColor);
+		// var sfImage = new SFImage((uint)_texSize.X, (uint)_texSize.Y, _texColor);
+		var sfImage = new SFImage(new((uint)_texSize.X, (uint)_texSize.Y), _texColor);
 		_texture = new SFTexture(sfImage);
 
 		Logger.Instance.Log(LogLevel.Info, $"Created Blank Texture with ID: {Id}, Size: (W{_texture.Size.X}, H{_texture.Size.Y})");

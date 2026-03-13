@@ -298,7 +298,8 @@ public class SoundInstance : IDisposable
 			// set volume to zero so it doesnt make any pops/weird 
 			// sounds when it is intialized
 			Volume = 0f,
-			Loop = sound.IsLooped
+			// Loop = sound.IsLooped
+			IsLooping = sound.IsLooped
 		};
 	}
 
@@ -448,6 +449,7 @@ public class SoundInstance : IDisposable
 		_sfSound.Pitch = 1f;
 		_sfSound.Position = new(0, 0, 0);
 		_sfSound.RelativeToListener = false;
-		_sfSound.Loop = newSound.IsLooped;
+		// _sfSound.Loop = newSound.IsLooped;
+		_sfSound.IsLooping = newSound.IsLooped;
 	}
 }

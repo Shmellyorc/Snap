@@ -34,6 +34,7 @@ public sealed class ScreenManager
 	private readonly List<Screen> _screens = [];
 	private readonly Dictionary<uint, Screen> _screensById = [];
 	private readonly List<Screen> _updateScreens = [];
+	
 	private DirtyState _dirtyState;
 
 	/// <summary>

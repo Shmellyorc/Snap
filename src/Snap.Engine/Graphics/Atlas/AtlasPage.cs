@@ -39,7 +39,8 @@ public sealed class AtlasPage
 	{
 		PageIndex = pageIndex;
 		Packer = new SkylinePacker(pageSize, pageSize);
-		Texture = new SFTexture((uint)pageSize, (uint)pageSize);
+		// Texture = new SFTexture((uint)pageSize, (uint)pageSize);
+		Texture = new SFTexture(new SFVectU((uint)pageSize, (uint)pageSize));
 		UsedPixels = 0;
 	}
 
@@ -71,17 +72,25 @@ public sealed class AtlasPage
 
 		// Copy only the sub-rect via SFImage
 		var img = srcTexture.CopyToImage();
-		var region = new SFImage((uint)srcRect.Width, (uint)srcRect.Height);
+		// var region = new SFImage((uint)srcRect.Width, (uint)srcRect.Height);
+		var region = new SFImage(new SFVectU((uint)srcRect.Width, (uint)srcRect.Height));
 		region.Copy(
 			img,
-			0, 0,
+			// 0, 0,
+			new(0, 0),
+
+			// new SFRectI(
+			// 	(int)srcRect.Left, (int)srcRect.Top,
+			// 	(int)srcRect.Width, (int)srcRect.Height
+			// ),
 			new SFRectI(
-				(int)srcRect.Left, (int)srcRect.Top,
-				(int)srcRect.Width, (int)srcRect.Height
+				new(srcRect.Left, srcRect.Top),
+				new(srcRect.Width, srcRect.Height)
 			),
 			false
 		);
-		Texture.Update(region, (uint)dst.Left, (uint)dst.Top);
+		// Texture.Update(region, (uint)dst.Left, (uint)dst.Top);
+		Texture.Update(region, new((uint)dst.Left, (uint)dst.Top));
 
 		UsedPixels += (long)srcRect.Width * srcRect.Height;
 

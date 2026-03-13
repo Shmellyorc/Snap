@@ -10,13 +10,14 @@ namespace Snap.Engine.Screens;
 /// </remarks>
 public class Screen
 {
+	private readonly List<Entity> _entities = [], _updateEntities = [];
+	private static readonly Comparison<Entity> SortComparison = (a, b) => a.Layer.CompareTo(b.Layer);
+
 	private int _layer;
 	private bool _visible = true;
 	private DirtyState _dirtyState = DirtyState.Sort | DirtyState.Update;
-	private readonly List<Entity> _entities = [], _updateEntities = [];
 	private Entity[] _entityArrayBuffer = new Entity[256];
 	private int[] _indexBuffer = new int[256];
-	private static readonly Comparison<Entity> SortComparison = (a, b) => a.Layer.CompareTo(b.Layer);
 
 	/// <summary>
 	/// Unique identifier for this screen, assigned by the <see cref="ScreenManager"/>.

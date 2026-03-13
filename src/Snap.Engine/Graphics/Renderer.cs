@@ -658,11 +658,15 @@ public sealed class Renderer
 				);
 
 				// source in font texture
+				// var srcInt = new SFRectI(
+				// 	(int)g.Cell.Left,
+				// 	(int)g.Cell.Top,
+				// 	(int)g.Cell.Width,
+				// 	(int)g.Cell.Height
+				// );
 				var srcInt = new SFRectI(
-					(int)g.Cell.Left,
-					(int)g.Cell.Top,
-					(int)g.Cell.Width,
-					(int)g.Cell.Height
+					new((int)g.Cell.Left, (int)g.Cell.Top),
+					new((int)g.Cell.Width, (int)g.Cell.Height)
 				);
 
 				EnqueueDraw(fontTex, srcInt, dst, color, depth: depth);
@@ -740,11 +744,15 @@ public sealed class Renderer
 			texture.Load();
 
 		// convert float Rect2 → IntRect
+		// var srcInt = new SFRectI(
+		// 	(int)srcRect.Left,
+		// 	(int)srcRect.Top,
+		// 	(int)srcRect.Width,
+		// 	(int)srcRect.Height
+		// );
 		var srcInt = new SFRectI(
-			(int)srcRect.Left,
-			(int)srcRect.Top,
-			(int)srcRect.Width,
-			(int)srcRect.Height
+			new((int)srcRect.Left, (int)srcRect.Top),
+			new((int)srcRect.Width, (int)srcRect.Height)
 		);
 
 		EnqueueDraw(texture, srcInt, dstRect, color, origin, scale, rotation, effects, depth);
@@ -992,7 +1000,7 @@ public sealed class Renderer
 			Texture = texture,
 			Transform = SFTransform.Identity,
 			BlendMode = SFBlendMode.Alpha,
-			// CoordinateType = SFML.Graphics.CoordinateType.Pixels
+			CoordinateType = SFML.Graphics.CoordinateType.Pixels
 		});
 
 		// VertexArrayPool.Return(exactVertices);

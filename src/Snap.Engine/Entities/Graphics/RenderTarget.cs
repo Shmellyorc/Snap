@@ -61,9 +61,11 @@ public class RenderTarget(params Entity[] entities) : Panel(entities)
 			_texture?.Dispose();
 			_view?.Dispose();
 
-			_rendTexture = new SFRenderTexture((uint)base.Size.X, (uint)base.Size.Y);
+			// _rendTexture = new SFRenderTexture((uint)base.Size.X, (uint)base.Size.Y);
+			_rendTexture = new SFRenderTexture(new((uint)base.Size.X, (uint)base.Size.Y));
 			_texture = new(_rendTexture.Texture);
-			_view = new SFView(new SFRectF(0, 0, Size.X, Size.Y));
+			// _view = new SFView(new SFRectF(0, 0, Size.X, Size.Y));
+			_view = new SFView(new SFRectF(new(0, 0), new(Size.X, Size.Y)));
 			_rendTexture.SetView(_view);
 		}
 	}
@@ -83,7 +85,8 @@ public class RenderTarget(params Entity[] entities) : Panel(entities)
 			_rendTexture?.Dispose();
 			_texture.Dispose();
 
-			_rendTexture = new SFRenderTexture((uint)Size.X, (uint)Size.Y);
+			// _rendTexture = new SFRenderTexture((uint)Size.X, (uint)Size.Y);
+			_rendTexture = new SFRenderTexture(new((uint)Size.X, (uint)Size.Y));
 			_texture = new Texture(_rendTexture.Texture);
 		}
 
@@ -243,7 +246,7 @@ public class RenderTarget(params Entity[] entities) : Panel(entities)
 			Texture = texture,
 			Transform = SFTransform.Identity,
 			BlendMode = SFBlendMode.Alpha,
-			// CoordinateType = SFML.Graphics.CoordinateType.Pixels
+			CoordinateType = SFML.Graphics.CoordinateType.Pixels
 		});
 
 		_batches++;
@@ -823,11 +826,15 @@ public class RenderTarget(params Entity[] entities) : Panel(entities)
 				);
 
 				// source in font texture
+				// var srcInt = new SFRectI(
+				// 	(int)g.Cell.Left,
+				// 	(int)g.Cell.Top,
+				// 	(int)g.Cell.Width,
+				// 	(int)g.Cell.Height
+				// );
 				var srcInt = new SFRectI(
-					(int)g.Cell.Left,
-					(int)g.Cell.Top,
-					(int)g.Cell.Width,
-					(int)g.Cell.Height
+					new((int)g.Cell.Left, (int)g.Cell.Top),
+					new((int)g.Cell.Width, (int)g.Cell.Height)
 				);
 
 				EnqueueDraw(fontTex, srcInt, dst, color, depth: depth);
@@ -890,11 +897,15 @@ public class RenderTarget(params Entity[] entities) : Panel(entities)
 			texture.Load();
 
 		// convert float‐Rect2 → IntRect
+		// var srcInt = new SFRectI(
+		// 	(int)srcRect.Left,
+		// 	(int)srcRect.Top,
+		// 	(int)srcRect.Width,
+		// 	(int)srcRect.Height
+		// );
 		var srcInt = new SFRectI(
-			(int)srcRect.Left,
-			(int)srcRect.Top,
-			(int)srcRect.Width,
-			(int)srcRect.Height
+			new((int)srcRect.Left, (int)srcRect.Top),
+			new((int)srcRect.Width, (int)srcRect.Height)
 		);
 
 		EnqueueDraw(texture, srcInt, dstRect, color, origin, scale, rotation, effects, depth);

@@ -6,19 +6,15 @@ namespace Snap.Engine.Systems;
 /// </summary>
 public class Camera
 {
-
-	private Vect2 _viewCenter, _viewport;
 	private readonly SFView _view;
 	private readonly Screen _screen;
-	private Vect2 _position, _lastDirtyPosition;
 
-	// Shake:
+	private Vect2 _viewCenter, _viewport;
+	private Vect2 _position, _lastDirtyPosition;
 	private float _shakeDuration;         // total seconds of shake
 	private float _shakeTimeRemaining;    // seconds left to shake
 	private float _shakeMagnitude;        // initial magnitude (in world‐units)
 	private Vect2 _orginalOffset;
-
-	// Camera‐fly tween state:
 	private bool _isFlying;
 	private Vect2 _flyStart;
 	private Vect2 _flyTarget;
@@ -82,7 +78,8 @@ public class Camera
 		_viewport = s.Viewport;          // e.g. (1280, 720)
 		_viewCenter = _viewport / 2f;    // e.g. (640, 360)
 
-		_view = new SFView(new SFRectF(0f, 0f, _viewport.X, _viewport.Y));
+		// _view = new SFView(new SFRectF(0f, 0f, _viewport.X, _viewport.Y));
+		_view = new SFView(new SFRectF(new(0f, 0f), new(_viewport.X, _viewport.Y)));
 
 		Position = _viewport / 2f;     // e.g. (160, 90)
 									   // (Position setter will set CullBounds and _view.Center)
@@ -262,7 +259,6 @@ public class Camera
 
 		Position = newPos;
 	}
-
 
 	internal SFView ToEngine => _view;
 }

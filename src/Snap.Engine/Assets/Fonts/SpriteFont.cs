@@ -112,7 +112,8 @@ public sealed class SpriteFont : Font
 
 		uint w = img.Size.X, h = img.Size.Y;
 
-		SFColor topLeft = img.GetPixel(0, 0);
+		// SFColor topLeft = img.GetPixel(0, 0);
+		SFColor topLeft = img.GetPixel(new(0, 0));
 
 		bool isFullyTransparent = topLeft.A == 0;
 
@@ -130,7 +131,8 @@ public sealed class SpriteFont : Font
 
 		bool isMagenta(uint x, uint y)
 		{
-			var px = img.GetPixel(x, y);
+			// var px = img.GetPixel(x, y);
+			var px = img.GetPixel(new(x, y));
 			return px.R == topLeft.R && px.G == topLeft.G && px.B == topLeft.B;// && px.A == topLeft.A;
 		}
 
@@ -171,7 +173,8 @@ public sealed class SpriteFont : Font
 					}
 				}
 
-				componetRects.Add(new SFRectI((int)minX, (int)minY, (int)(maxX - minX + 1), (int)(maxY - minY + 1)));
+				// componetRects.Add(new SFRectI((int)minX, (int)minY, (int)(maxX - minX + 1), (int)(maxY - minY + 1)));
+				componetRects.Add(new SFRectI(new((int)minX, (int)minY), new((int)(maxX - minX + 1), (int)(maxY - minY + 1))));
 			}
 		}
 
@@ -212,7 +215,8 @@ public sealed class SpriteFont : Font
 				bool columnAllBorder = true;
 				for (int yy = y0; yy <= y1; yy++)
 				{
-					var px = img.GetPixel((uint)x0, (uint)yy);
+					// var px = img.GetPixel((uint)x0, (uint)yy);
+					var px = img.GetPixel(new((uint)x0, (uint)yy));
 					if (!(px.R == borderColor.R && px.G == borderColor.G && px.B == borderColor.B && px.A == borderColor.A))
 					{
 						columnAllBorder = false;
@@ -228,7 +232,8 @@ public sealed class SpriteFont : Font
 				bool columnAllBorder = true;
 				for (int yy = y0; yy <= y1; yy++)
 				{
-					var px = img.GetPixel((uint)x1, (uint)yy);
+					// var px = img.GetPixel((uint)x1, (uint)yy);
+					var px = img.GetPixel(new((uint)x1, (uint)yy));
 					if (!(px.R == borderColor.R && px.G == borderColor.G && px.B == borderColor.B && px.A == borderColor.A))
 					{
 						columnAllBorder = false;
@@ -244,7 +249,8 @@ public sealed class SpriteFont : Font
 				bool columnAllBorder = true;
 				for (int xx = x0; xx <= x1; xx++)
 				{
-					var px = img.GetPixel((uint)xx, (uint)y0);
+					// var px = img.GetPixel((uint)xx, (uint)y0);
+					var px = img.GetPixel(new((uint)xx, (uint)y0));
 					if (!(px.R == borderColor.R && px.G == borderColor.G && px.B == borderColor.B && px.A == borderColor.A))
 					{
 						columnAllBorder = false;
@@ -260,7 +266,8 @@ public sealed class SpriteFont : Font
 				bool columnAllBorder = true;
 				for (int xx = x0; xx <= x1; xx++)
 				{
-					var px = img.GetPixel((uint)xx, (uint)y1);
+					// var px = img.GetPixel((uint)xx, (uint)y1);
+					var px = img.GetPixel(new((uint)xx, (uint)y1));
 					if (!(px.R == borderColor.R && px.G == borderColor.G && px.B == borderColor.B && px.A == borderColor.A))
 					{
 						columnAllBorder = false;
@@ -277,7 +284,8 @@ public sealed class SpriteFont : Font
 			if (innerW <= 0 || innerH <= 0)
 				throw new Exception();
 
-			var innerRect = new SFRectI(x0, y0, innerW, innerH);
+			// var innerRect = new SFRectI(x0, y0, innerW, innerH);
+			var innerRect = new SFRectI(new(x0, y0), new(innerW, innerH));
 			int advance = innerW + (int)spacing;
 
 			glyphCells[asciiSequence[i]] = new Glyph

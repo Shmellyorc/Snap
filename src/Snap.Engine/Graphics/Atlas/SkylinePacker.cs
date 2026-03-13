@@ -90,7 +90,8 @@ public sealed class SkylinePacker
 		if (bestIndex == -1)
 			return null;
 
-		var rect = new SFRectI(bestX, bestY, w, h);
+		// var rect = new SFRectI(bestX, bestY, w, h);
+		var rect = new SFRectI(new(bestX, bestY), new(w, h));
 
 		AddSkylineLevel(bestIndex, rect);
 		Merge();
