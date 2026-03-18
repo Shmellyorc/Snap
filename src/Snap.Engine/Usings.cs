@@ -13,6 +13,8 @@ global using System.Text;
 global using System.Text.Json;
 global using System.Xml.Serialization;
 
+global using Snap.Content.Abstractions;
+global using Snap.Content.Abstractions.Interfaces;
 global using Snap.Engine.Assets;
 global using Snap.Engine.Assets.Fonts;
 global using Snap.Engine.Assets.LDTKImporter;

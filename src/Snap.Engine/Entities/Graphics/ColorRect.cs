@@ -37,6 +37,13 @@ public sealed class ColorRect : Entity
 		base.OnEnter();
 	}
 
+	protected override void OnExit()
+	{
+		_texture.Dispose();
+
+		base.OnExit();
+	}
+
 	/// <summary>
 	/// Called every frame to update and render the colored rectangle.
 	/// </summary>

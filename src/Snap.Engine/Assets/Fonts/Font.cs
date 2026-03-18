@@ -52,6 +52,9 @@ public class Font : IAsset
 	/// </summary>
 	public virtual float LineSpacing { get; }
 
+	public DateTime LastAccessFrame { get; protected set; }
+
+
 	/// <summary>
 	/// Calculates the spacing offset for a specific character, factoring in advance and default spacing.
 	/// </summary>
@@ -89,11 +92,11 @@ public class Font : IAsset
 		if (!IsValid)
 			return;
 
-		Dispose();
+		Texture?.Dispose();
 
 		Logger.Instance.Log(LogLevel.Info, $"Unloaded asset {Id}, of {GetType().Name}");
 
-		Length = 0ul;
+		IsValid = false;
 	}
 
 	/// <summary>
@@ -102,6 +105,11 @@ public class Font : IAsset
 	public virtual void Dispose()
 	{
 		Texture?.Dispose();
+
+		Logger.Instance.Log(LogLevel.Info, $"Unloaded asset {Id}, of {GetType().Name}");
+
+		GC.SuppressFinalize(this);
+
 		IsValid = false;
 	}
 
@@ -147,5 +155,8 @@ public class Font : IAsset
 	/// Gets the texture associated with this font.
 	/// </summary>
 	/// <returns>The font texture, or the default value if none is set.</returns>
-	public virtual SFTexture GetTexture() { return default; }
+	public virtual SFTexture GetTexture()
+	{
+		return default;
+	}
 }

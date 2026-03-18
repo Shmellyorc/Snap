@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Snap.Engine.Assets.Spritesheets;
 
 /// <summary>
@@ -18,12 +20,21 @@ public sealed class Spritesheet : IAsset
 	/// <inheritdoc/>
 	public uint Handle { get; }
 
+
+	public DateTime LastAccessFrame { get; private set; }
+
+
+	public ulong Length { get; private set; }
+
+
 	private readonly Dictionary<uint, SpritesheetEntry> _spritesheets = [];
 
 	internal Spritesheet(uint id, string filename)
 	{
 		Id = id;
 		Tag = filename;
+
+		LastAccessFrame = DateTime.UtcNow;
 	}
 
 	/// <summary>
@@ -41,7 +52,10 @@ public sealed class Spritesheet : IAsset
 	public ulong Load()
 	{
 		if (IsValid)
+		{
+			LastAccessFrame = DateTime.UtcNow;
 			return 0u;
+		}
 
 		// Read JSON via provider (works from FS or .spack)
 		byte[] bytes;
@@ -99,8 +113,10 @@ public sealed class Spritesheet : IAsset
 		}
 
 		IsValid = true;
+		Length = (ulong)bytes.Length;
+		LastAccessFrame = DateTime.UtcNow;
 
-		return (ulong)bytes.Length;
+		return Length;
 	}
 
 	/// <summary>
@@ -108,10 +124,7 @@ public sealed class Spritesheet : IAsset
 	/// </summary>
 	public void Unload()
 	{
-		if (!IsValid)
-			return;
-
-		Dispose();
+		// Don't need to unload anything here. No heavy data here.
 	}
 
 	/// <summary>
@@ -119,10 +132,16 @@ public sealed class Spritesheet : IAsset
 	/// </summary>
 	public void Dispose()
 	{
+		if (!IsValid)
+			return;
+
 		_spritesheets.Clear();
-		IsValid = false;
 
 		Logger.Instance.Log(LogLevel.Info, $"Unloaded asset with ID {Id}, type: '{GetType().Name}'.");
+
+		GC.SuppressFinalize(this);
+
+		IsValid = false;
 	}
 
 	/// <summary>
@@ -147,6 +166,8 @@ public sealed class Spritesheet : IAsset
 			throw new KeyNotFoundException($"No spritesheet entry found for name '{name}'.");
 		if (result.Bounds.IsEmpty)
 			throw new InvalidOperationException($"Bounds for spritesheet '{name}' has not been set.");
+
+		LastAccessFrame = DateTime.UtcNow;
 
 		return result.Bounds;
 	}
@@ -181,6 +202,7 @@ public sealed class Spritesheet : IAsset
 			return false;
 
 		value = result.Bounds;
+		LastAccessFrame = DateTime.UtcNow;
 
 		return true;
 	}
@@ -208,6 +230,8 @@ public sealed class Spritesheet : IAsset
 		if (result.Patch.IsEmpty)
 			throw new Exception($"9-slice patch for '{name}' has not been defined.");
 
+		LastAccessFrame = DateTime.UtcNow;
+
 		return result.Patch;
 	}
 
@@ -231,6 +255,7 @@ public sealed class Spritesheet : IAsset
 			return false;
 
 		value = result.Patch;
+		LastAccessFrame = DateTime.UtcNow;
 
 		return true;
 	}
@@ -258,6 +283,8 @@ public sealed class Spritesheet : IAsset
 		if (result.Pivot.IsZero)
 			throw new Exception($"Pivot point for '{name}' has not been set.");
 
+		LastAccessFrame = DateTime.UtcNow;
+
 		return result.Pivot;
 	}
 
@@ -281,6 +308,7 @@ public sealed class Spritesheet : IAsset
 			return false;
 
 		value = result.Pivot;
+		LastAccessFrame = DateTime.UtcNow;
 
 		return true;
 	}

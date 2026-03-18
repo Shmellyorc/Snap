@@ -11,7 +11,7 @@ public sealed class BitmapFont : Font
 	private readonly bool _smoothing;
 
 	private float _finalLineSpacing;
-	private readonly Dictionary<int, SFTexture> _pageTextures = new();
+	private readonly Dictionary<int, SFTexture> _pageTextures = [];
 
 	/// <inheritdoc />
 	public override float Spacing => _spacing;
@@ -25,6 +25,8 @@ public sealed class BitmapFont : Font
 		_spacing = spacing;
 		_lineSpacing = lineSpacing;
 		_smoothing = smoothing;
+
+		LastAccessFrame = DateTime.UtcNow;
 	}
 
 	// inside your BitmapFont / SpriteFont loader class
@@ -39,7 +41,10 @@ public sealed class BitmapFont : Font
 	public override ulong Load()
 	{
 		if (IsValid)
+		{
+			LastAccessFrame = DateTime.UtcNow;
 			return 0u;
+		}
 
 		using var fntStream = AssetManager.OpenStream(Tag);
 		using var fntMs = new MemoryStream();
@@ -73,8 +78,9 @@ public sealed class BitmapFont : Font
 		);
 
 		IsValid = true;
-
+		LastAccessFrame = DateTime.UtcNow;
 		Length = (ulong)fntBytes.LongLength;
+
 		return Length;
 	}
 
@@ -83,8 +89,8 @@ public sealed class BitmapFont : Font
 	/// </summary>
 	public override void Unload()
 	{
-		if (!IsValid)
-			return;
+		// Unload not used here. Dont remove but keep it 
+		// blank. Everything is done thru the base.Unload();
 
 		base.Unload();
 	}
@@ -95,9 +101,6 @@ public sealed class BitmapFont : Font
 	/// </summary>
 	public override void Dispose()
 	{
-		if (!IsValid)
-			return;
-
 		foreach (var kv in _pageTextures)
 			kv.Value.Dispose();
 		_pageTextures.Clear();
@@ -114,10 +117,15 @@ public sealed class BitmapFont : Font
 	/// <exception cref="InvalidOperationException">Thrown if no page textures are loaded.</exception>
 	public override SFTexture GetTexture()
 	{
-		if (_pageTextures.TryGetValue(0, out var tex0) && tex0.IsInvalid)
+		if (_pageTextures.TryGetValue(0, out var tex0) && !tex0.IsInvalid)
+		{
+			LastAccessFrame = DateTime.UtcNow;
 			return tex0;
+		}
 		if (tex0.IsInvalid)
 			Load();
+
+		LastAccessFrame = DateTime.UtcNow;
 
 		return _pageTextures.Values.FirstOrDefault(t => t.IsInvalid)
 			?? throw new InvalidOperationException("No page texture is loaded.");
@@ -187,7 +195,7 @@ public sealed class BitmapFont : Font
 
 				if (data.TryGetValue("page", out var pgStr) && int.TryParse(pgStr, out var pg))
 					g.Page = pg;
-
+				
 				Glyphs[g.Character] = g;
 			}
 			else if (line.StartsWith("kerning "))

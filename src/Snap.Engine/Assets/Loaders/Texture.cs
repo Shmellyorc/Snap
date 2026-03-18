@@ -101,6 +101,13 @@ public class Texture : IAsset
 	/// </summary>
 	public Rect2 Bounds => new(Vect2.Zero, Size);
 
+	public DateTime LastAccessFrame { get; private set; }
+
+
+	public ulong Length { get; private set; }
+
+
+
 	internal Texture(uint id, string filename, bool repeat, bool smooth)
 	{
 		Id = id;
@@ -108,6 +115,8 @@ public class Texture : IAsset
 		_state = TextureState.Load;
 		_smooth = smooth;
 		_repeat = repeat;
+
+		LastAccessFrame = DateTime.UtcNow;
 	}
 
 	internal Texture(uint id, byte[] bytes)
@@ -118,16 +127,19 @@ public class Texture : IAsset
 		_texture = new SFTexture(bytes);
 		_state = TextureState.Font;
 		IsValid = true;
+		LastAccessFrame = DateTime.UtcNow;
 
 		Logger.Instance.Log(LogLevel.Info, $"Created FNT Texture with ID: {Id}, Size: (W{_texture.Size.X}, H{_texture.Size.Y})");
 	}
 
 	internal Texture(SFTexture texture)
 	{
+		// Used for Render Target
 		Id = AssetManager.Id++;
 		_texture = texture;
 		_state = TextureState.RenderTexture;
 		IsValid = true;
+		LastAccessFrame = DateTime.UtcNow;
 
 		Logger.Instance.Log(LogLevel.Info, $"Created RT Texture with ID: {Id}, Size: (W{_texture.Size.X}, H{_texture.Size.Y})");
 	}
@@ -157,6 +169,8 @@ public class Texture : IAsset
 		IsValid = true;
 
 		CreateTexture();
+
+		LastAccessFrame = DateTime.UtcNow;
 	}
 
 	/// <summary>
@@ -172,13 +186,16 @@ public class Texture : IAsset
 	public ulong Load()
 	{
 		if (IsValid)
+		{
+			LastAccessFrame = DateTime.UtcNow;
 			return 0u;
+		}
 
 		// Created texture should have been initialized on the constructor 
 		// not thru here. If the dev created an texture and puts it on
 		// the assets manager, than yes, it will need to create the 
 		// texture again (if evicted).
-		var result = _state switch
+		Length = _state switch
 		{
 			TextureState.Create => CreateTexture(),
 			TextureState.Load => LoadTexture(),
@@ -188,27 +205,37 @@ public class Texture : IAsset
 		};
 
 		IsValid = true;
+		LastAccessFrame = DateTime.UtcNow;
 
-		return result;
+		return Length;
 	}
 
 	/// <inheritdoc/>
 	public void Unload()
 	{
 		// never unload render textures even in eviction
-		if (_state == TextureState.RenderTexture || !IsValid)
+		if (_state == TextureState.RenderTexture)
+			return;
+		if (!IsValid)
 			return;
 
-		Dispose();
+		_texture?.Dispose();
+
+		Logger.Instance.Log(LogLevel.Info, $"Unloaded asset with ID {Id}, type: '{GetType().Name}', State: {_state}.");
+
+		IsValid = false;
 	}
 
 	/// <inheritdoc/>
 	public void Dispose()
 	{
 		_texture?.Dispose();
-		IsValid = false;
 
 		Logger.Instance.Log(LogLevel.Info, $"Unloaded asset with ID {Id}, type: '{GetType().Name}', State: {_state}.");
+
+		GC.SuppressFinalize(this);
+
+		IsValid = false;
 	}
 
 	private ulong CreateTexture()
@@ -218,8 +245,9 @@ public class Texture : IAsset
 		_texture = new SFTexture(sfImage);
 
 		Logger.Instance.Log(LogLevel.Info, $"Created Blank Texture with ID: {Id}, Size: (W{_texture.Size.X}, H{_texture.Size.Y})");
+		Length = _texture.Size.X * _texture.Size.Y * 4;
 
-		return _texture.Size.X * _texture.Size.Y * 4;
+		return Length;
 	}
 
 	private ulong LoadTexture()
@@ -230,8 +258,9 @@ public class Texture : IAsset
 			Smooth = _smooth,
 			Repeated = _repeat
 		};
+		Length = _texture.Size.X * _texture.Size.Y * 4;
 
-		return _texture.Size.X * _texture.Size.Y * 4;
+		return Length;
 	}
 
 	/// <summary>
@@ -239,5 +268,10 @@ public class Texture : IAsset
 	/// </summary>
 	/// <param name="tex">The source texture wrapper.</param>
 	/// <returns>The SFML native texture instance.</returns>
-	public static implicit operator SFTexture(Texture tex) => tex._texture;
+	public static implicit operator SFTexture(Texture tex)
+	{
+		tex.LastAccessFrame = DateTime.UtcNow;
+
+		return tex._texture;
+	}
 }

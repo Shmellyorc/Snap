@@ -1,6 +1,3 @@
-using Snap.Content.Abstractions;
-using Snap.Content.Abstractions.Interfaces;
-
 namespace Snap.Engine.Assets.Loaders;
 
 /// <summary>
@@ -9,18 +6,18 @@ namespace Snap.Engine.Assets.Loaders;
 /// </summary>
 public sealed class AssetManager
 {
-	private sealed class AssetEntry
-	{
-		public IAsset Asset { get; }
-		public DateTime LastAccessFrame { get; set; }
-		public ulong Length { get; set; }
+	// private sealed class AssetEntry
+	// {
+	// 	public IAsset Asset { get; }
+	// 	public DateTime LastAccessFrame { get; set; }
+	// 	public ulong Length { get; set; }
 
-		public AssetEntry(IAsset asset)
-		{
-			Asset = asset;
-			LastAccessFrame = DateTime.UtcNow;
-		}
-	}
+	// 	public AssetEntry(IAsset asset)
+	// 	{
+	// 		Asset = asset;
+	// 		LastAccessFrame = DateTime.UtcNow;
+	// 	}
+	// }
 
 	private const long EvictAfterMinutes = 15;
 
@@ -28,7 +25,8 @@ public sealed class AssetManager
 	private static IContentProvider _provider;
 	private static readonly ConcurrentDictionary<string, byte[]> _byteCache = new(StringComparer.OrdinalIgnoreCase);
 
-	private readonly Dictionary<uint, AssetEntry> _assets = new(32);
+	// private readonly Dictionary<uint, AssetEntry> _assets = new(32);
+	private readonly Dictionary<uint, IAsset> _assets = new(64);
 
 	private static readonly string[] TextureExtentions = {
 		".png", ".bmp", ".tga", ".jpg", ".gif", ".psd", ".hdr", ".pic", ".pnm" };
@@ -63,7 +61,8 @@ public sealed class AssetManager
 	/// <summary>
 	/// Gets the number of assets currently marked as valid (loaded and usable).
 	/// </summary>
-	public int Count => _assets.Count(x => x.Value.Asset.IsValid);
+	// public int Count => _assets.Count(x => x.Value.Asset.IsValid);
+	public int Count => _assets.Count(x => x.Value.IsValid);
 
 	/// <summary>
 	/// Initializes the singleton instance of the asset manager if not already created.
@@ -154,7 +153,8 @@ public sealed class AssetManager
 		if (_assets.ContainsKey(hash))
 			throw new InvalidOperationException($"An asset with the name '{name}' already exists.");
 
-		_assets[hash] = new AssetEntry(asset);
+		// _assets[hash] = new AssetEntry(asset);
+		_assets[hash] = asset;
 	}
 
 	/// <summary>
@@ -192,19 +192,26 @@ public sealed class AssetManager
 		if (!_assets.TryGetValue(hash, out var entry))
 			throw new KeyNotFoundException($"No asset found for '{name}'.");
 
-		entry.LastAccessFrame = DateTime.UtcNow;
+		// entry.LastAccessFrame = DateTime.UtcNow;
 
 		EvictAssets();
 
-		if (!entry.Asset.IsValid)
-		{
-			entry.Length = entry.Asset.Load();
-			BytesLoaded += (long)entry.Length;
+		// if (!entry.Asset.IsValid)
+		// {
+		// 	entry.Length = entry.Asset.Load();
+		// 	BytesLoaded += (long)entry.Length;
 
-			Logger.Instance.Log(LogLevel.Info, $"Loaded asset with ID: {entry.Asset.Id}, type: '{entry.Asset.GetType().Name}'.");
+		// 	Logger.Instance.Log(LogLevel.Info, $"Loaded asset with ID: {entry.Asset.Id}, type: '{entry.Asset.GetType().Name}'.");
+		// }
+		if (!entry.IsValid)
+		{
+			var length = entry.Load();
+			BytesLoaded += (long)length;
+
+			Logger.Instance.Log(LogLevel.Info, $"Loaded asset with ID: {entry.Id}, type: '{entry.GetType().Name}'.");
 		}
 
-		return (T)entry.Asset;
+		return (T)entry;
 	}
 
 	/// <summary>
@@ -613,8 +620,10 @@ public sealed class AssetManager
 
 		// Find a loaded texture whose Tag is the same logical path
 		var texture = Instance._assets
-			.Where(kv => kv.Value.Asset is Texture)
-			.Select(kv => (Texture)kv.Value.Asset)
+			// .Where(kv => kv.Value.Asset is Texture)
+			.Where(kv => kv.Value is Texture)
+			// .Select(kv => (Texture)kv.Value.Asset)
+			.Select(kv => (Texture)kv.Value)
 			.FirstOrDefault(t => string.Equals(Norm(t.Tag), wanted, StringComparison.OrdinalIgnoreCase));
 
 		return texture;
@@ -804,7 +813,8 @@ public sealed class AssetManager
 	{
 		if (!_assets.TryGetValue(hash, out var entry))
 			throw new KeyNotFoundException($"No asset found with hash 0x{hash:X8}, unable to remove.");
-		if (!entry.Asset.IsValid)
+		// if (!entry.Asset.IsValid)
+		if (!entry.IsValid)
 		{
 			if (removeInDirectory)
 				return _assets.Remove(hash);
@@ -812,20 +822,35 @@ public sealed class AssetManager
 				return default;
 		}
 
-		TextureAtlasManager.Instance.UnloadAsset(entry.Asset.Handle);
+		// TextureAtlasManager.Instance.UnloadAsset(entry.Asset.Handle);
+		TextureAtlasManager.Instance.UnloadAsset(entry.Handle);
 
+		// if (removeInDirectory)
+		// {
+		// 	if (entry.Asset is Sound s)
+		// 		s.Dispose();
+		// 	else
+		// 		entry.Asset.Unload();
+
+		// 	BytesLoaded -= (long)entry.Length;
+		// }
+		// else
+		// {
+		// 	entry.Asset.Unload();
+		// 	BytesLoaded -= (long)entry.Length;
+		// }
 		if (removeInDirectory)
 		{
-			if (entry.Asset is Sound s)
+			if (entry is Sound s)
 				s.Dispose();
 			else
-				entry.Asset.Unload();
+				entry.Unload();
 
 			BytesLoaded -= (long)entry.Length;
 		}
 		else
 		{
-			entry.Asset.Unload();
+			entry.Unload();
 			BytesLoaded -= (long)entry.Length;
 		}
 
@@ -845,6 +870,7 @@ public sealed class AssetManager
 
 		foreach (var kvp in _assets)
 		{
+			// TimeSpan age = now - kvp.Value.LastAccessFrame;
 			TimeSpan age = now - kvp.Value.LastAccessFrame;
 
 			if (age >= evictAfter)

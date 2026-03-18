@@ -11,16 +11,19 @@ public sealed class MapIntGridInstance : IMapInstance
 	/// </summary>
 	public int Index { get; }
 
+	public T IndexAsEnum<T>() where T : Enum =>
+		(T)Enum.ToObject(typeof(T), Index);
+
 	/// <summary>
 	/// Determines whether the cell is considered solid based on its index.
 	/// </summary>
 	public bool IsSolid => Index > 0;
 
 	/// <inheritdoc />
-	public Vect2 Location {get;}
+	public Vect2 Location { get; }
 
 	/// <inheritdoc />
-	public Vect2 Position {get;}
+	public Vect2 Position { get; }
 
 	internal MapIntGridInstance(int index, Vect2 location, Vect2 position)
 	{

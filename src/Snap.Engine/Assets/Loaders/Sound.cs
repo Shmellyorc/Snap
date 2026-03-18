@@ -40,6 +40,15 @@ public sealed class Sound : IAsset, IEquatable<Sound>
 	/// </summary>
 	public TimeSpan Duration => IsValid ? Buffer.Duration.ToTimeSpan() : TimeSpan.Zero;
 
+
+
+	public DateTime LastAccessFrame { get; private set; }
+
+
+	public ulong Length { get; private set; }
+
+
+
 	/// <summary>
 	/// The sample rate (in Hz) of the sound buffer. Returns 0 if not loaded.
 	/// </summary>
@@ -55,6 +64,8 @@ public sealed class Sound : IAsset, IEquatable<Sound>
 	/// Indicates whether the sound should loop when played.
 	/// </summary>
 	public bool IsLooped { get; }
+
+
 
 	internal Sound(uint id, string filename, bool looped)
 	{
@@ -81,66 +92,7 @@ public sealed class Sound : IAsset, IEquatable<Sound>
 			Load();
 
 		return SoundInstancePool.GetInstance(this);
-
-		// Try to reuse a stopped (inactive) instance
-		// var reusable = _instances.FirstOrDefault(x => x.Status == SoundStatus.Stopped);
-		// if (reusable != null)
-		// {
-		// 	// reusable.Volume = 1f;  // Reset defaults
-		// 	// reusable.Pan = 0f;
-		// 	// reusable.Pitch = 1f;
-		// 	return reusable;
-		// }
-
-		// // If we're over the cap, force recycle the oldest stopped instance
-		// if (_instances.Count >= 32)
-		// {
-		// 	var fallback = _instances.FirstOrDefault(x => !x.IsPlaying && x.IsValid);
-		// 	if (fallback != null)
-		// 	{
-		// 		Logger.Instance.Log(LogLevel.Warning, $"[Audio] Reusing oldest stopped instance for sound {Id}");
-		// 		return fallback;
-		// 	}
-
-		// 	// Nothing to recycle — fail safely
-		// 	Logger.Instance.Log(LogLevel.Warning, $"Too many active instances for sound {Id}. Reuse limit reached.");
-		// 	return null;
-		// }
-
-		// Allocate new instance
-		// var instance = new SoundInstance(AssetManager.Id++, this, Buffer);
-		// _instances.Add(instance);
-		// return instance;
 	}
-
-	// public SoundInstance CreateInstance()
-	// {
-	// 	if (!IsValid)
-	// 		return null;
-
-	// 	// remove dead instance if any...
-	// 	int count = _instances.RemoveAll(x => !x.IsValid);
-	// 	if (count > 0)
-	// 		Logger.Instance.Log(LogLevel.Info, $"Unloaded asset {Id} ({_instances.Count} instances removed), type: '{GetType().Name}'.");
-
-	// 	if(_instances.Count >= 32)
-	// 	{
-	// 		var reusable = _instances.FirstOrDefault(x => x.Status == SoundStatus.Stopped);
-	// 		if(reusable != null)
-	// 		{
-	// 			return reusable;
-	// 		}
-
-	// 		Logger.Instance.Log(LogLevel.Warning, $"Too many instances, active for sound {Id}");
-	// 		return null;
-	// 	}
-
-	// 	var instance = new SoundInstance(AssetManager.Id++, this, Buffer);
-	// 	_instances.Add(instance);
-
-	// 	return instance;
-	// }
-
 
 	/// <summary>
 	/// Attempts to unload the sound buffer if no active sound instances are using it.
@@ -157,17 +109,32 @@ public sealed class Sound : IAsset, IEquatable<Sound>
 			return;
 		}
 
-		// if (_instances.Any(x => x.IsValid))
-		// {
-		// 	Logger.Instance.Log(LogLevel.Warning, $"Asset eviction canceled for ID {Id}, type: '{GetType().Name}', " +
-		// 		"because it is currently in use as a sound instance.");
-		// 	return;
-		// }
-
 		if (!IsValid)
 			return;
 
-		Dispose();
+		SoundInstancePool.OnSoundDispose(this);
+
+		Buffer?.Dispose();
+
+		Logger.Instance.Log(LogLevel.Info, $"Unloaded asset with ID {Id}, type: '{GetType().Name}'.");
+
+		IsValid = false;
+	}
+
+	/// <summary>
+	/// Disposes of all sound instances and releases the underlying buffer and system resources.
+	/// </summary>
+	public void Dispose()
+	{
+		SoundInstancePool.OnSoundDispose(this);
+
+		Buffer?.Dispose();
+
+		Logger.Instance.Log(LogLevel.Info, $"Unloaded asset with ID {Id}, type: '{GetType().Name}'.");
+
+		GC.SuppressFinalize(this);
+
+		IsValid = false;
 	}
 
 	/// <summary>
@@ -182,7 +149,10 @@ public sealed class Sound : IAsset, IEquatable<Sound>
 	public ulong Load()
 	{
 		if (IsValid)
+		{
+			LastAccessFrame = DateTime.UtcNow;
 			return 0u;
+		}
 
 		using var s = AssetManager.OpenStream(Tag);
 		using var ms = new MemoryStream();
@@ -191,32 +161,12 @@ public sealed class Sound : IAsset, IEquatable<Sound>
 		var soundBytes = ms.ToArray();
 
 		Buffer = new SFSoundBuffer(ms);
+
 		IsValid = true;
+		LastAccessFrame = DateTime.UtcNow;
+		Length = (ulong)Buffer.SampleRate * 2UL;
 
-		return (ulong)Buffer.SampleRate * 2UL;
-	}
-
-	/// <summary>
-	/// Disposes of all sound instances and releases the underlying buffer and system resources.
-	/// </summary>
-	public void Dispose()
-	{
-		// stop and wipe all instances...
-		// for (int i = _instances.Count - 1; i >= 0; i--)
-		// {
-		// 	var inst = _instances[i];
-
-		// 	inst.Stop();
-		// 	inst.Dispose();
-		// }
-		// _instances.Clear();
-
-		SoundInstancePool.OnSoundDispose(this);
-
-		Buffer?.Dispose();
-		IsValid = false;
-
-		Logger.Instance.Log(LogLevel.Info, $"Unloaded asset with ID {Id}, type: '{GetType().Name}'.");
+		return Length;
 	}
 
 	/// <summary>

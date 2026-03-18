@@ -4,7 +4,7 @@ namespace Snap.Engine.Assets.Loaders;
 /// Represents a generic asset managed by the engine.
 /// Defines a consistent interface for loading, unloading, identification, and disposal.
 /// </summary>
-public interface IAsset
+public interface IAsset : IDisposable
 {
 	/// <summary>
 	/// A unique identifier assigned to the asset at creation or load time.
@@ -28,6 +28,12 @@ public interface IAsset
 	/// </summary>
 	uint Handle { get; }
 
+
+	DateTime LastAccessFrame { get; }
+
+
+	ulong Length { get; }
+
 	/// <summary>
 	/// Loads the asset into memory and returns its byte size.
 	/// May trigger file I/O, deserialization, or graphics API registration.
@@ -42,8 +48,8 @@ public interface IAsset
 	/// </summary>
 	void Unload();
 
-	/// <summary>
-	/// Completely disposes of the asset, releasing all unmanaged resources.
-	/// </summary>
-	void Dispose();
+	// /// <summary>
+	// /// Completely disposes of the asset, releasing all unmanaged resources.
+	// /// </summary>
+	// void Dispose();
 }

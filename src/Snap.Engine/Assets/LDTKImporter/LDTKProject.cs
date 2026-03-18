@@ -34,10 +34,16 @@ public sealed class LDTKProject : IAsset
 	/// </summary>
 	public uint Handle { get; }
 
+	public DateTime LastAccessFrame { get; private set; }
+
+	public ulong Length { get; private set; }
+
 	internal LDTKProject(uint id, string filename)
 	{
 		Id = id;
 		Tag = filename;
+
+		LastAccessFrame = DateTime.UtcNow;
 	}
 
 	/// <summary>
@@ -53,69 +59,78 @@ public sealed class LDTKProject : IAsset
 	public ulong Load()
 	{
 		if (IsValid)
+		{
+			LastAccessFrame = DateTime.UtcNow;
 			return 0u;
-
-		byte[] bytes;
-		using (var s = AssetManager.OpenStream(Tag))
-		using (var ms = new MemoryStream())
-		{
-			s.CopyTo(ms);
-			bytes = ms.ToArray();
 		}
 
-		var doc = JsonDocument.Parse(bytes);
-		var root = doc.RootElement;
-
-		if (!root.TryGetProperty("defs", out var jDefs))
-			throw new InvalidOperationException("Unable to find LDtk Defs");
-		if (!jDefs.TryGetProperty("tilesets", out var jTilesets))
-			throw new InvalidOperationException("Unable to find LDtk Tilesets");
-		if (!root.TryGetProperty("defaultGridSize", out var jDefaultGridSize))
-			throw new InvalidOperationException("Unable to find LDtk 'DefaultGridSize'.");
-		if (!root.TryGetProperty("levels", out var jLevels))
-			throw new InvalidOperationException("Unable to find LDtk 'Levels'.");
-
-		var tilesets = MapTileset.Process(jTilesets);
-		var levels = MapLevel.Process(jLevels, jDefaultGridSize.GetInt32());
-
-		foreach (var tileset in tilesets)
+		if (Length == 0)
 		{
-			var tilesetId = tileset.Id;
-			var tilesetName = HashHelpers.Cache32(tileset.Name);
-
-			_tilesetCacheById[tilesetId] = tileset;
-			_tilesetCacheByName[tilesetName] = tileset;
-		}
-
-		foreach (var level in levels)
-		{
-			var lvlCacheId = HashHelpers.Cache32(level.Id);
-			var lvlCacheName = HashHelpers.Cache32(level.Name);
-
-			_levelCacheById[lvlCacheId] = level;
-			_levelCacheByName[lvlCacheName] = level;
-
-			foreach (var layer in level.Layers)
+			byte[] bytes;
+			using (var s = AssetManager.OpenStream(Tag))
+			using (var ms = new MemoryStream())
 			{
-				var layerCache = HashHelpers.Cache32(layer.Id);
+				s.CopyTo(ms);
+				bytes = ms.ToArray();
+			}
 
-				_layerCacheById[layerCache] = layer;
+			var doc = JsonDocument.Parse(bytes);
+			var root = doc.RootElement;
 
-				if (layer.Type != MapLayerType.Entities)
-					continue;
+			if (!root.TryGetProperty("defs", out var jDefs))
+				throw new InvalidOperationException("Unable to find LDtk Defs");
+			if (!jDefs.TryGetProperty("tilesets", out var jTilesets))
+				throw new InvalidOperationException("Unable to find LDtk Tilesets");
+			if (!root.TryGetProperty("defaultGridSize", out var jDefaultGridSize))
+				throw new InvalidOperationException("Unable to find LDtk 'DefaultGridSize'.");
+			if (!root.TryGetProperty("levels", out var jLevels))
+				throw new InvalidOperationException("Unable to find LDtk 'Levels'.");
 
-				foreach (var entity in layer.InstanceAs<MapEntityInstance>())
+			var tilesets = MapTileset.Process(jTilesets);
+			var levels = MapLevel.Process(jLevels, jDefaultGridSize.GetInt32());
+
+			foreach (var tileset in tilesets)
+			{
+				var tilesetId = tileset.Id;
+				var tilesetName = HashHelpers.Cache32(tileset.Name);
+
+				_tilesetCacheById[tilesetId] = tileset;
+				_tilesetCacheByName[tilesetName] = tileset;
+			}
+
+			foreach (var level in levels)
+			{
+				var lvlCacheId = HashHelpers.Cache32(level.Id);
+				var lvlCacheName = HashHelpers.Cache32(level.Name);
+
+				_levelCacheById[lvlCacheId] = level;
+				_levelCacheByName[lvlCacheName] = level;
+
+				foreach (var layer in level.Layers)
 				{
-					var entityCache = HashHelpers.Cache64(entity.Id);
+					var layerCache = HashHelpers.Cache32(layer.Id);
 
-					_entityCacheById[entityCache] = entity;
+					_layerCacheById[layerCache] = layer;
+
+					if (layer.Type != MapLayerType.Entities)
+						continue;
+
+					foreach (var entity in layer.InstanceAs<MapEntityInstance>())
+					{
+						var entityCache = HashHelpers.Cache64(entity.Id);
+
+						_entityCacheById[entityCache] = entity;
+					}
 				}
 			}
+
+			Length = (ulong)bytes.Length;
 		}
 
 		IsValid = true;
+		LastAccessFrame = DateTime.UtcNow;
 
-		return (ulong)bytes.Length;
+		return Length;
 	}
 
 	/// <summary>
@@ -123,12 +138,7 @@ public sealed class LDTKProject : IAsset
 	/// </summary>
 	public void Unload()
 	{
-		if (!IsValid)
-			return;
-
-		Dispose();
-
-		IsValid = false;
+		// Don't need to unload anything here. No heavy data here.
 	}
 
 	/// <summary>
@@ -136,6 +146,9 @@ public sealed class LDTKProject : IAsset
 	/// </summary>
 	public void Dispose()
 	{
+		if (!IsValid)
+			return;
+
 		_levelCacheById.Clear();
 		_levelCacheByName.Clear();
 		_entityCacheById.Clear();
@@ -144,6 +157,10 @@ public sealed class LDTKProject : IAsset
 		_tilesetCacheByName.Clear();
 
 		Logger.Instance.Log(LogLevel.Info, $"Unloaded asset with ID {Id}, type: '{GetType().Name}'.");
+
+		GC.SuppressFinalize(this);
+
+		IsValid = false;
 	}
 
 
@@ -160,6 +177,8 @@ public sealed class LDTKProject : IAsset
 		var hash = HashHelpers.Cache64(id);
 		if (!_entityCacheById.TryGetValue(hash, out var entity))
 			throw new Exception($"Unable to find a entity with the id '{id}'.");
+
+		LastAccessFrame = DateTime.UtcNow;
 
 		return entity;
 	}
@@ -181,6 +200,8 @@ public sealed class LDTKProject : IAsset
 		try
 		{
 			value = GetEntityById(id);
+			LastAccessFrame = DateTime.UtcNow;
+
 			return true;
 		}
 		catch
@@ -205,6 +226,8 @@ public sealed class LDTKProject : IAsset
 		if (!_layerCacheById.TryGetValue(HashHelpers.Cache32(id), out var layer))
 			throw new KeyNotFoundException($"Unable to find a layer with the id '{id}'.");
 
+		LastAccessFrame = DateTime.UtcNow;
+
 		return layer;
 	}
 
@@ -225,6 +248,8 @@ public sealed class LDTKProject : IAsset
 		try
 		{
 			value = GetLayerById(id);
+			LastAccessFrame = DateTime.UtcNow;
+
 			return true;
 		}
 		catch
@@ -256,6 +281,8 @@ public sealed class LDTKProject : IAsset
 		try
 		{
 			level = GetLevelById(id);
+			LastAccessFrame = DateTime.UtcNow;
+
 			return level != null;
 		}
 		catch
@@ -280,6 +307,8 @@ public sealed class LDTKProject : IAsset
 		var hash = HashHelpers.Cache32(id);
 		if (!_levelCacheById.TryGetValue(hash, out var level))
 			throw new KeyNotFoundException($"Unable to find a level with the id '{id}'.");
+
+		LastAccessFrame = DateTime.UtcNow;
 
 		return level;
 	}
@@ -306,6 +335,8 @@ public sealed class LDTKProject : IAsset
 		try
 		{
 			level = GetLevelByName(name);
+			LastAccessFrame = DateTime.UtcNow;
+
 			return level != null;
 		}
 		catch
@@ -334,6 +365,8 @@ public sealed class LDTKProject : IAsset
 		if (!_levelCacheByName.TryGetValue(hash, out var level))
 			throw new KeyNotFoundException($"Unable to find a level with the name '{name}'.");
 
+		LastAccessFrame = DateTime.UtcNow;
+
 		return level;
 	}
 	#endregion
@@ -352,6 +385,8 @@ public sealed class LDTKProject : IAsset
 	{
 		if (!_tilesetCacheById.TryGetValue(id, out var tilemap))
 			throw new Exception($"Unable to find a tileset with the id '{id}'.");
+
+		LastAccessFrame = DateTime.UtcNow;
 
 		return tilemap;
 	}
@@ -373,6 +408,8 @@ public sealed class LDTKProject : IAsset
 		try
 		{
 			value = GetTilesetId(id);
+			LastAccessFrame = DateTime.UtcNow;
+
 			return true;
 		}
 		catch
@@ -401,6 +438,8 @@ public sealed class LDTKProject : IAsset
 		if (!_tilesetCacheByName.TryGetValue(hash, out var tileset))
 			throw new Exception($"Unable to find a tileset with the name '{name}'.");
 
+		LastAccessFrame = DateTime.UtcNow;
+
 		return tileset;
 	}
 
@@ -421,6 +460,7 @@ public sealed class LDTKProject : IAsset
 		try
 		{
 			value = GetTilesetByName(name);
+			LastAccessFrame = DateTime.UtcNow;
 			return true;
 		}
 		catch

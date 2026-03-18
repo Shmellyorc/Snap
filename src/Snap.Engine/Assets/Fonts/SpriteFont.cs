@@ -30,19 +30,8 @@ public sealed class SpriteFont : Font
 		_spacing = spacing;
 		_lineSpacing = lineSpacing;
 		_charList = charList;
-	}
 
-	/// <summary>
-	/// Releases the resources held by this font, including glyph data and internal texture.
-	/// </summary>
-	public override void Dispose()
-	{
-		if (!IsValid)
-			return;
-
-		Glyphs.Clear();
-
-		base.Dispose();
+		LastAccessFrame = DateTime.UtcNow;
 	}
 
 	/// <summary>
@@ -57,6 +46,16 @@ public sealed class SpriteFont : Font
 	}
 
 	/// <summary>
+	/// Releases the resources held by this font, including glyph data and internal texture.
+	/// </summary>
+	public override void Dispose()
+	{
+		Glyphs.Clear();
+
+		base.Dispose();
+	}
+
+	/// <summary>
 	/// Loads the font texture and maps glyphs using image border detection.
 	/// </summary>
 	/// <returns>The estimated byte length of the loaded texture.</returns>
@@ -64,7 +63,10 @@ public sealed class SpriteFont : Font
 	public override ulong Load()
 	{
 		if (IsValid)
+		{
+			LastAccessFrame = DateTime.UtcNow;
 			return 0u;
+		}
 
 		byte[] bytes;
 		using (var stream = AssetManager.OpenStream(Tag))
@@ -85,8 +87,9 @@ public sealed class SpriteFont : Font
 
 		_finalLineSpacing = Glyphs.Max(x => x.Value.Cell.Height);
 
-		Length = Texture.Size.X * (ulong)Texture.Size.Y * 4UL;
 		IsValid = true;
+		LastAccessFrame = DateTime.UtcNow;
+		Length = Texture.Size.X * (ulong)Texture.Size.Y * 4UL;
 
 		return Length;
 	}
@@ -99,6 +102,8 @@ public sealed class SpriteFont : Font
 	{
 		if (!IsValid || Texture == null || Texture.IsInvalid)
 			Load();
+
+		LastAccessFrame = DateTime.UtcNow;
 
 		return Texture;
 	}
@@ -129,7 +134,7 @@ public sealed class SpriteFont : Font
 		bool[,] visited = new bool[w, h];
 		var componetRects = new List<SFRectI>();
 
-		bool isMagenta(uint x, uint y)
+		bool IsMagenta(uint x, uint y)
 		{
 			// var px = img.GetPixel(x, y);
 			var px = img.GetPixel(new(x, y));
@@ -140,7 +145,7 @@ public sealed class SpriteFont : Font
 		{
 			for (uint x = 0; x < w; x++)
 			{
-				if (visited[x, y] || isMagenta(x, y))
+				if (visited[x, y] || IsMagenta(x, y))
 					continue;
 
 				var queue = new Queue<(uint x, uint y)>();
@@ -166,7 +171,7 @@ public sealed class SpriteFont : Font
 							continue;
 						uint ux = (uint)nx, uy = (uint)ny;
 						if (visited[ux, uy]) continue;
-						if (isMagenta(ux, uy)) continue;
+						if (IsMagenta(ux, uy)) continue;
 
 						visited[ux, uy] = true;
 						queue.Enqueue((ux, uy));
