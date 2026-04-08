@@ -4,7 +4,7 @@ namespace Snap.Engine.Assets.LDTKImporter;
 /// Represents a single level within an LDTK-based map.
 /// Contains level metadata, spatial dimensions, background styling, associated layers, and custom settings.
 /// </summary>
-public sealed class MapLevel
+public sealed class LDtkLevel
 {
 	/// <summary>
 	/// The display name of the level, as assigned in the source project.
@@ -74,13 +74,13 @@ public sealed class MapLevel
 
 	/// <summary>
 	/// A dictionary of user-defined custom field values attached to the level.
-	/// Keys are hashed field identifiers mapped to typed <see cref="MapSetting"/> entries.
+	/// Keys are hashed field identifiers mapped to typed <see cref="LDtkSetting"/> entries.
 	/// </summary>
-	public IReadOnlyDictionary<uint, MapSetting> Settings { get; }
+	public IReadOnlyDictionary<uint, LDtkSetting> Settings { get; }
 
-	internal MapLevel(string name, string id, Vect2 coords, int worthDepth, Vect2 size,
+	internal LDtkLevel(string name, string id, Vect2 coords, int worthDepth, Vect2 size,
 		Vect2 gridSize, Color color, string bgPath, Vect2 bgPosition, Vect2 bgPivot,
-		MapNeighbour neighbours, List<MapLayer> layers, Dictionary<uint, MapSetting> settings)
+		MapNeighbour neighbours, List<MapLayer> layers, Dictionary<uint, LDtkSetting> settings)
 	{
 		Name = name;
 		Id = id;
@@ -97,9 +97,9 @@ public sealed class MapLevel
 		Settings = settings;
 	}
 
-	internal static List<MapLevel> Process(JsonElement e, int tileSize)
+	internal static List<LDtkLevel> Process(JsonElement e, int tileSize)
 	{
-		var result = new List<MapLevel>(e.GetArrayLength());
+		var result = new List<LDtkLevel>(e.GetArrayLength());
 
 		foreach (var t in e.EnumerateArray())
 		{
@@ -135,7 +135,7 @@ public sealed class MapLevel
 			var layers = MapLayer.Process(t.GetProperty("layerInstances"));
 
 			result.Add(
-				new MapLevel(name, id, new(worldX, worldY), worldDepth, size, gridSize,
+				new LDtkLevel(name, id, new(worldX, worldY), worldDepth, size, gridSize,
 				color, bgRelPath, pxBgPos, new(bgPivotX, bgPivotY), neighbours, layers, settings)
 			);
 		}

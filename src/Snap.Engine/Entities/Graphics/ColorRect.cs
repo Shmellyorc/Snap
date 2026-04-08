@@ -37,6 +37,7 @@ public sealed class ColorRect : Entity
 		base.OnEnter();
 	}
 
+	/// <summary>Releases the texture resources when the entity exits the scene.</summary>
 	protected override void OnExit()
 	{
 		_texture.Dispose();

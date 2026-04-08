@@ -5,6 +5,10 @@ namespace Snap.Engine.Helpers;
 /// </summary>
 public static class MathHelpers
 {
+	public const float Pi = MathF.PI;
+
+	public const float TwoPi = MathF.PI * 2f;
+
 	/// <summary>
 	/// Linearly interpolates between <paramref name="a"/> and <paramref name="b"/> by <paramref name="t"/>,
 	/// clamping <paramref name="t"/> to the [0,1] range.
@@ -109,4 +113,19 @@ public static class MathHelpers
 
 		return mod + min;
 	}
+
+	/// <summary>Determines whether two floats are approximately equal within the specified tolerance.</summary>
+	/// <param name="a">The first value.</param>
+	/// <param name="b">The second value.</param>
+	/// <param name="epsilon">The tolerance. Default is 1e-6f.</param>
+	/// <returns><see langword="true"/> if the values are equal within tolerance; otherwise, <see langword="false"/>.</returns>
+	public static bool AlmostEquals(float a, float b, float epsilon = 1e-6f)
+		=> MathF.Abs(a - b) <= epsilon;
+
+	/// <summary>Determines whether a float is approximately zero within the specified tolerance.</summary>
+	/// <param name="a">The value to check.</param>
+	/// <param name="epsilon">The tolerance. Default is 1e-6f.</param>
+	/// <returns><see langword="true"/> if the value is within tolerance of zero; otherwise, <see langword="false"/>.</returns>
+	public static bool AlmostZero(float a, float epsilon = 1e-6f)
+		=> MathF.Abs(a) <= epsilon;
 }

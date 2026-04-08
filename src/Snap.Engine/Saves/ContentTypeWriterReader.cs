@@ -40,7 +40,7 @@ public sealed class ContentTypeWriterReaderMetadata
 		{
 			Checksum = CompueteChecksumHex(data),
 			IsCompressed = isCompressed,
-			Timestamp = DateTime.UtcNow,
+			Timestamp = DateTime.Now,
 			Version = version
 		};
 	}
@@ -263,7 +263,7 @@ public abstract class ContentTypeWriterReader<T>
 	private byte[] CompressData(byte[] data)
 	{
 		using MemoryStream output = new();
-		using DeflateStream compressionStream = new(output, CompressionLevel.Optimal);
+		using DeflateStream compressionStream = new(output, System.IO.Compression.CompressionLevel.Optimal);
 
 		compressionStream.Write(data, 0, data.Length);
 		compressionStream.Flush();

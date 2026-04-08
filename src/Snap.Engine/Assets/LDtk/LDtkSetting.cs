@@ -4,127 +4,127 @@ namespace Snap.Engine.Assets.LDTKImporter;
 /// Represents a boolean field value parsed from map or entity metadata.
 /// Typically corresponds to a user-defined checkbox or toggle in the level editor.
 /// </summary>
-public sealed class MapBoolSettings(bool value) : MapSetting(value);
+public sealed class LDtkBoolSettings(bool value) : LDtkSetting(value);
 
 /// <summary>
 /// Represents an array of boolean field values parsed from map or entity metadata.
 /// Typically corresponds to a multi-checkbox field or list of flags in the level editor.
 /// </summary>
-public sealed class MapBoolArraySettings(List<bool> value) : MapSetting(value);
+public sealed class LDtkBoolArraySettings(List<bool> value) : LDtkSetting(value);
 
 /// <summary>
 /// Represents a color field value parsed from entity or level metadata.
 /// Typically corresponds to a color picker field in the level editor.
 /// </summary>
-public sealed class MapColorSettings(Color value) : MapSetting(value);
+public sealed class LDtkColorSettings(Color value) : LDtkSetting(value);
 
 /// <summary>
 /// Represents an array of color field values parsed from entity or level metadata.
 /// Typically corresponds to a multi-color selection field in the level editor.
 /// </summary>
-public sealed class MapColorArraySettings(List<Color> value) : MapSetting(value);
+public sealed class LDtkColorArraySettings(List<Color> value) : LDtkSetting(value);
 
 /// <summary>
 /// Represents a reference to another entity instance defined in map or level metadata.
 /// Commonly used to establish links between entities, such as targets, parents, or dependencies.
 /// </summary>
-public sealed class MapEntityRefSettings(MapEntityRef value) : MapSetting(value);
+public sealed class LDtkEntityRefSettings(LDtkEntityRef value) : LDtkSetting(value);
 
 /// <summary>
 /// Represents an array of entity references parsed from map or entity metadata.
 /// Used when an entity links to multiple other instances, forming one-to-many relationships.
 /// </summary>
-public sealed class MapEntityRefArraySettings(List<MapEntityRef> value) : MapSetting(value);
+public sealed class LDtkEntityRefArraySettings(List<LDtkEntityRef> value) : LDtkSetting(value);
 
 /// <summary>
 /// Represents an enumerated field value parsed from map or entity metadata.
 /// Typically corresponds to a single-option dropdown or radio field in the level editor.
 /// </summary>
-public sealed class MapEnumSettings(string value) : MapSetting(value);
+public sealed class LDtkEnumSettings(string value) : LDtkSetting(value);
 
 /// <summary>
 /// Represents an array of enumerated field values parsed from map or entity metadata.
 /// Typically used for multi-select enum fields allowing multiple tags or categories.
 /// </summary>
-public sealed class MapEnumArraySettings(List<string> value) : MapSetting(value);
+public sealed class LDtkEnumArraySettings(List<string> value) : LDtkSetting(value);
 
 /// <summary>
 /// Represents a file path field value parsed from map or entity metadata.
 /// Typically used to reference external resources such as images, audio, or data files.
 /// </summary>
-public sealed class MapFilePathSettings(string value) : MapSetting(value);
+public sealed class LDtkFilePathSettings(string value) : LDtkSetting(value);
 
 /// <summary>
 /// Represents an array of file path field values parsed from map or entity metadata.
 /// Used when multiple external file references are provided in a single field.
 /// </summary>
-public sealed class MapFilePathArraySettings(List<string> value) : MapSetting(value);
+public sealed class LDtkFilePathArraySettings(List<string> value) : LDtkSetting(value);
 
 /// <summary>
 /// Represents a floating-point field value parsed from map or entity metadata.
 /// Typically used for configurable numeric properties such as speed, duration, or scale.
 /// </summary>
-public sealed class MapFloatSettings(float value) : MapSetting(value);
+public sealed class LDtkFloatSettings(float value) : LDtkSetting(value);
 
 /// <summary>
 /// Represents an array of floating-point field values parsed from map or entity metadata.
 /// Useful for multi-value numeric inputs or lists of adjustable values.
 /// </summary>
-public sealed class MapFloatArraySettings(List<float> value) : MapSetting(value);
+public sealed class LDtkFloatArraySettings(List<float> value) : LDtkSetting(value);
 
 /// <summary>
 /// Represents an integer field value parsed from map or entity metadata.
 /// Commonly used for enumerations, counters, or discrete value options.
 /// </summary>
-public sealed class MapIntSettings(int value) : MapSetting(value);
+public sealed class LDtkIntSettings(int value) : LDtkSetting(value);
 
 /// <summary>
 /// Represents an array of integer field values parsed from map or entity metadata.
 /// Useful for defining lists of levels, category IDs, or other multi-int values.
 /// </summary>
-public sealed class MapIntArraySettings(List<int> value) : MapSetting(value);
+public sealed class LDtkIntArraySettings(List<int> value) : LDtkSetting(value);
 
 /// <summary>
 /// Represents a 2D point field value parsed from map or entity metadata.
 /// Typically used for coordinates, positions, spawn points, or offsets.
 /// </summary>
-public sealed class MapPointSettings(Vect2 value) : MapSetting(value);
+public sealed class LDtkPointSettings(Vect2 value) : LDtkSetting(value);
 
 /// <summary>
 /// Represents an array of 2D point field values parsed from map or entity metadata.
 /// Commonly used for pathfinding nodes, patrol routes, or grouped locations.
 /// </summary>
-public sealed class MapPointArraySettings(List<Vect2> value) : MapSetting(value);
+public sealed class LDtkPointArraySettings(List<Vect2> value) : LDtkSetting(value);
 
 /// <summary>
 /// Represents a string field value parsed from map or entity metadata.
 /// Commonly used for names, identifiers, instructions, or dialogue content.
 /// </summary>
-public sealed class MapStringSettings(string value) : MapSetting(value);
+public sealed class LDtkStringSettings(string value) : LDtkSetting(value);
 
 /// <summary>
 /// Represents an array of string field values parsed from map or entity metadata.
 /// Useful for multi-line text, tag groups, or custom string lists.
 /// </summary>
-public sealed class MapStringArraySettings(List<string> value) : MapSetting(value);
+public sealed class LDtkStringArraySettings(List<string> value) : LDtkSetting(value);
 
 /// <summary>
 /// Represents a tile reference parsed from map or entity metadata.
 /// Typically used to embed single tile graphics or visual tokens within the data layer.
 /// </summary>
-public sealed class MapTileSettings(MapTile value) : MapSetting(value);
+public sealed class LDtkTileSettings(LDtkTile value) : LDtkSetting(value);
 
 /// <summary>
 /// Represents an array of tile references parsed from map or entity metadata.
 /// Useful for attaching multiple tile visuals to a single field, such as randomized sets or composite graphics.
 /// </summary>
-public sealed class MapTileArraySettings(List<MapTile> value) : MapSetting(value);
+public sealed class LDtkTileArraySettings(List<LDtkTile> value) : LDtkSetting(value);
 
 /// <summary>
 /// Represents a generic setting or custom field value attached to a level or entity.
 /// Stores untyped data internally and provides typed accessors for retrieving values.
 /// </summary>
-public class MapSetting(object value)
+public class LDtkSetting(object value)
 {
 	/// <summary>
 	/// Internal object backing the actual setting value.
@@ -153,7 +153,7 @@ public class MapSetting(object value)
 	/// <c>true</c> if an entry with the hashed name exists in <paramref name="settings"/>; 
 	/// otherwise <c>false</c>.
 	/// </returns>
-	public static bool Contains(IReadOnlyDictionary<uint, MapSetting> settings, string name)
+	public static bool Contains(IReadOnlyDictionary<uint, LDtkSetting> settings, string name)
 		=> settings.ContainsKey(HashHelpers.Cache32(name));
 
 	/// <summary>
@@ -169,7 +169,7 @@ public class MapSetting(object value)
 	///   <item><description>The setting exists but is not a boolean type.</description></item>
 	/// </list>
 	/// </exception>
-	public static bool GetBoolSetting(IReadOnlyDictionary<uint, MapSetting> settings, string name)
+	public static bool GetBoolSetting(IReadOnlyDictionary<uint, LDtkSetting> settings, string name)
 	{
 		if (name.IsEmpty())
 			throw new ArgumentNullException(nameof(name));
@@ -199,7 +199,7 @@ public class MapSetting(object value)
 	/// <c>true</c> if the setting was found and returned successfully;
 	/// <c>false</c> if the lookup failed or the setting does not exist.
 	/// </returns>
-	public static bool TryGetBoolSetting(IReadOnlyDictionary<uint, MapSetting> settings, string name, out bool setting)
+	public static bool TryGetBoolSetting(IReadOnlyDictionary<uint, LDtkSetting> settings, string name, out bool setting)
 	{
 		try
 		{
@@ -222,7 +222,7 @@ public class MapSetting(object value)
 	/// <exception cref="Exception">
 	/// Thrown if the setting is not found or is not an integer.
 	/// </exception>
-	public static int GetIntSetting(IReadOnlyDictionary<uint, MapSetting> settings, string name)
+	public static int GetIntSetting(IReadOnlyDictionary<uint, LDtkSetting> settings, string name)
 	{
 		if (name.IsEmpty())
 			throw new ArgumentNullException(nameof(name));
@@ -252,7 +252,7 @@ public class MapSetting(object value)
 	/// <c>true</c> if the setting was found and returned successfully;
 	/// <c>false</c> if the lookup failed or the setting does not exist.
 	/// </returns>
-	public static bool TryGetIntSetting(IReadOnlyDictionary<uint, MapSetting> settings, string name, out int setting)
+	public static bool TryGetIntSetting(IReadOnlyDictionary<uint, LDtkSetting> settings, string name, out int setting)
 	{
 		try
 		{
@@ -275,7 +275,7 @@ public class MapSetting(object value)
 	/// <exception cref="Exception">
 	/// Thrown if the setting is not found or cannot be cast to a float.
 	/// </exception>
-	public static float GetFloatSetting(IReadOnlyDictionary<uint, MapSetting> settings, string name)
+	public static float GetFloatSetting(IReadOnlyDictionary<uint, LDtkSetting> settings, string name)
 	{
 		if (name.IsEmpty())
 			throw new ArgumentNullException(nameof(name));
@@ -305,7 +305,7 @@ public class MapSetting(object value)
 	/// <c>true</c> if the setting was found and returned successfully;
 	/// <c>false</c> if the lookup failed or the setting does not exist.
 	/// </returns>
-	public static bool TryGetFloatSetting(IReadOnlyDictionary<uint, MapSetting> settings, string name, out float setting)
+	public static bool TryGetFloatSetting(IReadOnlyDictionary<uint, LDtkSetting> settings, string name, out float setting)
 	{
 		try
 		{
@@ -329,7 +329,7 @@ public class MapSetting(object value)
 	/// <exception cref="Exception">
 	/// Thrown if the setting is not found or is not a <see cref="Vect2"/>.
 	/// </exception>
-	public static Vect2 GetPointSetting(IReadOnlyDictionary<uint, MapSetting> settings, string name)
+	public static Vect2 GetPointSetting(IReadOnlyDictionary<uint, LDtkSetting> settings, string name)
 	{
 		if (name.IsEmpty())
 			throw new ArgumentNullException(nameof(name));
@@ -359,7 +359,7 @@ public class MapSetting(object value)
 	/// <c>true</c> if the setting was found and returned successfully;
 	/// <c>false</c> if the lookup failed or the setting does not exist.
 	/// </returns>
-	public static bool TryGetPointSetting(IReadOnlyDictionary<uint, MapSetting> settings, string name, out Vect2 setting)
+	public static bool TryGetPointSetting(IReadOnlyDictionary<uint, LDtkSetting> settings, string name, out Vect2 setting)
 	{
 		try
 		{
@@ -383,7 +383,7 @@ public class MapSetting(object value)
 	/// <exception cref="Exception">
 	/// Thrown if the setting is missing or its value is not a color.
 	/// </exception>
-	public static Color GetColorSetting(IReadOnlyDictionary<uint, MapSetting> settings, string name)
+	public static Color GetColorSetting(IReadOnlyDictionary<uint, LDtkSetting> settings, string name)
 	{
 		if (name.IsEmpty())
 			throw new ArgumentNullException(nameof(name));
@@ -413,7 +413,7 @@ public class MapSetting(object value)
 	/// <c>true</c> if the setting was found and returned successfully;
 	/// <c>false</c> if the lookup failed or the setting does not exist.
 	/// </returns>
-	public static bool TryGetColorSetting(IReadOnlyDictionary<uint, MapSetting> settings, string name, out Color setting)
+	public static bool TryGetColorSetting(IReadOnlyDictionary<uint, LDtkSetting> settings, string name, out Color setting)
 	{
 		try
 		{
@@ -437,7 +437,7 @@ public class MapSetting(object value)
 	/// <exception cref="Exception">
 	/// Thrown if the setting cannot be found or is not a string.
 	/// </exception>
-	public static string GetStringSetting(IReadOnlyDictionary<uint, MapSetting> settings, string name)
+	public static string GetStringSetting(IReadOnlyDictionary<uint, LDtkSetting> settings, string name)
 	{
 		if (name.IsEmpty())
 			throw new ArgumentNullException(nameof(name));
@@ -467,7 +467,7 @@ public class MapSetting(object value)
 	/// <c>true</c> if the setting was found and returned successfully;
 	/// <c>false</c> if the lookup failed or the setting does not exist.
 	/// </returns>
-	public static bool TryGetStringSetting(IReadOnlyDictionary<uint, MapSetting> settings, string name, out string setting)
+	public static bool TryGetStringSetting(IReadOnlyDictionary<uint, LDtkSetting> settings, string name, out string setting)
 	{
 		try
 		{
@@ -490,7 +490,7 @@ public class MapSetting(object value)
 	/// <exception cref="Exception">
 	/// Thrown if the setting doesn't exist or is not a string.
 	/// </exception>
-	public static string GetFilePathSetting(IReadOnlyDictionary<uint, MapSetting> settings, string name)
+	public static string GetFilePathSetting(IReadOnlyDictionary<uint, LDtkSetting> settings, string name)
 	{
 		if (name.IsEmpty())
 			throw new ArgumentNullException(nameof(name));
@@ -520,7 +520,7 @@ public class MapSetting(object value)
 	/// <c>true</c> if the setting was found and returned successfully;
 	/// <c>false</c> if the lookup failed or the setting does not exist.
 	/// </returns>
-	public static bool TryGetFilePathSetting(IReadOnlyDictionary<uint, MapSetting> settings, string name, out string setting)
+	public static bool TryGetFilePathSetting(IReadOnlyDictionary<uint, LDtkSetting> settings, string name, out string setting)
 	{
 		try
 		{
@@ -540,20 +540,20 @@ public class MapSetting(object value)
 	/// </summary>
 	/// <param name="settings">The dictionary of metadata settings parsed from source.</param>
 	/// <param name="name">The key name of the tile field.</param>
-	/// <returns>The associated <see cref="MapTile"/> instance.</returns>
+	/// <returns>The associated <see cref="LDtkTile"/> instance.</returns>
 	/// <exception cref="Exception">
 	/// Thrown if the tile value is missing or incompatible.
 	/// </exception>
-	public static MapTile GetTileSetting(IReadOnlyDictionary<uint, MapSetting> settings, string name)
+	public static LDtkTile GetTileSetting(IReadOnlyDictionary<uint, LDtkSetting> settings, string name)
 	{
 		if (name.IsEmpty())
 			throw new ArgumentNullException(nameof(name));
 		if (!settings.TryGetValue(HashHelpers.Cache32(name), out var result))
 			throw new Exception($"Unable to find setting with the name '{name}'.");
-		if (result.Value is not MapTile)
-			throw new Exception($"This setting '{name}' isn't '{result.Value.GetType()}', it is  '{typeof(MapTile)}'.");
+		if (result.Value is not LDtkTile)
+			throw new Exception($"This setting '{name}' isn't '{result.Value.GetType()}', it is  '{typeof(LDtkTile)}'.");
 
-		return result.ValueAs<MapTile>();
+		return result.ValueAs<LDtkTile>();
 	}
 
 	/// <summary>
@@ -567,14 +567,14 @@ public class MapSetting(object value)
 	/// before performing the lookup.
 	/// </param>
 	/// <param name="setting">
-	/// When this method returns, contains the resolved <see cref="MapTile"/> value 
+	/// When this method returns, contains the resolved <see cref="LDtkTile"/> value 
 	/// if the lookup succeeded; otherwise the default tile value.
 	/// </param>
 	/// <returns>
 	/// <c>true</c> if the setting was found and returned successfully;
 	/// <c>false</c> if the lookup failed or the setting does not exist.
 	/// </returns>
-	public static bool TryGetTileSetting(IReadOnlyDictionary<uint, MapSetting> settings, string name, out MapTile setting)
+	public static bool TryGetTileSetting(IReadOnlyDictionary<uint, LDtkSetting> settings, string name, out LDtkTile setting)
 	{
 		try
 		{
@@ -594,20 +594,20 @@ public class MapSetting(object value)
 	/// </summary>
 	/// <param name="settings">Settings dictionary keyed by hashed field names.</param>
 	/// <param name="name">The name of the reference field.</param>
-	/// <returns>The corresponding <see cref="MapEntityRef"/> value.</returns>
+	/// <returns>The corresponding <see cref="LDtkEntityRef"/> value.</returns>
 	/// <exception cref="Exception">
 	/// Thrown if no entity reference is found or the type is incorrect.
 	/// </exception>
-	public static MapEntityRef GetEntityRefSetting(IReadOnlyDictionary<uint, MapSetting> settings, string name)
+	public static LDtkEntityRef GetEntityRefSetting(IReadOnlyDictionary<uint, LDtkSetting> settings, string name)
 	{
 		if (name.IsEmpty())
 			throw new ArgumentNullException(nameof(name));
 		if (!settings.TryGetValue(HashHelpers.Cache32(name), out var result))
 			throw new Exception($"Unable to find setting with the name '{name}'.");
-		if (result.Value is not MapEntityRef)
-			throw new Exception($"This setting '{name}' isn't '{result.Value.GetType()}', it is  '{typeof(MapEntityRef)}'.");
+		if (result.Value is not LDtkEntityRef)
+			throw new Exception($"This setting '{name}' isn't '{result.Value.GetType()}', it is  '{typeof(LDtkEntityRef)}'.");
 
-		return result.ValueAs<MapEntityRef>();
+		return result.ValueAs<LDtkEntityRef>();
 	}
 
 	/// <summary>
@@ -621,14 +621,14 @@ public class MapSetting(object value)
 	/// before performing the lookup.
 	/// </param>
 	/// <param name="setting">
-	/// When this method returns, contains the resolved <see cref="MapEntityRef"/> value 
+	/// When this method returns, contains the resolved <see cref="LDtkEntityRef"/> value 
 	/// if the lookup succeeded; otherwise the default entity reference.
 	/// </param>
 	/// <returns>
 	/// <c>true</c> if the setting was found and returned successfully;
 	/// <c>false</c> if the lookup failed or the setting does not exist.
 	/// </returns>
-	public static bool TryGetEntityRefSetting(IReadOnlyDictionary<uint, MapSetting> settings, string name, out MapEntityRef setting)
+	public static bool TryGetEntityRefSetting(IReadOnlyDictionary<uint, LDtkSetting> settings, string name, out LDtkEntityRef setting)
 	{
 		try
 		{
@@ -653,7 +653,7 @@ public class MapSetting(object value)
 	/// <exception cref="Exception">
 	/// Thrown if the setting doesn't exist or is not a string compatible with the target enum.
 	/// </exception>
-	public static TEnum GetEnumSetting<TEnum>(IReadOnlyDictionary<uint, MapSetting> settings, string name) where TEnum : Enum
+	public static TEnum GetEnumSetting<TEnum>(IReadOnlyDictionary<uint, LDtkSetting> settings, string name) where TEnum : Enum
 	{
 		if (name.IsEmpty())
 			throw new ArgumentNullException(nameof(name));
@@ -686,7 +686,7 @@ public class MapSetting(object value)
 	/// <c>true</c> if the setting was found and returned successfully;
 	/// <c>false</c> if the lookup failed or the setting does not exist.
 	/// </returns>
-	public static bool TryGetEnumSetting<TEnum>(IReadOnlyDictionary<uint, MapSetting> settings, string name, out TEnum setting)
+	public static bool TryGetEnumSetting<TEnum>(IReadOnlyDictionary<uint, LDtkSetting> settings, string name, out TEnum setting)
 		where TEnum : Enum
 	{
 		try
@@ -714,7 +714,7 @@ public class MapSetting(object value)
 	///   <item><description>The value is not a <see cref="List{T}"/> of <see cref="bool"/>.</description></item>
 	/// </list>
 	/// </exception>
-	public static IReadOnlyList<bool> GetBoolArraySetting(IReadOnlyDictionary<uint, MapSetting> settings, string name)
+	public static IReadOnlyList<bool> GetBoolArraySetting(IReadOnlyDictionary<uint, LDtkSetting> settings, string name)
 	{
 		if (name.IsEmpty())
 			throw new ArgumentNullException(nameof(name));
@@ -744,7 +744,7 @@ public class MapSetting(object value)
 	/// <c>true</c> if the setting was found and returned successfully;
 	/// <c>false</c> if the lookup failed or the setting does not exist.
 	/// </returns>
-	public static bool TryGetBoolArraySetting(IReadOnlyDictionary<uint, MapSetting> settings, string name, out IReadOnlyList<bool> setting)
+	public static bool TryGetBoolArraySetting(IReadOnlyDictionary<uint, LDtkSetting> settings, string name, out IReadOnlyList<bool> setting)
 	{
 		try
 		{
@@ -767,7 +767,7 @@ public class MapSetting(object value)
 	/// <exception cref="Exception">
 	/// Thrown if the field is missing or not a <see cref="List{Int32}"/>.
 	/// </exception>
-	public static IReadOnlyList<int> GetIntArraySetting(IReadOnlyDictionary<uint, MapSetting> settings, string name)
+	public static IReadOnlyList<int> GetIntArraySetting(IReadOnlyDictionary<uint, LDtkSetting> settings, string name)
 	{
 		if (name.IsEmpty())
 			throw new ArgumentNullException(nameof(name));
@@ -797,7 +797,7 @@ public class MapSetting(object value)
 	/// <c>true</c> if the setting was found and returned successfully;
 	/// <c>false</c> if the lookup failed or the setting does not exist.
 	/// </returns>
-	public static bool TryGetIntArraySetting(IReadOnlyDictionary<uint, MapSetting> settings, string name, out IReadOnlyList<int> setting)
+	public static bool TryGetIntArraySetting(IReadOnlyDictionary<uint, LDtkSetting> settings, string name, out IReadOnlyList<int> setting)
 	{
 		try
 		{
@@ -821,7 +821,7 @@ public class MapSetting(object value)
 	/// <exception cref="Exception">
 	/// Thrown if the setting is not found or has an incompatible type.
 	/// </exception>
-	public static IReadOnlyList<float> GetFloatArraySetting(IReadOnlyDictionary<uint, MapSetting> settings, string name)
+	public static IReadOnlyList<float> GetFloatArraySetting(IReadOnlyDictionary<uint, LDtkSetting> settings, string name)
 	{
 		if (name.IsEmpty())
 			throw new ArgumentNullException(nameof(name));
@@ -851,7 +851,7 @@ public class MapSetting(object value)
 	/// <c>true</c> if the setting was found and returned successfully;
 	/// <c>false</c> if the lookup failed or the setting does not exist.
 	/// </returns>
-	public static bool TryGetFloatArraySetting(IReadOnlyDictionary<uint, MapSetting> settings, string name, out IReadOnlyList<float> setting)
+	public static bool TryGetFloatArraySetting(IReadOnlyDictionary<uint, LDtkSetting> settings, string name, out IReadOnlyList<float> setting)
 	{
 		try
 		{
@@ -875,7 +875,7 @@ public class MapSetting(object value)
 	/// <exception cref="Exception">
 	/// Thrown if the field is not present or is not a list of <see cref="Vect2"/>.
 	/// </exception>
-	public static IReadOnlyList<Vect2> GetPointArraySetting(IReadOnlyDictionary<uint, MapSetting> settings, string name)
+	public static IReadOnlyList<Vect2> GetPointArraySetting(IReadOnlyDictionary<uint, LDtkSetting> settings, string name)
 	{
 		if (name.IsEmpty())
 			throw new ArgumentNullException(nameof(name));
@@ -905,7 +905,7 @@ public class MapSetting(object value)
 	/// <c>true</c> if the setting was found and returned successfully;
 	/// <c>false</c> if the lookup failed or the setting does not exist.
 	/// </returns>
-	public static bool TryGetPointArraySetting(IReadOnlyDictionary<uint, MapSetting> settings, string name, out IReadOnlyList<Vect2> setting)
+	public static bool TryGetPointArraySetting(IReadOnlyDictionary<uint, LDtkSetting> settings, string name, out IReadOnlyList<Vect2> setting)
 	{
 		try
 		{
@@ -929,7 +929,7 @@ public class MapSetting(object value)
 	/// <exception cref="Exception">
 	/// Thrown if the setting is not found or contains invalid types.
 	/// </exception>
-	public static IReadOnlyList<Color> GetColorArraySetting(IReadOnlyDictionary<uint, MapSetting> settings, string name)
+	public static IReadOnlyList<Color> GetColorArraySetting(IReadOnlyDictionary<uint, LDtkSetting> settings, string name)
 	{
 		if (name.IsEmpty())
 			throw new ArgumentNullException(nameof(name));
@@ -959,7 +959,7 @@ public class MapSetting(object value)
 	/// <c>true</c> if the setting was found and returned successfully;
 	/// <c>false</c> if the lookup failed or the setting does not exist.
 	/// </returns>
-	public static bool TryGetColorArraySetting(IReadOnlyDictionary<uint, MapSetting> settings, string name, out IReadOnlyList<Color> setting)
+	public static bool TryGetColorArraySetting(IReadOnlyDictionary<uint, LDtkSetting> settings, string name, out IReadOnlyList<Color> setting)
 	{
 		try
 		{
@@ -983,7 +983,7 @@ public class MapSetting(object value)
 	/// <exception cref="Exception">
 	/// Thrown if the setting is absent or not a <see cref="List{String}"/>.
 	/// </exception>
-	public static IReadOnlyList<string> GetStringArraySetting(IReadOnlyDictionary<uint, MapSetting> settings, string name)
+	public static IReadOnlyList<string> GetStringArraySetting(IReadOnlyDictionary<uint, LDtkSetting> settings, string name)
 	{
 		if (name.IsEmpty())
 			throw new ArgumentNullException(nameof(name));
@@ -1013,7 +1013,7 @@ public class MapSetting(object value)
 	/// <c>true</c> if the setting was found and returned successfully;
 	/// <c>false</c> if the lookup failed or the setting does not exist.
 	/// </returns>
-	public static bool TryGetStringArraySetting(IReadOnlyDictionary<uint, MapSetting> settings, string name, out IReadOnlyList<string> setting)
+	public static bool TryGetStringArraySetting(IReadOnlyDictionary<uint, LDtkSetting> settings, string name, out IReadOnlyList<string> setting)
 	{
 		try
 		{
@@ -1037,7 +1037,7 @@ public class MapSetting(object value)
 	/// <exception cref="Exception">
 	/// Thrown when the field is missing or not a list of <see cref="string"/>.
 	/// </exception>
-	public static IReadOnlyList<string> GetFilePathArraySetting(IReadOnlyDictionary<uint, MapSetting> settings, string name)
+	public static IReadOnlyList<string> GetFilePathArraySetting(IReadOnlyDictionary<uint, LDtkSetting> settings, string name)
 	{
 		if (name.IsEmpty())
 			throw new ArgumentNullException(nameof(name));
@@ -1067,7 +1067,7 @@ public class MapSetting(object value)
 	/// <c>true</c> if the setting was found and returned successfully;
 	/// <c>false</c> if the lookup failed or the setting does not exist.
 	/// </returns>
-	public static bool TryGetFilePathArraySetting(IReadOnlyDictionary<uint, MapSetting> settings, string name, out IReadOnlyList<string> setting)
+	public static bool TryGetFilePathArraySetting(IReadOnlyDictionary<uint, LDtkSetting> settings, string name, out IReadOnlyList<string> setting)
 	{
 		try
 		{
@@ -1086,20 +1086,20 @@ public class MapSetting(object value)
 	/// </summary>
 	/// <param name="settings">The collection of parsed setting data.</param>
 	/// <param name="name">The name of the tile array field.</param>
-	/// <returns>A read-only list of <see cref="MapTile"/> values.</returns>
+	/// <returns>A read-only list of <see cref="LDtkTile"/> values.</returns>
 	/// <exception cref="Exception">
-	/// Thrown if the field is not found or is not a list of <see cref="MapTile"/>.
+	/// Thrown if the field is not found or is not a list of <see cref="LDtkTile"/>.
 	/// </exception>
-	public static IReadOnlyList<MapTile> GetTileArraySetting(IReadOnlyDictionary<uint, MapSetting> settings, string name)
+	public static IReadOnlyList<LDtkTile> GetTileArraySetting(IReadOnlyDictionary<uint, LDtkSetting> settings, string name)
 	{
 		if (name.IsEmpty())
 			throw new ArgumentNullException(nameof(name));
 		if (!settings.TryGetValue(HashHelpers.Cache32(name), out var result))
 			throw new Exception($"Unable to find setting with the name '{name}'.");
-		if (result.Value is not List<MapTile>)
-			throw new Exception($"This setting '{name}' isn't '{result.Value.GetType()}', it is  '{typeof(List<MapTile>)}'.");
+		if (result.Value is not List<LDtkTile>)
+			throw new Exception($"This setting '{name}' isn't '{result.Value.GetType()}', it is  '{typeof(List<LDtkTile>)}'.");
 
-		return result.ValueAs<List<MapTile>>();
+		return result.ValueAs<List<LDtkTile>>();
 	}
 
 	/// <summary>
@@ -1114,13 +1114,13 @@ public class MapSetting(object value)
 	/// </param>
 	/// <param name="setting">
 	/// When this method returns, contains the resolved read‑only list of 
-	/// <see cref="MapTile"/> values if the lookup succeeded; otherwise <c>null</c>.
+	/// <see cref="LDtkTile"/> values if the lookup succeeded; otherwise <c>null</c>.
 	/// </param>
 	/// <returns>
 	/// <c>true</c> if the setting was found and returned successfully;
 	/// <c>false</c> if the lookup failed or the setting does not exist.
 	/// </returns>
-	public static bool TryGetTileArraySetting(IReadOnlyDictionary<uint, MapSetting> settings, string name, out IReadOnlyList<MapTile> setting)
+	public static bool TryGetTileArraySetting(IReadOnlyDictionary<uint, LDtkSetting> settings, string name, out IReadOnlyList<LDtkTile> setting)
 	{
 		try
 		{
@@ -1139,20 +1139,20 @@ public class MapSetting(object value)
 	/// </summary>
 	/// <param name="settings">The dictionary of field metadata.</param>
 	/// <param name="name">The name of the field containing entity links.</param>
-	/// <returns>A read-only list of <see cref="MapEntityRef"/> values.</returns>
+	/// <returns>A read-only list of <see cref="LDtkEntityRef"/> values.</returns>
 	/// <exception cref="Exception">
-	/// Thrown if the field is not valid or not a list of <see cref="MapEntityRef"/>.
+	/// Thrown if the field is not valid or not a list of <see cref="LDtkEntityRef"/>.
 	/// </exception>
-	public static IReadOnlyList<MapEntityRef> GetEntityRefArraySetting(IReadOnlyDictionary<uint, MapSetting> settings, string name)
+	public static IReadOnlyList<LDtkEntityRef> GetEntityRefArraySetting(IReadOnlyDictionary<uint, LDtkSetting> settings, string name)
 	{
 		if (name.IsEmpty())
 			throw new ArgumentNullException(nameof(name));
 		if (!settings.TryGetValue(HashHelpers.Cache32(name), out var result))
 			throw new Exception($"Unable to find setting with the name '{name}'.");
-		if (result.Value is not List<MapEntityRef>)
-			throw new Exception($"This setting '{name}' isn't '{result.Value.GetType()}', it is  '{typeof(List<MapEntityRef>)}'.");
+		if (result.Value is not List<LDtkEntityRef>)
+			throw new Exception($"This setting '{name}' isn't '{result.Value.GetType()}', it is  '{typeof(List<LDtkEntityRef>)}'.");
 
-		return result.ValueAs<List<MapEntityRef>>();
+		return result.ValueAs<List<LDtkEntityRef>>();
 	}
 
 	/// <summary>
@@ -1167,13 +1167,13 @@ public class MapSetting(object value)
 	/// </param>
 	/// <param name="setting">
 	/// When this method returns, contains the resolved read‑only list of 
-	/// <see cref="MapEntityRef"/> values if the lookup succeeded; otherwise <c>null</c>.
+	/// <see cref="LDtkEntityRef"/> values if the lookup succeeded; otherwise <c>null</c>.
 	/// </param>
 	/// <returns>
 	/// <c>true</c> if the setting was found and returned successfully;
 	/// <c>false</c> if the lookup failed or the setting does not exist.
 	/// </returns>
-	public static bool TryGetEntityRefArraySetting(IReadOnlyDictionary<uint, MapSetting> settings, string name, out IReadOnlyList<MapEntityRef> setting)
+	public static bool TryGetEntityRefArraySetting(IReadOnlyDictionary<uint, LDtkSetting> settings, string name, out IReadOnlyList<LDtkEntityRef> setting)
 	{
 		try
 		{
@@ -1197,7 +1197,7 @@ public class MapSetting(object value)
 	/// <exception cref="Exception">
 	/// Thrown if the field is missing or does not contain a list of strings.
 	/// </exception>
-	public static IReadOnlyList<TEnum> GetEnumArraySetting<TEnum>(IReadOnlyDictionary<uint, MapSetting> settings, string name) where TEnum : Enum
+	public static IReadOnlyList<TEnum> GetEnumArraySetting<TEnum>(IReadOnlyDictionary<uint, LDtkSetting> settings, string name) where TEnum : Enum
 	{
 		if (name.IsEmpty())
 			throw new ArgumentNullException(nameof(name));
@@ -1242,7 +1242,7 @@ public class MapSetting(object value)
 	/// <c>true</c> if the setting was found and returned successfully;
 	/// <c>false</c> if the lookup failed or the setting does not exist.
 	/// </returns>
-	public static bool TryGetEnumArraySetting<TEnum>(IReadOnlyDictionary<uint, MapSetting> settings, string name, out IReadOnlyList<TEnum> setting
+	public static bool TryGetEnumArraySetting<TEnum>(IReadOnlyDictionary<uint, LDtkSetting> settings, string name, out IReadOnlyList<TEnum> setting
 	) where TEnum : Enum
 	{
 		try

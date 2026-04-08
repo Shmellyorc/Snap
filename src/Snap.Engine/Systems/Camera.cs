@@ -14,7 +14,7 @@ public class Camera
 	private float _shakeDuration;         // total seconds of shake
 	private float _shakeTimeRemaining;    // seconds left to shake
 	private float _shakeMagnitude;        // initial magnitude (in world‐units)
-	private Vect2 _orginalOffset;
+	// private Vect2 _orginalOffset;
 	private bool _isFlying;
 	private Vect2 _flyStart;
 	private Vect2 _flyTarget;
@@ -43,7 +43,7 @@ public class Camera
 				return;
 			_position = value;
 
-			CullBounds = Rect2.FromCenter(_position, _viewport);
+			CullBounds = Rect2.FromCenter(_position, _viewport + EngineSettings.Instance.CullRange);
 			_view.Center = _position;
 			_screen.SetDirtyState(DirtyState.Update);
 		}
@@ -181,7 +181,7 @@ public class Camera
 		_shakeDuration = duration;
 		_shakeTimeRemaining = duration;
 		_shakeMagnitude = magnitude;
-		_orginalOffset = Position;
+		// _orginalOffset = Position;
 	}
 
 	internal void Update(float dt)

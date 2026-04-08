@@ -23,6 +23,10 @@ public enum ActiveInput
 /// </remarks>
 public class InputMap
 {
+	private static readonly KeyboardButton[] AllKeyboardButtons = Enum.GetValues<KeyboardButton>();
+	private static readonly MouseButton[] AllMouseButtons = Enum.GetValues<MouseButton>();
+	private static readonly GamepadButton[] AllGamepadButtons = Enum.GetValues<GamepadButton>();
+
 	private readonly uint _joyCount;
 	private readonly Dictionary<uint, bool> _joysticks = [];
 	private readonly List<SdlControllerEntry> _allEntries = [];
@@ -135,7 +139,7 @@ public class InputMap
 		if (!Game.Instance.IsActive)
 			return false;
 
-		foreach (var button in Enum.GetValues<KeyboardButton>())
+		foreach (var button in AllKeyboardButtons)
 		{
 			if (!IsKeyPressed(button))
 				continue;
@@ -168,7 +172,7 @@ public class InputMap
 		if (!Game.Instance.IsActive)
 			return false;
 
-		foreach (var button in Enum.GetValues<KeyboardButton>())
+		foreach (var button in AllKeyboardButtons)
 		{
 			if (!IsKeyJustPressed(button))
 				continue;
@@ -267,7 +271,7 @@ public class InputMap
 		if (!Game.Instance.IsActive)
 			return false;
 
-		foreach (var button in Enum.GetValues<MouseButton>())
+		foreach (var button in AllMouseButtons)
 		{
 			if (!IsMousePressed(button))
 				continue;
@@ -300,7 +304,7 @@ public class InputMap
 		if (!Game.Instance.IsActive)
 			return false;
 
-		foreach (var button in Enum.GetValues<MouseButton>())
+		foreach (var button in AllMouseButtons)
 		{
 			if (!IsMouseJustPressed(button))
 				continue;
@@ -392,7 +396,7 @@ public class InputMap
 		if (!Game.Instance.IsActive)
 			return false;
 
-		foreach (var button in Enum.GetValues<GamepadButton>())
+		foreach (var button in AllGamepadButtons)
 		{
 			if (!IsGamepadPressed(button))
 				continue;
@@ -427,7 +431,7 @@ public class InputMap
 		if (!Game.Instance.IsActive)
 			return false;
 
-		foreach (var button in Enum.GetValues<GamepadButton>())
+		foreach (var button in AllGamepadButtons)
 		{
 			if (!IsGamepadJustPressed(button))
 				continue;
@@ -508,8 +512,10 @@ public class InputMap
 		SFJoystick.Update();
 
 		// foreach (var joyId in joys)
-		foreach (var (joyId, connected) in _joysticks.Where(kv => kv.Value))
+		foreach (var (joyId, connected) in _joysticks)
 		{
+			if (!connected) continue;
+
 			if (TryGetSdlIndex(joyId, button, out var idx))
 			{
 				// if idx refers to an axis, call GetAxis; otherwise treat as button
@@ -599,8 +605,10 @@ public class InputMap
 		if (!Game.Instance.IsActive) return false;
 		SFJoystick.Update();
 
-		foreach (var (joyId, connected) in _joysticks.Where(kv => kv.Value))
+		foreach (var (joyId, connected) in _joysticks)
 		{
+			if (!connected) continue;
+
 			// try SDL mapping first
 			if (TryGetSdlIndex(joyId, button, out var idx))
 			{

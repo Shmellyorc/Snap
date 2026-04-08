@@ -265,6 +265,8 @@ public sealed class AnimatedSprite : Entity
 	/// <exception cref="ArgumentOutOfRangeException">Thrown if grid size is invalid or speed is negative.</exception>
 	public AnimatedSprite AddAnimation(string name, Texture texture, Vect2 grid, int[] frames, float speed, bool looped)
 	{
+		if (texture == null)
+			throw new ArgumentNullException(nameof(texture));
 		if (frames == null || frames.Length == 0)
 			throw new ArgumentException("Must supply at least one frame index", nameof(frames));
 		if (speed < 0)

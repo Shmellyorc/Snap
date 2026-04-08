@@ -4,7 +4,7 @@ namespace Snap.Engine.Assets.LDTKImporter;
 /// Represents a reference to another entity instance within an LDTK project.
 /// Encapsulates identifiers required to locate an entity across layers, levels, and worlds.
 /// </summary>
-public sealed class MapEntityRef
+public sealed class LDtkEntityRef
 {
 	/// <summary>
 	/// The unique entity ID being referenced.
@@ -26,7 +26,7 @@ public sealed class MapEntityRef
 	/// </summary>
 	public string WorldId { get; }
 
-	internal MapEntityRef(string entityId, string layerId, string levelId, string worldId)
+	internal LDtkEntityRef(string entityId, string layerId, string levelId, string worldId)
 	{
 		EntityId = entityId;
 		LayerId = layerId;
@@ -34,13 +34,13 @@ public sealed class MapEntityRef
 		WorldId = worldId;
 	}
 
-	internal static MapEntityRef Process(JsonElement e)
+	internal static LDtkEntityRef Process(JsonElement e)
 	{
 		var entityId = e.GetPropertyOrDefault("entityIid", string.Empty);
 		var layerId = e.GetPropertyOrDefault("layerIid", string.Empty);
 		var levelId = e.GetPropertyOrDefault("levelIid", string.Empty);
 		var worldId = e.GetPropertyOrDefault("worldIid", string.Empty);
 
-		return new MapEntityRef(entityId, layerId, levelId, worldId);
+		return new LDtkEntityRef(entityId, layerId, levelId, worldId);
 	}
 }

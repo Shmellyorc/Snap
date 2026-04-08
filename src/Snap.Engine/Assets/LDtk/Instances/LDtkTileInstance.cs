@@ -4,7 +4,7 @@ namespace Snap.Engine.Assets.LDTKImporter.Instances;
 /// Represents an individual tile placed on a map layer.
 /// Includes visual frame data, flipping effects, alpha transparency, and grid metadata.
 /// </summary>
-public sealed class MapTileInstance : IMapInstance
+public sealed class LDtkTileInstance : ILDtkInstance
 {
 	/// <summary>
 	/// The source rectangle within the tileset texture that defines this tile's graphic.
@@ -32,7 +32,7 @@ public sealed class MapTileInstance : IMapInstance
 	/// <inheritdoc />
 	public Vect2 Position { get; }
 
-	internal MapTileInstance(Rect2 source, TextureEffects effects, int tile, float alpha,
+	internal LDtkTileInstance(Rect2 source, TextureEffects effects, int tile, float alpha,
 		Vect2 location, Vect2 position)
 	{
 		Source = source;
@@ -43,9 +43,9 @@ public sealed class MapTileInstance : IMapInstance
 		Position = position;
 	}
 
-	internal static List<IMapInstance> Process(JsonElement e, int tileSize)
+	internal static List<ILDtkInstance> Process(JsonElement e, int tileSize)
 	{
-		var result = new List<IMapInstance>(e.GetArrayLength());
+		var result = new List<ILDtkInstance>(e.GetArrayLength());
 
 		foreach (var t in e.EnumerateArray())
 		{
@@ -65,7 +65,7 @@ public sealed class MapTileInstance : IMapInstance
 				_ => TextureEffects.None
 			};
 
-			result.Add(new MapTileInstance(srcRect, effects, tile, alpha, location, position));
+			result.Add(new LDtkTileInstance(srcRect, effects, tile, alpha, location, position));
 		}
 
 		return result;

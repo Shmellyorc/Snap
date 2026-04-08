@@ -84,9 +84,9 @@ public static class JsonHelpers
 		return new Vect2(arr.First().GetSingle(), arr.Last().GetSingle());
 	}
 
-	internal static Dictionary<uint, MapSetting> GetSettings(JsonElement e)
+	internal static Dictionary<uint, LDtkSetting> GetSettings(JsonElement e)
 	{
-		var result = new Dictionary<uint, MapSetting>(e.GetArrayLength());
+		var result = new Dictionary<uint, LDtkSetting>(e.GetArrayLength());
 
 		foreach (var t in e.EnumerateArray())
 		{
@@ -103,64 +103,64 @@ public static class JsonHelpers
 			{
 				// Single items:
 				var x when x.StartsWith("Int") =>
-					new MapIntSettings(value.GetElementyOrDefault<int>()),
+					new LDtkIntSettings(value.GetElementyOrDefault<int>()),
 				var x when x.StartsWith("Float") =>
-					new MapFloatSettings(value.GetElementyOrDefault<float>()),
+					new LDtkFloatSettings(value.GetElementyOrDefault<float>()),
 				var x when x.StartsWith("Bool") =>
-					new MapBoolSettings(value.GetElementyOrDefault<bool>()),
+					new LDtkBoolSettings(value.GetElementyOrDefault<bool>()),
 				var x when x.StartsWith("String") =>
-					new MapStringSettings(value.GetElementyOrDefault(string.Empty)),
+					new LDtkStringSettings(value.GetElementyOrDefault(string.Empty)),
 				var x when x.StartsWith("Color") =>
-					new MapColorSettings(new Color(value.GetElementyOrDefault("#ffffff"))),
+					new LDtkColorSettings(new Color(value.GetElementyOrDefault("#ffffff"))),
 				var x when x.StartsWith("LocalEnum.") =>
-					new MapEnumSettings(value.GetElementyOrDefault(string.Empty)),
+					new LDtkEnumSettings(value.GetElementyOrDefault(string.Empty)),
 				var x when x.StartsWith("FilePath") =>
-					new MapFilePathSettings(value.GetElementyOrDefault(string.Empty)),
+					new LDtkFilePathSettings(value.GetElementyOrDefault(string.Empty)),
 				var x when x.StartsWith("Tile") =>
-					new MapTileSettings(MapTile.Process(value)),
+					new LDtkTileSettings(LDtkTile.Process(value)),
 				var x when x.StartsWith("EntityRef") =>
-					new MapEntityRefSettings(MapEntityRef.Process(value)),
-				var x when x.StartsWith("Point") => new MapPointSettings(new Vect2(
+					new LDtkEntityRefSettings(LDtkEntityRef.Process(value)),
+				var x when x.StartsWith("Point") => new LDtkPointSettings(new Vect2(
 						value.GetPropertyOrDefault<int>("cx"), value.GetPropertyOrDefault<int>("cy"))),
 
 				// Array Items:
-				var x when x.StartsWith("Array<Int") => new MapIntArraySettings(value.EnumerateArray()
+				var x when x.StartsWith("Array<Int") => new LDtkIntArraySettings(value.EnumerateArray()
 					.Where(x => x.ValueKind != JsonValueKind.Null)
 					.Select(x => x.GetElementyOrDefault<int>())
 					.ToList()),
-				var x when x.StartsWith("Array<Float") => new MapFloatArraySettings(value.EnumerateArray()
+				var x when x.StartsWith("Array<Float") => new LDtkFloatArraySettings(value.EnumerateArray()
 					.Where(x => x.ValueKind != JsonValueKind.Null)
 					.Select(x => x.GetElementyOrDefault<float>())
 					.ToList()),
-				var x when x.StartsWith("Array<Bool") => new MapBoolArraySettings(value.EnumerateArray()
+				var x when x.StartsWith("Array<Bool") => new LDtkBoolArraySettings(value.EnumerateArray()
 					.Where(x => x.ValueKind != JsonValueKind.Null)
 					.Select(x => x.GetElementyOrDefault<bool>())
 					.ToList()),
-				var x when x.StartsWith("Array<String") => new MapStringArraySettings(value.EnumerateArray()
+				var x when x.StartsWith("Array<String") => new LDtkStringArraySettings(value.EnumerateArray()
 					.Where(x => x.ValueKind != JsonValueKind.Null)
 					.Select(x => x.GetElementyOrDefault(string.Empty))
 					.ToList()),
-				var x when x.StartsWith("Array<Color") => new MapColorArraySettings(value.EnumerateArray()
+				var x when x.StartsWith("Array<Color") => new LDtkColorArraySettings(value.EnumerateArray()
 					.Where(x => x.ValueKind != JsonValueKind.Null)
 					.Select(x => new Color(x.GetElementyOrDefault("#ffffff")))
 					.ToList()),
-				var x when x.StartsWith("Array<LocalEnum.") => new MapEnumArraySettings(value.EnumerateArray()
+				var x when x.StartsWith("Array<LocalEnum.") => new LDtkEnumArraySettings(value.EnumerateArray()
 					.Where(x => x.ValueKind != JsonValueKind.Null)
 					.Select(x => x.GetElementyOrDefault(string.Empty))
 					.ToList()),
-				var x when x.StartsWith("Array<FilePath") => new MapEnumArraySettings(value.EnumerateArray()
+				var x when x.StartsWith("Array<FilePath") => new LDtkEnumArraySettings(value.EnumerateArray()
 					.Where(x => x.ValueKind != JsonValueKind.Null)
 					.Select(x => x.GetElementyOrDefault(string.Empty))
 					.ToList()),
-				var x when x.StartsWith("Array<Tile") => new MapTileArraySettings(value.EnumerateArray()
+				var x when x.StartsWith("Array<Tile") => new LDtkTileArraySettings(value.EnumerateArray()
 					.Where(x => x.ValueKind != JsonValueKind.Null)
-					.Select(MapTile.Process)
+					.Select(LDtkTile.Process)
 					.ToList()),
-				var x when x.StartsWith("Array<EntityRef") => new MapEntityRefArraySettings(value.EnumerateArray()
+				var x when x.StartsWith("Array<EntityRef") => new LDtkEntityRefArraySettings(value.EnumerateArray()
 					.Where(x => x.ValueKind != JsonValueKind.Null)
-					.Select(MapEntityRef.Process)
+					.Select(LDtkEntityRef.Process)
 					.ToList()),
-				var x when x.StartsWith("Array<Point") => new MapPointArraySettings(value.EnumerateArray()
+				var x when x.StartsWith("Array<Point") => new LDtkPointArraySettings(value.EnumerateArray()
 					.Where(x => x.ValueKind != JsonValueKind.Null)
 					.Select(x => new Vect2(
 						x.GetPropertyOrDefault<int>("cx"), x.GetPropertyOrDefault<int>("cy")))

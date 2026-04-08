@@ -28,11 +28,12 @@ public interface IAsset : IDisposable
 	/// </summary>
 	uint Handle { get; }
 
+	/// <summary>Gets the last time this asset was accessed. Used by the asset manager for eviction decisions.</summary>
+	DateTime LastAccessTime { get; }
 
-	DateTime LastAccessFrame { get; }
+	/// <summary>Gets the raw byte data of the asset. Used for reloading GPU resources after eviction.</summary>
+	byte[] Data { get; }
 
-
-	ulong Length { get; }
 
 	/// <summary>
 	/// Loads the asset into memory and returns its byte size.
@@ -41,15 +42,10 @@ public interface IAsset : IDisposable
 	/// <returns>
 	/// The number of bytes consumed by the asset after loading.
 	/// </returns>
-	ulong Load();
+	void Load();
 
 	/// <summary>
 	/// Releases memory or handles used by the asset without removing it from the registry.
 	/// </summary>
 	void Unload();
-
-	// /// <summary>
-	// /// Completely disposes of the asset, releasing all unmanaged resources.
-	// /// </summary>
-	// void Dispose();
 }

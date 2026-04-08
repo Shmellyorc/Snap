@@ -4,7 +4,7 @@ namespace Snap.Engine.Assets.LDTKImporter;
 /// Represents a single tile selection from a tileset.
 /// Used to define visual references for tiles placed on the map or in field metadata.
 /// </summary>
-public sealed class MapTile
+public sealed class LDtkTile
 {
 	/// <summary>
 	/// The identifier of the tileset that this tile belongs to.
@@ -18,13 +18,13 @@ public sealed class MapTile
 	/// </summary>
 	public Rect2 Source { get; }
 
-	internal MapTile(int tilesetId, Rect2 source)
+	internal LDtkTile(int tilesetId, Rect2 source)
 	{
 		TilesetId = tilesetId;
 		Source = source;
 	}
 
-	internal static MapTile Process(JsonElement e)
+	internal static LDtkTile Process(JsonElement e)
 	{
 		var tilesetId = e.GetPropertyOrDefault<int>("tilesetUid");
 		var x = e.GetPropertyOrDefault<int>("x");
@@ -32,6 +32,6 @@ public sealed class MapTile
 		var w = e.GetPropertyOrDefault<int>("w");
 		var h = e.GetPropertyOrDefault<int>("h");
 
-		return new MapTile(tilesetId, new(x, y, w, h));
+		return new LDtkTile(tilesetId, new(x, y, w, h));
 	}
 }

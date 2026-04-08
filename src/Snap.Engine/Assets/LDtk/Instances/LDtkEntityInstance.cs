@@ -4,7 +4,7 @@ namespace Snap.Engine.Assets.LDTKImporter.Instances;
 /// Represents a single entity instance placed on a map.
 /// Derived from parsed LDTK level data and includes metadata, dimensions, pivot, and custom settings.
 /// </summary>
-public sealed class MapEntityInstance : IMapInstance
+public sealed class LDtkEntityInstance : ILDtkInstance
 {
 	/// <summary>
 	/// The unique name or type identifier of this entity as defined in the level data.
@@ -49,7 +49,7 @@ public sealed class MapEntityInstance : IMapInstance
 	/// <summary>
 	/// A map of field values (custom user-defined settings) attached to this entity instance.
 	/// </summary>
-	public Dictionary<uint, MapSetting> Settings { get; }
+	public Dictionary<uint, LDtkSetting> Settings { get; }
 
 	/// <inheritdoc />
 	public Vect2 Location { get; }
@@ -79,9 +79,9 @@ public sealed class MapEntityInstance : IMapInstance
 		return result;
 	}
 
-	internal MapEntityInstance(string name, Vect2 pivot, string id, Vect2 size,
+	internal LDtkEntityInstance(string name, Vect2 pivot, string id, Vect2 size,
 		Vect2 coords, List<string> tags, Vect2 location, Vect2 position,
-		Dictionary<uint, MapSetting> settings)
+		Dictionary<uint, LDtkSetting> settings)
 	{
 		Name = name;
 		Pivot = pivot;
@@ -94,9 +94,9 @@ public sealed class MapEntityInstance : IMapInstance
 		Position = position;
 	}
 
-	internal static List<IMapInstance> Process(JsonElement e)
+	internal static List<ILDtkInstance> Process(JsonElement e)
 	{
-		var result = new List<IMapInstance>(e.GetArrayLength());
+		var result = new List<ILDtkInstance>(e.GetArrayLength());
 
 		foreach (var t in e.EnumerateArray())
 		{
@@ -117,7 +117,7 @@ public sealed class MapEntityInstance : IMapInstance
 
 			var settings = JsonHelpers.GetSettings(t.GetProperty("fieldInstances"));
 
-			result.Add(new MapEntityInstance(name, pivot, id, new(cX, cY),
+			result.Add(new LDtkEntityInstance(name, pivot, id, new(cX, cY),
 				new(worldX, worldY), tags, location, position, settings));
 		}
 

@@ -123,12 +123,12 @@ public sealed class TextureAtlasManager
 		// EVICT STALE ON *EVERY* ACCESS (must be before cache lookup)
 		var evicted = EvictStaleSlices(MaxIdle);
 		if (evicted.Count > 0)
-			Logger.Instance.Log(LogLevel.Info, $"[Atlas] ⚠️ Evicted {evicted.Count} stale slices at {DateTime.UtcNow:HH:mm:ss}");
+			Logger.Instance.Log(LogLevel.Info, $"[Atlas] ⚠️ Evicted {evicted.Count} stale slices at {DateTime.Now:HH:mm:ss}");
 
 		// Cache hit?
 		if (_registered.TryGetValue(key, out var info))
 		{
-			info.LastUsedUtc = DateTime.UtcNow;
+			info.LastUsedUtc = DateTime.Now;
 			_registered[key] = info;
 			return info.Handle;
 		}
@@ -138,7 +138,7 @@ public sealed class TextureAtlasManager
 		// Try packing straight away (no eviction)
 		if (TryPackIntoAnyPage(srcTexture, srcRect, out var handle))
 		{
-			_registered[key] = new SliceInfo { Handle = handle, LastUsedUtc = DateTime.UtcNow };
+			_registered[key] = new SliceInfo { Handle = handle, LastUsedUtc = DateTime.Now };
 			return handle;
 		}
 
@@ -147,7 +147,7 @@ public sealed class TextureAtlasManager
 
 		if (TryPackIntoAnyPage(srcTexture, srcRect, out var otherHandle))
 		{
-			_registered[key] = new SliceInfo { Handle = handle, LastUsedUtc = DateTime.UtcNow };
+			_registered[key] = new SliceInfo { Handle = handle, LastUsedUtc = DateTime.Now };
 			return otherHandle;
 		}
 
@@ -164,7 +164,7 @@ public sealed class TextureAtlasManager
 
 			if (TryPackIntoAnyPage(srcTexture, srcRect, out handle))
 			{
-				_registered[key] = new SliceInfo { Handle = handle, LastUsedUtc = DateTime.UtcNow };
+				_registered[key] = new SliceInfo { Handle = handle, LastUsedUtc = DateTime.Now };
 				return handle;
 			}
 		}
@@ -234,7 +234,7 @@ public sealed class TextureAtlasManager
 	/// <remarks>
 	/// <para>
 	/// This method checks all registered slices against the cutoff timestamp
-	/// (<see cref="DateTime.UtcNow"/> minus <paramref name="maxIdle"/>).
+	/// (<see cref="DateTime.Now"/> minus <paramref name="maxIdle"/>).
 	/// Any slice last used before this cutoff is removed from the registry and has its
 	/// pixel usage deducted from the corresponding <see cref="AtlasPage"/> via <see cref="AtlasPage.RemoveLazy"/>.
 	/// </para>
@@ -245,7 +245,7 @@ public sealed class TextureAtlasManager
 	/// </remarks>
 	public List<(uint texHandle, SFRectI rect)> EvictStaleSlices(TimeSpan maxIdle)
 	{
-		var cutoff = DateTime.UtcNow - maxIdle;
+		var cutoff = DateTime.Now - maxIdle;
 		var toEvict = _registered
 			.Where(kv => kv.Value.LastUsedUtc < cutoff)
 			.Select(kv => kv.Key)

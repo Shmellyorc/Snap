@@ -4,7 +4,7 @@ namespace Snap.Engine.Assets.LDTKImporter;
 /// Represents a tileset used by one or more layers in an LDTK project.
 /// Encapsulates metadata and layout details for referencing individual tiles in rendering or logic.
 /// </summary>
-public sealed class MapTileset
+public sealed class LDtkTileset
 {
 	/// <summary>
 	/// The unique numeric ID assigned to the tileset in the source project.
@@ -52,7 +52,7 @@ public sealed class MapTileset
 	/// </summary>
 	public List<string> Tags { get; }
 
-	internal MapTileset(uint id, string name, Vect2 cellSize, Vect2 size,
+	internal LDtkTileset(uint id, string name, Vect2 cellSize, Vect2 size,
 		string path, int tileSize, int spacing, int padding, List<string> tags)
 	{
 		Id = id;
@@ -66,9 +66,9 @@ public sealed class MapTileset
 		Tags = tags;
 	}
 
-	internal static List<MapTileset> Process(JsonElement e)
+	internal static List<LDtkTileset> Process(JsonElement e)
 	{
-		var result = new List<MapTileset>(e.GetArrayLength());
+		var result = new List<LDtkTileset>(e.GetArrayLength());
 
 		foreach (var t in e.EnumerateArray())
 		{
@@ -88,7 +88,7 @@ public sealed class MapTileset
 				.ToList();
 
 			result.Add(
-				new MapTileset(
+				new LDtkTileset(
 					id,
 					name,
 					new(cWidth, cHeight),

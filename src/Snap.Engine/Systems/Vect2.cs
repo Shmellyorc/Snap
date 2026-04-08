@@ -12,6 +12,7 @@ namespace Snap.Engine.Systems;
 public struct Vect2(float x, float y) : IEquatable<Vect2>
 {
 	private const float Epsilon = 1e-6f;
+	private const float QuantizeFactor = 1e6f; // 1 / Epsilon
 
 	/// <summary>Gets or sets the X component of the vector.</summary>
 	public float X = x;
@@ -277,8 +278,10 @@ public struct Vect2(float x, float y) : IEquatable<Vect2>
 	/// </summary>
 	/// <param name="other">The vector to compare with.</param>
 	/// <returns><c>true</c> if the vectors are equal; otherwise, <c>false</c>.</returns>
-	public readonly bool Equals(Vect2 other) =>
-		MathF.Abs(X - other.X) < Epsilon && MathF.Abs(Y - other.Y) < Epsilon;
+	public readonly bool Equals(Vect2 other)
+		=> MathHelpers.AlmostEquals(X, other.X, Epsilon)
+		&& MathHelpers.AlmostEquals(Y, other.Y, Epsilon);
+	// MathF.Abs(X - other.X) < Epsilon && MathF.Abs(Y - other.Y) < Epsilon;
 
 	/// <summary>
 	/// Determines whether this vector is equal to another object.
@@ -292,7 +295,12 @@ public struct Vect2(float x, float y) : IEquatable<Vect2>
 	/// Gets the hash code for this vector.
 	/// </summary>
 	/// <returns>The hash code.</returns>
-	public override readonly int GetHashCode() => HashCode.Combine(X, Y);
+	public override readonly int GetHashCode()
+	{
+		int hashX = (int)MathF.Round(X * QuantizeFactor);
+		int hashY = (int)MathF.Round(Y * QuantizeFactor);
+		return HashCode.Combine(hashX, hashY);
+	}
 
 	/// <summary>
 	/// Returns a string representation of this vector.

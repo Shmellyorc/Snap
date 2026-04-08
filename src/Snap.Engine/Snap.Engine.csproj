@@ -24,6 +24,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Assets/AssetBootstrap_bak" />
+    <Compile Include="Assets/AssetManager_bak" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="SFML.Net" Version="3.0.0" />
   </ItemGroup>
 
@@ -40,7 +45,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Snap.Content.Abstractions\Snap.Content.Abstractions.csproj" />
+    <ProjectReference Include="..\Snap.Packer\Snap.Packer.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Assets/Mounts/" />
   </ItemGroup>
 
 </Project>

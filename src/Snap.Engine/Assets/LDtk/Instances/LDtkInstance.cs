@@ -4,7 +4,7 @@ namespace Snap.Engine.Assets.LDTKImporter.Instances;
 /// Represents a generic instance placed on the map, defined by its grid location and world-space position.
 /// Serves as the base class for tiles, entities, int grid cells, and other map elements.
 /// </summary>
-public interface IMapInstance
+public interface ILDtkInstance
 {
 	/// <summary>
 	/// The logical grid location of the instance within the level or layer, typically in tile units.

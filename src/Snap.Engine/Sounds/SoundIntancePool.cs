@@ -47,7 +47,10 @@ public static class SoundInstancePool
 	private static readonly object Lock = new();
 	private static uint s_nextInstanceId = 1;
 
+	/// <summary>Gets the number of sound instances currently active and playing.</summary>
 	public static int ActiveInstances => _activeInstances.Count;
+
+	/// <summary>Gets the number of sound instances currently available in the pool for reuse.</summary>
 	public static int AvailbleInstances => _availbleInstances.Count;
 
 	/// <summary>
@@ -266,7 +269,7 @@ public static class SoundInstancePool
 
 	private static void RegisterInstance(SoundInstance instance, Sound sound)
 	{
-		instance.LastUsedTime = DateTime.UtcNow;
+		instance.LastUsedTime = DateTime.Now;
 
 		if (!SoundToInstances.TryGetValue(sound.Id, out var list))
 		{

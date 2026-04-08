@@ -14,6 +14,7 @@ public class Texture : IAsset
 		Font // for fnt fonts
 	}
 
+	private SFImage _image;
 	private SFTexture _texture;
 	private Vect2 _texSize;
 	private Color _texColor;
@@ -55,10 +56,11 @@ public class Texture : IAsset
 		}
 	}
 
+	/// <inheritdoc/>
+	public byte[] Data { get; }
 
 	/// <inheritdoc/>
 	public uint Id { get; }
-
 
 	/// <inheritdoc/>
 	public string Tag { get; }
@@ -101,33 +103,31 @@ public class Texture : IAsset
 	/// </summary>
 	public Rect2 Bounds => new(Vect2.Zero, Size);
 
-	public DateTime LastAccessFrame { get; private set; }
+	/// <inheritdoc/>
+	public DateTime LastAccessTime { get; private set; }
 
 
-	public ulong Length { get; private set; }
-
-
-
-	internal Texture(uint id, string filename, bool repeat, bool smooth)
+	internal Texture(byte[] data, uint id, string filename, bool repeat, bool smooth)
 	{
 		Id = id;
 		Tag = filename;
 		_state = TextureState.Load;
 		_smooth = smooth;
 		_repeat = repeat;
+		Data = data;
 
-		LastAccessFrame = DateTime.UtcNow;
+		LastAccessTime = DateTime.Now;
 	}
 
-	internal Texture(uint id, byte[] bytes)
+	internal Texture(byte[] data, uint id)
 	{
 		// used for fnt fonts. a must.
 		Id = id;
-		Tag = $"{bytes.Length:X8}";
-		_texture = new SFTexture(bytes);
+		Tag = $"{data.Length:X8}";
+		_texture = new SFTexture(data);
 		_state = TextureState.Font;
 		IsValid = true;
-		LastAccessFrame = DateTime.UtcNow;
+		LastAccessTime = DateTime.Now;
 
 		Logger.Instance.Log(LogLevel.Info, $"Created FNT Texture with ID: {Id}, Size: (W{_texture.Size.X}, H{_texture.Size.Y})");
 	}
@@ -139,7 +139,7 @@ public class Texture : IAsset
 		_texture = texture;
 		_state = TextureState.RenderTexture;
 		IsValid = true;
-		LastAccessFrame = DateTime.UtcNow;
+		LastAccessTime = DateTime.Now;
 
 		Logger.Instance.Log(LogLevel.Info, $"Created RT Texture with ID: {Id}, Size: (W{_texture.Size.X}, H{_texture.Size.Y})");
 	}
@@ -170,7 +170,7 @@ public class Texture : IAsset
 
 		CreateTexture();
 
-		LastAccessFrame = DateTime.UtcNow;
+		LastAccessTime = DateTime.Now;
 	}
 
 	/// <summary>
@@ -183,31 +183,34 @@ public class Texture : IAsset
 	}
 
 	/// <inheritdoc/>
-	public ulong Load()
+	public void Load()
 	{
 		if (IsValid)
 		{
-			LastAccessFrame = DateTime.UtcNow;
-			return 0u;
+			LastAccessTime = DateTime.Now;
+			return;
 		}
 
 		// Created texture should have been initialized on the constructor 
 		// not thru here. If the dev created an texture and puts it on
 		// the assets manager, than yes, it will need to create the 
 		// texture again (if evicted).
-		Length = _state switch
+		switch (_state)
 		{
-			TextureState.Create => CreateTexture(),
-			TextureState.Load => LoadTexture(),
+			case TextureState.Create:
+				CreateTexture(); break;
 
-			// Render texture, if stored from
-			_ => _texture.Size.X * _texture.Size.Y * 4UL,
-		};
+			case TextureState.Load:
+				LoadTexture(); break;
+
+				// Render texture, if stored from
+				// _ => _texture.Size.X * _texture.Size.Y * 4UL,
+		}
 
 		IsValid = true;
-		LastAccessFrame = DateTime.UtcNow;
+		LastAccessTime = DateTime.Now;
 
-		return Length;
+		// return Length;
 	}
 
 	/// <inheritdoc/>
@@ -238,29 +241,27 @@ public class Texture : IAsset
 		IsValid = false;
 	}
 
-	private ulong CreateTexture()
+	private void CreateTexture()
 	{
 		// var sfImage = new SFImage((uint)_texSize.X, (uint)_texSize.Y, _texColor);
-		var sfImage = new SFImage(new((uint)_texSize.X, (uint)_texSize.Y), _texColor);
-		_texture = new SFTexture(sfImage);
+		_image = new SFImage(new((uint)_texSize.X, (uint)_texSize.Y), _texColor);
+		_texture = new SFTexture(_image);
 
 		Logger.Instance.Log(LogLevel.Info, $"Created Blank Texture with ID: {Id}, Size: (W{_texture.Size.X}, H{_texture.Size.Y})");
-		Length = _texture.Size.X * _texture.Size.Y * 4;
-
-		return Length;
+		// Length = _texture.Size.X * _texture.Size.Y * 4;
+		// return Length;
 	}
 
-	private ulong LoadTexture()
+	private void LoadTexture()
 	{
-		using var stream = AssetManager.OpenStream(Tag);
-		_texture = new SFTexture(stream)
+		// using var stream = AssetManager.OpenStream(Tag);
+		_texture = new SFTexture(Data)
 		{
 			Smooth = _smooth,
 			Repeated = _repeat
 		};
-		Length = _texture.Size.X * _texture.Size.Y * 4;
-
-		return Length;
+		// Length = _texture.Size.X * _texture.Size.Y * 4;
+		// return Length;
 	}
 
 	/// <summary>
@@ -270,7 +271,7 @@ public class Texture : IAsset
 	/// <returns>The SFML native texture instance.</returns>
 	public static implicit operator SFTexture(Texture tex)
 	{
-		tex.LastAccessFrame = DateTime.UtcNow;
+		tex.LastAccessTime = DateTime.Now;
 
 		return tex._texture;
 	}

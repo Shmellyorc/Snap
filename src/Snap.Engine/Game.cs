@@ -640,7 +640,7 @@ public class Game : IDisposable
 			_initialized = true;
 
 			// Setup defualt Asset Manager Provider
-			AssetBootstrap.InitDefault();
+			// AssetBootstrap.InitDefault();
 
 			if (Settings.Services?.Length > 0)
 			{
@@ -745,7 +745,7 @@ public class Game : IDisposable
 			var tEntity = _screenManager.Screens.Sum(x => x.Entities.Count);
 			var aEntity = _screenManager.Screens.Sum(x => x.ActiveEntities.Count);
 
-			static double BytesToMib(long bytes) => bytes / 1024.0 / 1024.0;
+			// static double BytesToMib(long bytes) => bytes / 1024.0 / 1024.0;
 
 			sb.Append($"{Settings.AppTitle} | ");
 
@@ -756,7 +756,7 @@ public class Game : IDisposable
 			sb.Append($"Entity: {aEntity}/{tEntity} | ");
 
 			// Assets: Bytes, Active/Total
-			sb.Append($"Assets: {BytesToMib(_assets.BytesLoaded):0.00}MB, {_assets.Count}/{_assets.TotalCount} Assets Loaded | ");
+			// sb.Append($"Assets: {BytesToMib(_assets.BytesLoaded):0.00}MB, {_assets.Count}/{_assets.TotalCount} Assets Loaded | ");
 
 			// Rendering: Draws, Batches
 			sb.Append($"Batch: Draws: {_renderer.DrawCalls}, Batches: {_renderer.Batches} | ");

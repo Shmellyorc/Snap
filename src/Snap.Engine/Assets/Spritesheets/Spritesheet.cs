@@ -20,21 +20,22 @@ public sealed class Spritesheet : IAsset
 	/// <inheritdoc/>
 	public uint Handle { get; }
 
+	/// <inheritdoc/>
+	public DateTime LastAccessTime { get; private set; }
 
-	public DateTime LastAccessFrame { get; private set; }
-
-
-	public ulong Length { get; private set; }
+	/// <inheritdoc/>
+	public byte[] Data { get; private set; }
 
 
 	private readonly Dictionary<uint, SpritesheetEntry> _spritesheets = [];
 
-	internal Spritesheet(uint id, string filename)
+	internal Spritesheet(byte[] data, uint id, string filename)
 	{
+		Data = data;
 		Id = id;
 		Tag = filename;
 
-		LastAccessFrame = DateTime.UtcNow;
+		LastAccessTime = DateTime.Now;
 	}
 
 	/// <summary>
@@ -49,24 +50,24 @@ public sealed class Spritesheet : IAsset
 	/// <returns>The number of bytes read from disk.</returns>
 	/// <exception cref="FileNotFoundException">Thrown if the metadata file does not exist.</exception>
 	/// <exception cref="JsonException">Thrown if the JSON is malformed or required properties are missing.</exception>
-	public ulong Load()
+	public void Load()
 	{
 		if (IsValid)
 		{
-			LastAccessFrame = DateTime.UtcNow;
-			return 0u;
+			LastAccessTime = DateTime.Now;
+			return;
 		}
 
 		// Read JSON via provider (works from FS or .spack)
-		byte[] bytes;
-		using (var s = AssetManager.OpenStream(Tag))
-		using (var ms = new MemoryStream())
-		{
-			s.CopyTo(ms);
-			bytes = ms.ToArray();
-		}
+		// byte[] bytes;
+		// using (var s = AssetManager.OpenStream(Tag))
+		// using (var ms = new MemoryStream())
+		// {
+		// 	s.CopyTo(ms);
+		// 	bytes = ms.ToArray();
+		// }
 
-		var doc = JsonDocument.Parse(bytes);
+		var doc = JsonDocument.Parse(Data);
 		var root = doc.RootElement;
 		var meta = root.GetProperty("meta");
 		var slices = meta.GetProperty("slices");
@@ -113,10 +114,10 @@ public sealed class Spritesheet : IAsset
 		}
 
 		IsValid = true;
-		Length = (ulong)bytes.Length;
-		LastAccessFrame = DateTime.UtcNow;
+		// Length = (ulong)bytes.Length;
+		LastAccessTime = DateTime.Now;
 
-		return Length;
+		// return Length;
 	}
 
 	/// <summary>
@@ -167,7 +168,7 @@ public sealed class Spritesheet : IAsset
 		if (result.Bounds.IsEmpty)
 			throw new InvalidOperationException($"Bounds for spritesheet '{name}' has not been set.");
 
-		LastAccessFrame = DateTime.UtcNow;
+		LastAccessTime = DateTime.Now;
 
 		return result.Bounds;
 	}
@@ -202,7 +203,7 @@ public sealed class Spritesheet : IAsset
 			return false;
 
 		value = result.Bounds;
-		LastAccessFrame = DateTime.UtcNow;
+		LastAccessTime = DateTime.Now;
 
 		return true;
 	}
@@ -230,7 +231,7 @@ public sealed class Spritesheet : IAsset
 		if (result.Patch.IsEmpty)
 			throw new Exception($"9-slice patch for '{name}' has not been defined.");
 
-		LastAccessFrame = DateTime.UtcNow;
+		LastAccessTime = DateTime.Now;
 
 		return result.Patch;
 	}
@@ -255,7 +256,7 @@ public sealed class Spritesheet : IAsset
 			return false;
 
 		value = result.Patch;
-		LastAccessFrame = DateTime.UtcNow;
+		LastAccessTime = DateTime.Now;
 
 		return true;
 	}
@@ -283,7 +284,7 @@ public sealed class Spritesheet : IAsset
 		if (result.Pivot.IsZero)
 			throw new Exception($"Pivot point for '{name}' has not been set.");
 
-		LastAccessFrame = DateTime.UtcNow;
+		LastAccessTime = DateTime.Now;
 
 		return result.Pivot;
 	}
@@ -308,7 +309,7 @@ public sealed class Spritesheet : IAsset
 			return false;
 
 		value = result.Pivot;
-		LastAccessFrame = DateTime.UtcNow;
+		LastAccessTime = DateTime.Now;
 
 		return true;
 	}

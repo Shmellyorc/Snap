@@ -4,7 +4,7 @@ namespace Snap.Engine.Assets.LDTKImporter;
 /// Defines the various types of layers used in a map or LDTK level.
 /// Determines how a layer should be interpreted and which data it exposes.
 /// </summary>
-public enum MapLayerType
+public enum LDtkLayerType
 {
 	/// <summary>
 	/// Placeholder value representing an undefined or unsupported layer type.
@@ -51,7 +51,7 @@ public sealed class MapLayer
 	/// <summary>
 	/// The type of the layer, which determines how its data is interpreted.
 	/// </summary>
-	public MapLayerType Type { get; }
+	public LDtkLayerType Type { get; }
 
 	/// <summary>
 	/// The size of the layer grid in columns and rows.
@@ -108,18 +108,18 @@ public sealed class MapLayer
 	/// A list of typed instances contained in this layer.
 	/// These could be entity instances, tile instances, or int grid entries depending on layer type.
 	/// </summary>
-	public IReadOnlyList<IMapInstance> Instances { get; }
+	public IReadOnlyList<ILDtkInstance> Instances { get; }
 
 	/// <summary>
 	/// Returns the list of instances in this layer, filtered by the specified type.
 	/// </summary>
-	/// <typeparam name="T">The type of <see cref="IMapInstance"/> to extract.</typeparam>
+	/// <typeparam name="T">The type of <see cref="ILDtkInstance"/> to extract.</typeparam>
 	/// <returns>A list of instances cast to the desired type.</returns>
-	public IReadOnlyList<T> InstanceAs<T>() where T : IMapInstance => [.. Instances.OfType<T>()];
+	public IReadOnlyList<T> InstanceAs<T>() where T : ILDtkInstance => [.. Instances.OfType<T>()];
 
-	internal MapLayer(string name, MapLayerType type, Vect2 gridSize, int tileSize, float opacity,
+	internal MapLayer(string name, LDtkLayerType type, Vect2 gridSize, int tileSize, float opacity,
 		Vect2 totalOffset, uint tilesetId, string tilesetPath, string id, int levelId, Vect2 offset,
-		bool visible, List<IMapInstance> instances)
+		bool visible, List<ILDtkInstance> instances)
 	{
 		Name = name;
 		Type = type;
@@ -143,7 +143,7 @@ public sealed class MapLayer
 		foreach (var t in e.EnumerateArray())
 		{
 			var name = t.GetPropertyOrDefault("__identifier", string.Empty);
-			var type = Enum.Parse<MapLayerType>(t.GetPropertyOrDefault("__type", "None"), true);
+			var type = Enum.Parse<LDtkLayerType>(t.GetPropertyOrDefault("__type", "None"), true);
 			var cX = t.GetPropertyOrDefault<int>("__cWid");
 			var cY = t.GetPropertyOrDefault<int>("__cHei");
 			var tileSize = t.GetPropertyOrDefault<int>("__gridSize");
@@ -159,12 +159,12 @@ public sealed class MapLayer
 			var visible = t.GetPropertyOrDefault<bool>("visible");
 			var gridSize = new Vect2(cX, cY);
 
-			List<IMapInstance> instResult = type switch
+			List<ILDtkInstance> instResult = type switch
 			{
-				MapLayerType.IntGrid => MapIntGridInstance.Process(t.GetProperty("intGridCsv"), gridSize),
-				MapLayerType.Entities => MapEntityInstance.Process(t.GetProperty("entityInstances")),
-				MapLayerType.Tiles => MapTileInstance.Process(t.GetProperty("gridTiles"), tileSize),
-				MapLayerType.AutoLayer => MapTileInstance.Process(t.GetProperty("autoLayerTiles"), tileSize),
+				LDtkLayerType.IntGrid => LDtkIntGridInstance.Process(t.GetProperty("intGridCsv"), gridSize),
+				LDtkLayerType.Entities => LDtkEntityInstance.Process(t.GetProperty("entityInstances")),
+				LDtkLayerType.Tiles => LDtkTileInstance.Process(t.GetProperty("gridTiles"), tileSize),
+				LDtkLayerType.AutoLayer => LDtkTileInstance.Process(t.GetProperty("autoLayerTiles"), tileSize),
 				_ => throw new ArgumentException($"Unable to find Map layer type, it is '{type}'.")
 			};
 

@@ -31,7 +31,7 @@ public sealed class EngineSettings
 	/// object throughout the engine lifecycle.
 	/// </remarks>
 	public static EngineSettings Instance { get; private set; }
-	
+
 	/// <summary>
 	/// Indicates whether the engine settings have been initialized.
 	/// </summary>
@@ -61,7 +61,7 @@ public sealed class EngineSettings
 	/// maximum batch limits defined in the engine.
 	/// </remarks>
 	internal int BatchIncreasment { get; private set; }
-	
+
 	/// <summary>
 	/// Sets the batch increasement value for the engine.
 	/// </summary>
@@ -98,7 +98,7 @@ public sealed class EngineSettings
 	/// accuracy and alignment. This can help avoid artifacts in certain graphics pipelines.
 	/// </remarks>
 	internal bool HalfTexelOffset { get; private set; }
-	
+
 	/// <summary>
 	/// Sets the half-texel offset rendering option.
 	/// </summary>
@@ -128,7 +128,7 @@ public sealed class EngineSettings
 	/// Typical values include Debug, Info, Warning, and Error.
 	/// </remarks>
 	internal LogLevel LogLevel { get; private set; }
-	
+
 	/// <summary>
 	/// Sets the logging level for the engine.
 	/// </summary>
@@ -160,7 +160,7 @@ public sealed class EngineSettings
 	/// the path separator character defined by <see cref="Path.PathSeparator"/>.
 	/// </remarks>
 	internal string SaveDirectory { get; private set; }
-	
+
 	/// <summary>
 	/// Sets the directory path used for saving game data.
 	/// </summary>
@@ -199,7 +199,7 @@ public sealed class EngineSettings
 	/// <see cref="Path.PathSeparator"/>.
 	/// </remarks>
 	internal string LogDirectory { get; private set; }
-	
+
 	/// <summary>
 	/// Sets the directory path used for storing log files.
 	/// </summary>
@@ -239,7 +239,7 @@ public sealed class EngineSettings
 	/// during runtime.
 	/// </remarks>
 	internal bool Mouse { get; private set; }
-	
+
 	/// <summary>
 	/// Sets whether mouse input should be enabled for the engine.
 	/// </summary>
@@ -270,8 +270,8 @@ public sealed class EngineSettings
 	/// with debugging and development.
 	/// </remarks>
 	internal bool DebugDraw { get; private set; }
-	
-		
+
+
 	/// <summary>
 	/// Sets whether debug drawing should be enabled.
 	/// </summary>
@@ -301,7 +301,7 @@ public sealed class EngineSettings
 	/// to identify the organization or developer responsible for the game.
 	/// </remarks>
 	internal string AppCompany { get; private set; }
-	
+
 	/// <summary>
 	/// Sets the company name associated with the application.
 	/// </summary>
@@ -333,7 +333,7 @@ public sealed class EngineSettings
 	/// fallback navigation or exploratory movement in complex maps.
 	/// </remarks>
 	internal bool AllowPartialPaths { get; private set; }
-	
+
 	/// <summary>
 	/// Sets whether partial paths should be allowed during pathfinding.
 	/// </summary>
@@ -364,7 +364,7 @@ public sealed class EngineSettings
 	/// introduce visual artifacts.
 	/// </remarks>
 	internal bool VSync { get; set; }
-	
+
 	/// <summary>
 	/// Sets whether vertical synchronization (VSync) should be enabled.
 	/// </summary>
@@ -394,7 +394,7 @@ public sealed class EngineSettings
 	/// Disabling this option allows the engine to run in windowed mode.
 	/// </remarks>
 	internal bool FullScreen { get; set; }
-	
+
 	/// <summary>
 	/// Sets whether the engine should run in full-screen mode.
 	/// </summary>
@@ -425,7 +425,7 @@ public sealed class EngineSettings
 	/// (e.g., 2x, 4x, 8x) applied during rendering.
 	/// </remarks>
 	internal int Antialiasing { get; set; }
-	
+
 	/// <summary>
 	/// Sets the antialiasing level used by the engine.
 	/// </summary>
@@ -455,7 +455,7 @@ public sealed class EngineSettings
 	/// Disabling this option locks the window to its initial dimensions.
 	/// </remarks>
 	internal bool WindowResize { get; private set; }
-	
+
 	/// <summary>
 	/// Sets whether window resizing should be enabled.
 	/// </summary>
@@ -487,7 +487,7 @@ public sealed class EngineSettings
 	/// to <c>MinimumDrawllCallCacheSize</c> to ensure stable rendering.
 	/// </remarks>
 	internal int DrawCallCache { get; private set; }
-	
+
 	/// <summary>
 	/// Sets the size of the draw call cache used by the engine.
 	/// </summary>
@@ -525,7 +525,7 @@ public sealed class EngineSettings
 	/// to ensure proper texture packing and rendering.
 	/// </remarks>
 	internal int AtlasPageSize { get; private set; }
-	
+
 	/// <summary>
 	/// Sets the atlas page size used by the engine.
 	/// </summary>
@@ -565,7 +565,7 @@ public sealed class EngineSettings
 	/// inclusive to ensure stable texture management.
 	/// </remarks>
 	internal int MaxAtlasPages { get; private set; }
-	
+
 	/// <summary>
 	/// Sets the maximum number of atlas pages allowed by the engine.
 	/// </summary>
@@ -605,7 +605,7 @@ public sealed class EngineSettings
 	/// <c>0.0</c> and <c>1.0</c> inclusive.
 	/// </remarks>
 	internal float DeadZone { get; private set; }
-	
+
 	/// <summary>
 	/// Sets the input dead zone value.
 	/// </summary>
@@ -643,7 +643,7 @@ public sealed class EngineSettings
 	/// to be considered valid.
 	/// </remarks>
 	internal InputMap InputMap { get; private set; }
-	
+
 	/// <summary>
 	/// Sets the input map used by the engine.
 	/// </summary>
@@ -680,7 +680,7 @@ public sealed class EngineSettings
 	/// metadata, and logging. It must be a non-empty string.
 	/// </remarks>
 	internal string AppTitle { get; private set; }
-	
+
 	/// <summary>
 	/// Sets the application title.
 	/// </summary>
@@ -716,7 +716,7 @@ public sealed class EngineSettings
 	/// to ensure valid metadata and storage paths.
 	/// </remarks>
 	internal string AppName { get; private set; }
-	
+
 	/// <summary>
 	/// Sets the application name.
 	/// </summary>
@@ -752,7 +752,7 @@ public sealed class EngineSettings
 	/// must exist and be a valid directory.
 	/// </remarks>
 	internal string AppContentRoot { get; private set; }
-	
+
 	/// <summary>
 	/// Sets the application content root directory.
 	/// </summary>
@@ -791,7 +791,7 @@ public sealed class EngineSettings
 	/// a valid rendering surface.
 	/// </remarks>
 	internal Vect2 Window { get; set; }
-	
+
 	/// <summary>
 	/// Sets the window dimensions for the application.
 	/// </summary>
@@ -833,7 +833,7 @@ public sealed class EngineSettings
 	/// must be greater than zero to ensure a valid rendering surface.
 	/// </remarks>
 	internal Vect2 Viewport { get; private set; }
-	
+
 	/// <summary>
 	/// Sets the viewport dimensions for the application.
 	/// </summary>
@@ -875,7 +875,7 @@ public sealed class EngineSettings
 	/// devices and aspect ratios.
 	/// </remarks>
 	internal uint SafeRegion { get; private set; }
-	
+
 	/// <summary>
 	/// Sets the safe region value for the application.
 	/// </summary>
@@ -907,7 +907,7 @@ public sealed class EngineSettings
 	/// consistent rendering results.
 	/// </remarks>
 	internal Color ClearColor { get; private set; }
-	
+
 	/// <summary>
 	/// Sets the clear color used by the engine.
 	/// </summary>
@@ -944,7 +944,7 @@ public sealed class EngineSettings
 	/// application has a valid output surface.
 	/// </remarks>
 	internal Type[] Screens { get; private set; }
-	
+
 	/// <summary>
 	/// Sets the collection of screens configured for the application.
 	/// </summary>
@@ -983,7 +983,7 @@ public sealed class EngineSettings
 	/// must be provided to ensure the engine has valid runtime support.
 	/// </remarks>
 	internal Type[] Services { get; private set; }
-	
+
 	/// <summary>
 	/// Sets the collection of game services configured for the application.
 	/// </summary>
@@ -1022,7 +1022,7 @@ public sealed class EngineSettings
 	/// is stored internally in bytes, calculated from the specified megabytes.
 	/// </remarks>
 	internal int LogFileSizeCap { get; private set; }
-	
+
 	/// <summary>
 	/// Sets the maximum log file size cap.
 	/// </summary>
@@ -1050,8 +1050,8 @@ public sealed class EngineSettings
 
 		return this;
 	}
-	
-	
+
+
 
 	/// <summary>
 	/// Gets the maximum number of recent log entries retained in memory.
@@ -1062,7 +1062,7 @@ public sealed class EngineSettings
 	/// to ensure valid logging behavior.
 	/// </remarks>
 	internal int LogMaxRecentEntries { get; private set; }
-	
+
 	/// <summary>
 	/// Sets the maximum number of recent log entries retained in memory.
 	/// </summary>
@@ -1089,6 +1089,43 @@ public sealed class EngineSettings
 
 		return this;
 	}
+	internal int AssetEvictionMinutes { get; private set; }
+
+	/// <summary>Sets the number of minutes an asset can remain unused before being eligible for eviction.</summary>
+	/// <param name="minutes">The eviction timeout in minutes. Must be greater than zero.</param>
+	/// <returns>This <see cref="EngineSettings"/> instance for method chaining.</returns>
+	/// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="minutes"/> is zero.</exception>
+	public EngineSettings WithAssetEvictionMinutes(uint minutes)
+	{
+		if (minutes == 0)
+			throw new ArgumentOutOfRangeException(nameof(minutes), "asset eviction minutes to be greater than zero");
+
+		AssetEvictionMinutes = (int)minutes;
+
+		return this;
+	}
+
+
+	internal Vect2 CullRange { get; private set; }
+
+	/// <summary>Sets the culling range used for viewport-based object culling.</summary>
+	/// <param name="width">The culling width. Must be greater than zero.</param>
+	/// <param name="height">The culling height. Must be greater than zero.</param>
+	/// <returns>This <see cref="EngineSettings"/> instance for method chaining.</returns>
+	/// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="width"/> or <paramref name="height"/> is zero.</exception>
+	public EngineSettings WithCullRange(uint width, uint height)
+	{
+		if (width == 0)
+			throw new ArgumentOutOfRangeException(nameof(width), "Cull range width has to be greater than zero");
+		if (height == 0)
+			throw new ArgumentOutOfRangeException(nameof(height), "Cull range height has to be greater than zero");
+
+		CullRange = new Vect2(width, height);
+
+		return this;
+	}
+
+
 
 
 	/// <summary>

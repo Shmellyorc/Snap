@@ -5,7 +5,7 @@ namespace Snap.Engine.Assets.LDTKImporter;
 /// <summary>
 /// Represents the possible directions for neighboring map tiles or cells.
 /// </summary>
-public enum MapNeighbourDirection
+public enum LDtkNeighbourDirection
 {
 	/// <summary>
 	/// No direction; used when there is no neighboring tile.
@@ -61,42 +61,42 @@ public sealed class MapNeighbour
 	/// <summary>
 	/// Gets the ID of the neighbor to the north, or an empty string if none exists.
 	/// </summary>
-	public string North => Neighbours.TryGetValue(HashHelpers.Cache32(MapNeighbourDirection.North), out var v) ? v : string.Empty;
+	public string North => Neighbours.TryGetValue(HashHelpers.Cache32(LDtkNeighbourDirection.North), out var v) ? v : string.Empty;
 
 	/// <summary>
 	/// Gets the ID of the neighbor to the northeast, or an empty string if none exists.
 	/// </summary>
-	public string NorthEast => Neighbours.TryGetValue(HashHelpers.Cache32(MapNeighbourDirection.NorthEast), out var v) ? v : string.Empty;
+	public string NorthEast => Neighbours.TryGetValue(HashHelpers.Cache32(LDtkNeighbourDirection.NorthEast), out var v) ? v : string.Empty;
 
 	/// <summary>
 	/// Gets the ID of the neighbor to the east, or an empty string if none exists.
 	/// </summary>
-	public string East => Neighbours.TryGetValue(HashHelpers.Cache32(MapNeighbourDirection.East), out var v) ? v : string.Empty;
+	public string East => Neighbours.TryGetValue(HashHelpers.Cache32(LDtkNeighbourDirection.East), out var v) ? v : string.Empty;
 
 	/// <summary>
 	/// Gets the ID of the neighbor to the southeast, or an empty string if none exists.
 	/// </summary>
-	public string SouthEast => Neighbours.TryGetValue(HashHelpers.Cache32(MapNeighbourDirection.SouthEast), out var v) ? v : string.Empty;
+	public string SouthEast => Neighbours.TryGetValue(HashHelpers.Cache32(LDtkNeighbourDirection.SouthEast), out var v) ? v : string.Empty;
 
 	/// <summary>
 	/// Gets the ID of the neighbor to the south, or an empty string if none exists.
 	/// </summary>
-	public string South => Neighbours.TryGetValue(HashHelpers.Cache32(MapNeighbourDirection.South), out var v) ? v : string.Empty;
+	public string South => Neighbours.TryGetValue(HashHelpers.Cache32(LDtkNeighbourDirection.South), out var v) ? v : string.Empty;
 
 	/// <summary>
 	/// Gets the ID of the neighbor to the southwest, or an empty string if none exists.
 	/// </summary>
-	public string SouthWest => Neighbours.TryGetValue(HashHelpers.Cache32(MapNeighbourDirection.SouthWest), out var v) ? v : string.Empty;
+	public string SouthWest => Neighbours.TryGetValue(HashHelpers.Cache32(LDtkNeighbourDirection.SouthWest), out var v) ? v : string.Empty;
 
 	/// <summary>
 	/// Gets the ID of the neighbor to the west, or an empty string if none exists.
 	/// </summary>
-	public string West => Neighbours.TryGetValue(HashHelpers.Cache32(MapNeighbourDirection.West), out var v) ? v : string.Empty;
+	public string West => Neighbours.TryGetValue(HashHelpers.Cache32(LDtkNeighbourDirection.West), out var v) ? v : string.Empty;
 
 	/// <summary>
 	/// Gets the ID of the neighbor to the northwest, or an empty string if none exists.
 	/// </summary>
-	public string NorthWest => Neighbours.TryGetValue(HashHelpers.Cache32(MapNeighbourDirection.NorthWest), out var v) ? v : string.Empty;
+	public string NorthWest => Neighbours.TryGetValue(HashHelpers.Cache32(LDtkNeighbourDirection.NorthWest), out var v) ? v : string.Empty;
 
 	/// <summary>
 	/// Gets the read-only dictionary of all neighbor entries, keyed by direction hash.
@@ -115,20 +115,20 @@ public sealed class MapNeighbour
 		var result = new Dictionary<uint, string>(e.GetArrayLength()); // Pre-allocate
 		foreach (var element in e.EnumerateArray())
 		{
-			(MapNeighbourDirection dir, string id) data = element.GetPropertyOrDefault("dir", string.Empty) switch
+			(LDtkNeighbourDirection dir, string id) data = element.GetPropertyOrDefault("dir", string.Empty) switch
 			{
-				var v when v == "n" => (MapNeighbourDirection.North, element.GetPropertyOrDefault("levelIid", string.Empty)),
-				var v when v == "ne" => (MapNeighbourDirection.NorthEast, element.GetPropertyOrDefault("levelIid", string.Empty)),
-				var v when v == "e" => (MapNeighbourDirection.East, element.GetPropertyOrDefault("levelIid", string.Empty)),
-				var v when v == "se" => (MapNeighbourDirection.SouthEast, element.GetPropertyOrDefault("levelIid", string.Empty)),
-				var v when v == "s" => (MapNeighbourDirection.South, element.GetPropertyOrDefault("levelIid", string.Empty)),
-				var v when v == "sw" => (MapNeighbourDirection.SouthWest, element.GetPropertyOrDefault("levelIid", string.Empty)),
-				var v when v == "w" => (MapNeighbourDirection.West, element.GetPropertyOrDefault("levelIid", string.Empty)),
-				var v when v == "nw" => (MapNeighbourDirection.NorthWest, element.GetPropertyOrDefault("levelIid", string.Empty)),
-				_ => (MapNeighbourDirection.None, string.Empty)
+				var v when v == "n" => (LDtkNeighbourDirection.North, element.GetPropertyOrDefault("levelIid", string.Empty)),
+				var v when v == "ne" => (LDtkNeighbourDirection.NorthEast, element.GetPropertyOrDefault("levelIid", string.Empty)),
+				var v when v == "e" => (LDtkNeighbourDirection.East, element.GetPropertyOrDefault("levelIid", string.Empty)),
+				var v when v == "se" => (LDtkNeighbourDirection.SouthEast, element.GetPropertyOrDefault("levelIid", string.Empty)),
+				var v when v == "s" => (LDtkNeighbourDirection.South, element.GetPropertyOrDefault("levelIid", string.Empty)),
+				var v when v == "sw" => (LDtkNeighbourDirection.SouthWest, element.GetPropertyOrDefault("levelIid", string.Empty)),
+				var v when v == "w" => (LDtkNeighbourDirection.West, element.GetPropertyOrDefault("levelIid", string.Empty)),
+				var v when v == "nw" => (LDtkNeighbourDirection.NorthWest, element.GetPropertyOrDefault("levelIid", string.Empty)),
+				_ => (LDtkNeighbourDirection.None, string.Empty)
 			};
 
-			if (data.dir == MapNeighbourDirection.None || string.IsNullOrWhiteSpace(data.id))
+			if (data.dir == LDtkNeighbourDirection.None || string.IsNullOrWhiteSpace(data.id))
 				continue;
 
 			result[HashHelpers.Cache32(data.dir)] = data.id;

@@ -5,42 +5,57 @@ internal static class QuadBuilder
 	private const float TexelOffset = 0.05f;
 
 	public static void BuildQuad(
-		SFVertex[] output, // Must be length 6
-		Rect2 dstRect,
-		Rect2 srcRect,
-		Color color,
-		Vect2 origin,
-		Vect2 scale,
-		float rotation,
-		TextureEffects effects,
-		SFTexture texture = null)
+	SFVertex[] output,
+	Rect2 dstRect,
+	Rect2 srcRect,
+	Color color,
+	Vect2 origin,
+	Vect2 scale,
+	float rotation,
+	TextureEffects effects,
+	SFTexture texture = null)
 	{
 		if (output == null || output.Length < 6)
 			throw new ArgumentException("Output array must have length 6", nameof(output));
 
-		float pivotX = origin.X * dstRect.Width * scale.X;
-		float pivotY = origin.Y * dstRect.Height * scale.Y;
+		// Calculate scaled dimensions
+		float scaledWidth = dstRect.Width * scale.X;
+		float scaledHeight = dstRect.Height * scale.Y;
 
+		// Calculate pivot point in local space (where 0,0 is top-left of scaled rect)
+		float pivotX = origin.X * scaledWidth;
+		float pivotY = origin.Y * scaledHeight;
+
+		// Local positions relative to pivot (before rotation)
 		Span<Vect2> localPos = stackalloc Vect2[4];
 		localPos[0] = new Vect2(-pivotX, -pivotY);
-		localPos[1] = new Vect2(dstRect.Width * scale.X - pivotX, -pivotY);
-		localPos[2] = new Vect2(dstRect.Width * scale.X - pivotX, dstRect.Height * scale.Y - pivotY);
-		localPos[3] = new Vect2(-pivotX, dstRect.Height * scale.Y - pivotY);
+		localPos[1] = new Vect2(scaledWidth - pivotX, -pivotY);
+		localPos[2] = new Vect2(scaledWidth - pivotX, scaledHeight - pivotY);
+		localPos[3] = new Vect2(-pivotX, scaledHeight - pivotY);
 
+		// Apply rotation if any
 		float cos = MathF.Cos(rotation);
 		float sin = MathF.Sin(rotation);
 
+		// Transform to world position
 		for (int i = 0; i < 4; i++)
 		{
 			float x = localPos[i].X;
 			float y = localPos[i].Y;
 
+			// Rotate around origin
+			float rotatedX = cos * x - sin * y;
+			float rotatedY = sin * x + cos * y;
+
+			// Translate to world position (dstRect.X/Y is the top-left corner in world space)
+			// Note: We add pivotX/pivotY here to offset from the rotated position back to the actual pivot point
 			localPos[i] = new Vect2(
-				cos * x - sin * y + dstRect.X + pivotX,
-				sin * x + cos * y + dstRect.Y + pivotY
+				dstRect.X + rotatedX + pivotX,
+				dstRect.Y + rotatedY + pivotY
 			);
 		}
 
+		// UV coordinates (your existing UV code remains the same)
 		float u1 = srcRect.Left;
 		float v1 = srcRect.Top;
 		float u2 = srcRect.Right;
@@ -63,7 +78,7 @@ internal static class QuadBuilder
 			else { v1 -= texelOffsetY; v2 += texelOffsetY; }
 		}
 
-		// Build two triangles (6 vertices)
+		// Build triangles (unchanged)
 		output[0] = new SFVertex(new SFVectF(localPos[0].X, localPos[0].Y), color, new SFVectF(u1, v1));
 		output[1] = new SFVertex(new SFVectF(localPos[1].X, localPos[1].Y), color, new SFVectF(u2, v1));
 		output[2] = new SFVertex(new SFVectF(localPos[3].X, localPos[3].Y), color, new SFVectF(u1, v2));

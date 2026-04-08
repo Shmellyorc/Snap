@@ -19,14 +19,14 @@ public sealed class BitmapFont : Font
 	/// <inheritdoc />
 	public override float LineSpacing => _finalLineSpacing + _lineSpacing;
 
-	internal BitmapFont(uint id, string filename, float spacing, float lineSpacing, bool smoothing)
-		: base(id, filename)
+	internal BitmapFont(byte[] data, uint id, string filename, float spacing, float lineSpacing, bool smoothing)
+		: base(data, id, filename)
 	{
 		_spacing = spacing;
 		_lineSpacing = lineSpacing;
 		_smoothing = smoothing;
 
-		LastAccessFrame = DateTime.UtcNow;
+		LastAccessTime = DateTime.Now;
 	}
 
 	// inside your BitmapFont / SpriteFont loader class
@@ -38,18 +38,18 @@ public sealed class BitmapFont : Font
 	/// </summary>
 	/// <returns>The number of bytes read from the FNT file.</returns>
 	/// <exception cref="FileNotFoundException">Thrown if the font or associated texture file is not found.</exception>
-	public override ulong Load()
+	public override void Load()
 	{
 		if (IsValid)
 		{
-			LastAccessFrame = DateTime.UtcNow;
-			return 0u;
+			LastAccessTime = DateTime.Now;
+			return;
 		}
 
-		using var fntStream = AssetManager.OpenStream(Tag);
-		using var fntMs = new MemoryStream();
-		fntStream.CopyTo(fntMs);
-		var fntBytes = fntMs.ToArray();
+		// using var fntStream = AssetManager.OpenStream(Tag);
+		// using var fntMs = new MemoryStream();
+		// fntStream.CopyTo(fntMs);
+		// var fntBytes = fntMs.ToArray();
 
 		var pagesFolder = Norm(Path.GetDirectoryName(Tag) ?? string.Empty);
 		var pageCache = new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
@@ -62,26 +62,27 @@ public sealed class BitmapFont : Font
 			if (pageCache.TryGetValue(pagePath, out var cached))
 				return cached;
 
-			using var s = AssetManager.OpenStream(pagePath);
-			using var ms = new MemoryStream();
-			s.CopyTo(ms);
-			var data = ms.ToArray();
-			pageCache[pagePath] = data;
+			// using var s = AssetManager.OpenStream(pagePath);
+			// using var ms = new MemoryStream();
+			// s.CopyTo(ms);
+			// var data = ms.ToArray();
+			// pageCache[pagePath] = data;
+			pageCache[pagePath] = File.ReadAllBytes(pagePath);
 
-			return data;
+			return pageCache[pagePath];
 		}
 
 		InternalLoad(
-			fntData: fntBytes,
+			fntData: Data,
 			pageLoader: PageLoader,
 			smoothing: _smoothing
 		);
 
 		IsValid = true;
-		LastAccessFrame = DateTime.UtcNow;
-		Length = (ulong)fntBytes.LongLength;
+		LastAccessTime = DateTime.Now;
+		// Length = (ulong)fntBytes.LongLength;
 
-		return Length;
+		return;
 	}
 
 	/// <summary>
@@ -119,13 +120,13 @@ public sealed class BitmapFont : Font
 	{
 		if (_pageTextures.TryGetValue(0, out var tex0) && !tex0.IsInvalid)
 		{
-			LastAccessFrame = DateTime.UtcNow;
+			LastAccessTime = DateTime.Now;
 			return tex0;
 		}
 		if (tex0.IsInvalid)
 			Load();
 
-		LastAccessFrame = DateTime.UtcNow;
+		LastAccessTime = DateTime.Now;
 
 		return _pageTextures.Values.FirstOrDefault(t => t.IsInvalid)
 			?? throw new InvalidOperationException("No page texture is loaded.");
@@ -195,7 +196,7 @@ public sealed class BitmapFont : Font
 
 				if (data.TryGetValue("page", out var pgStr) && int.TryParse(pgStr, out var pg))
 					g.Page = pg;
-				
+
 				Glyphs[g.Character] = g;
 			}
 			else if (line.StartsWith("kerning "))

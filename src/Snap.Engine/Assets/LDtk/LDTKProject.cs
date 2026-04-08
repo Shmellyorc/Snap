@@ -4,15 +4,15 @@ namespace Snap.Engine.Assets.LDTKImporter;
 /// Represents a parsed LDTK project asset, exposing access to levels, layers, entities, and tilesets.
 /// Manages internal caches for fast hashed and indexed lookups.
 /// </summary>
-public sealed class LDTKProject : IAsset
+public sealed class LDtkMap : IAsset
 {
 	// cachced levels, entities, etc:
-	private readonly Dictionary<uint, MapLevel> _levelCacheById = [];
-	private readonly Dictionary<uint, MapLevel> _levelCacheByName = [];
-	private readonly Dictionary<ulong, MapEntityInstance> _entityCacheById = [];
+	private readonly Dictionary<uint, LDtkLevel> _levelCacheById = [];
+	private readonly Dictionary<uint, LDtkLevel> _levelCacheByName = [];
+	private readonly Dictionary<ulong, LDtkEntityInstance> _entityCacheById = [];
 	private readonly Dictionary<uint, MapLayer> _layerCacheById = [];
-	private readonly Dictionary<uint, MapTileset> _tilesetCacheById = [];
-	private readonly Dictionary<uint, MapTileset> _tilesetCacheByName = [];
+	private readonly Dictionary<uint, LDtkTileset> _tilesetCacheById = [];
+	private readonly Dictionary<uint, LDtkTileset> _tilesetCacheByName = [];
 
 	/// <summary>
 	/// Unique identifier for this LDTK project asset.
@@ -34,103 +34,101 @@ public sealed class LDTKProject : IAsset
 	/// </summary>
 	public uint Handle { get; }
 
-	public DateTime LastAccessFrame { get; private set; }
+	/// <summary>Gets the last time this LDtk map was accessed. Used by the asset manager for eviction decisions.</summary>
+	public DateTime LastAccessTime { get; private set; }
 
-	public ulong Length { get; private set; }
+	/// <summary>Gets the raw JSON byte data of the LDtk map file.</summary>
+	public byte[] Data { get; private set; }
 
-	internal LDTKProject(uint id, string filename)
+	internal LDtkMap(byte[] data, uint id, string filename)
 	{
+		Data = data;
 		Id = id;
 		Tag = filename;
 
-		LastAccessFrame = DateTime.UtcNow;
+		LastAccessTime = DateTime.Now;
 	}
 
 	/// <summary>
 	/// Destructor to clean up unmanaged resources.
 	/// </summary>
-	~LDTKProject() => Dispose();
+	~LDtkMap() => Dispose();
 
 	/// <summary>
 	/// Loads the project data and parses levels, entities, layers, and tilesets into memory.
 	/// </summary>
 	/// <returns>The size in bytes of the loaded file.</returns>
 	/// <exception cref="FileNotFoundException">Thrown if the LDTK file is not found.</exception>
-	public ulong Load()
+	public void Load()
 	{
 		if (IsValid)
 		{
-			LastAccessFrame = DateTime.UtcNow;
-			return 0u;
+			LastAccessTime = DateTime.Now;
+			return;
 		}
 
-		if (Length == 0)
+		// byte[] bytes;
+		// using (var s = AssetManager.OpenStream(Tag))
+		// using (var ms = new MemoryStream())
+		// {
+		// 	s.CopyTo(ms);
+		// 	bytes = ms.ToArray();
+		// }
+
+		var doc = JsonDocument.Parse(Data);
+		var root = doc.RootElement;
+
+		if (!root.TryGetProperty("defs", out var jDefs))
+			throw new InvalidOperationException("Unable to find LDtk Defs");
+		if (!jDefs.TryGetProperty("tilesets", out var jTilesets))
+			throw new InvalidOperationException("Unable to find LDtk Tilesets");
+		if (!root.TryGetProperty("defaultGridSize", out var jDefaultGridSize))
+			throw new InvalidOperationException("Unable to find LDtk 'DefaultGridSize'.");
+		if (!root.TryGetProperty("levels", out var jLevels))
+			throw new InvalidOperationException("Unable to find LDtk 'Levels'.");
+
+		var tilesets = LDtkTileset.Process(jTilesets);
+		var levels = LDtkLevel.Process(jLevels, jDefaultGridSize.GetInt32());
+
+		foreach (var tileset in tilesets)
 		{
-			byte[] bytes;
-			using (var s = AssetManager.OpenStream(Tag))
-			using (var ms = new MemoryStream())
+			var tilesetId = tileset.Id;
+			var tilesetName = HashHelpers.Cache32(tileset.Name);
+
+			_tilesetCacheById[tilesetId] = tileset;
+			_tilesetCacheByName[tilesetName] = tileset;
+		}
+
+		foreach (var level in levels)
+		{
+			var lvlCacheId = HashHelpers.Cache32(level.Id);
+			var lvlCacheName = HashHelpers.Cache32(level.Name);
+
+			_levelCacheById[lvlCacheId] = level;
+			_levelCacheByName[lvlCacheName] = level;
+
+			foreach (var layer in level.Layers)
 			{
-				s.CopyTo(ms);
-				bytes = ms.ToArray();
-			}
+				var layerCache = HashHelpers.Cache32(layer.Id);
 
-			var doc = JsonDocument.Parse(bytes);
-			var root = doc.RootElement;
+				_layerCacheById[layerCache] = layer;
 
-			if (!root.TryGetProperty("defs", out var jDefs))
-				throw new InvalidOperationException("Unable to find LDtk Defs");
-			if (!jDefs.TryGetProperty("tilesets", out var jTilesets))
-				throw new InvalidOperationException("Unable to find LDtk Tilesets");
-			if (!root.TryGetProperty("defaultGridSize", out var jDefaultGridSize))
-				throw new InvalidOperationException("Unable to find LDtk 'DefaultGridSize'.");
-			if (!root.TryGetProperty("levels", out var jLevels))
-				throw new InvalidOperationException("Unable to find LDtk 'Levels'.");
+				if (layer.Type != LDtkLayerType.Entities)
+					continue;
 
-			var tilesets = MapTileset.Process(jTilesets);
-			var levels = MapLevel.Process(jLevels, jDefaultGridSize.GetInt32());
-
-			foreach (var tileset in tilesets)
-			{
-				var tilesetId = tileset.Id;
-				var tilesetName = HashHelpers.Cache32(tileset.Name);
-
-				_tilesetCacheById[tilesetId] = tileset;
-				_tilesetCacheByName[tilesetName] = tileset;
-			}
-
-			foreach (var level in levels)
-			{
-				var lvlCacheId = HashHelpers.Cache32(level.Id);
-				var lvlCacheName = HashHelpers.Cache32(level.Name);
-
-				_levelCacheById[lvlCacheId] = level;
-				_levelCacheByName[lvlCacheName] = level;
-
-				foreach (var layer in level.Layers)
+				foreach (var entity in layer.InstanceAs<LDtkEntityInstance>())
 				{
-					var layerCache = HashHelpers.Cache32(layer.Id);
+					var entityCache = HashHelpers.Cache64(entity.Id);
 
-					_layerCacheById[layerCache] = layer;
-
-					if (layer.Type != MapLayerType.Entities)
-						continue;
-
-					foreach (var entity in layer.InstanceAs<MapEntityInstance>())
-					{
-						var entityCache = HashHelpers.Cache64(entity.Id);
-
-						_entityCacheById[entityCache] = entity;
-					}
+					_entityCacheById[entityCache] = entity;
 				}
 			}
-
-			Length = (ulong)bytes.Length;
 		}
 
 		IsValid = true;
-		LastAccessFrame = DateTime.UtcNow;
+		LastAccessTime = DateTime.Now;
 
-		return Length;
+		return;
 	}
 
 	/// <summary>
@@ -169,8 +167,8 @@ public sealed class LDTKProject : IAsset
 	/// Retrieves a map entity instance by its original ID string.
 	/// </summary>
 	/// <param name="id">The entity ID string.</param>
-	/// <returns>The matching <see cref="MapEntityInstance"/>.</returns>
-	public MapEntityInstance GetEntityById(string id)
+	/// <returns>The matching <see cref="LDtkEntityInstance"/>.</returns>
+	public LDtkEntityInstance GetEntityById(string id)
 	{
 		if (id.IsEmpty())
 			throw new ArgumentNullException(nameof(id));
@@ -178,7 +176,7 @@ public sealed class LDTKProject : IAsset
 		if (!_entityCacheById.TryGetValue(hash, out var entity))
 			throw new Exception($"Unable to find a entity with the id '{id}'.");
 
-		LastAccessFrame = DateTime.UtcNow;
+		LastAccessTime = DateTime.Now;
 
 		return entity;
 	}
@@ -188,19 +186,19 @@ public sealed class LDTKProject : IAsset
 	/// </summary>
 	/// <param name="id">The unique entity identifier to look up.</param>
 	/// <param name="value">
-	/// When this method returns, contains the resolved <see cref="MapEntityInstance"/> 
+	/// When this method returns, contains the resolved <see cref="LDtkEntityInstance"/> 
 	/// if the lookup succeeded; otherwise <c>null</c>.
 	/// </param>
 	/// <returns>
 	/// <c>true</c> if the entity was found and returned successfully; 
 	/// <c>false</c> if the lookup failed or the identifier does not exist.
 	/// </returns>
-	public bool TryGetEntityById(string id, out MapEntityInstance value)
+	public bool TryGetEntityById(string id, out LDtkEntityInstance value)
 	{
 		try
 		{
 			value = GetEntityById(id);
-			LastAccessFrame = DateTime.UtcNow;
+			LastAccessTime = DateTime.Now;
 
 			return true;
 		}
@@ -226,7 +224,7 @@ public sealed class LDTKProject : IAsset
 		if (!_layerCacheById.TryGetValue(HashHelpers.Cache32(id), out var layer))
 			throw new KeyNotFoundException($"Unable to find a layer with the id '{id}'.");
 
-		LastAccessFrame = DateTime.UtcNow;
+		LastAccessTime = DateTime.Now;
 
 		return layer;
 	}
@@ -248,7 +246,7 @@ public sealed class LDTKProject : IAsset
 		try
 		{
 			value = GetLayerById(id);
-			LastAccessFrame = DateTime.UtcNow;
+			LastAccessTime = DateTime.Now;
 
 			return true;
 		}
@@ -267,7 +265,7 @@ public sealed class LDTKProject : IAsset
 	/// </summary>
 	/// <param name="id">The string ID assigned to the level in the LDTK project.</param>
 	/// <param name="level">
-	/// When this method returns, contains the <see cref="MapLevel"/> associated with the specified ID,
+	/// When this method returns, contains the <see cref="LDtkLevel"/> associated with the specified ID,
 	/// or <c>null</c> if no matching level is found.
 	/// </param>
 	/// <returns>
@@ -276,12 +274,12 @@ public sealed class LDTKProject : IAsset
 	/// <exception cref="Exception">
 	/// Thrown if the level cache is empty, indicating that no levels are available to search.
 	/// </exception>
-	public bool TryGetLevelById(string id, out MapLevel level)
+	public bool TryGetLevelById(string id, out LDtkLevel level)
 	{
 		try
 		{
 			level = GetLevelById(id);
-			LastAccessFrame = DateTime.UtcNow;
+			LastAccessTime = DateTime.Now;
 
 			return level != null;
 		}
@@ -296,11 +294,11 @@ public sealed class LDTKProject : IAsset
 	/// Retrieves a map level using its original string identifier.
 	/// </summary>
 	/// <param name="id">The string ID assigned to the level in the LDTK project.</param>
-	/// <returns>The matching <see cref="MapLevel"/> if found; otherwise, <c>null</c>.</returns>
+	/// <returns>The matching <see cref="LDtkLevel"/> if found; otherwise, <c>null</c>.</returns>
 	/// <exception cref="Exception">
 	/// Thrown if the level cache is empty, indicating that no levels are available to search.
 	/// </exception>
-	public MapLevel GetLevelById(string id)
+	public LDtkLevel GetLevelById(string id)
 	{
 		if (id.IsEmpty())
 			throw new ArgumentNullException(nameof(id));
@@ -308,7 +306,7 @@ public sealed class LDTKProject : IAsset
 		if (!_levelCacheById.TryGetValue(hash, out var level))
 			throw new KeyNotFoundException($"Unable to find a level with the id '{id}'.");
 
-		LastAccessFrame = DateTime.UtcNow;
+		LastAccessTime = DateTime.Now;
 
 		return level;
 	}
@@ -318,7 +316,7 @@ public sealed class LDTKProject : IAsset
 	/// </summary>
 	/// <param name="name">The name of the level to search for.</param>
 	/// <param name="level">
-	/// When this method returns, contains the <see cref="MapLevel"/> with the specified name,
+	/// When this method returns, contains the <see cref="LDtkLevel"/> with the specified name,
 	/// or <c>null</c> if no matching level is found.
 	/// </param>
 	/// <returns>
@@ -330,12 +328,12 @@ public sealed class LDTKProject : IAsset
 	/// <exception cref="Exception">
 	/// Thrown if the level list is uninitialized or empty.
 	/// </exception>
-	public bool TryGetLevelByName(string name, out MapLevel level)
+	public bool TryGetLevelByName(string name, out LDtkLevel level)
 	{
 		try
 		{
 			level = GetLevelByName(name);
-			LastAccessFrame = DateTime.UtcNow;
+			LastAccessTime = DateTime.Now;
 
 			return level != null;
 		}
@@ -350,14 +348,14 @@ public sealed class LDTKProject : IAsset
 	/// Retrieves a map level by matching its display name.
 	/// </summary>
 	/// <param name="name">The name of the level to search for.</param>
-	/// <returns>The <see cref="MapLevel"/> with the specified name, or <c>null</c> if not found.</returns>
+	/// <returns>The <see cref="LDtkLevel"/> with the specified name, or <c>null</c> if not found.</returns>
 	/// <exception cref="ArgumentNullException">
 	/// Thrown if <paramref name="name"/> is <c>null</c> or empty.
 	/// </exception>
 	/// <exception cref="Exception">
 	/// Thrown if the level list is uninitialized or empty.
 	/// </exception>
-	public MapLevel GetLevelByName(string name)
+	public LDtkLevel GetLevelByName(string name)
 	{
 		if (name.IsEmpty())
 			throw new ArgumentNullException(nameof(name), "Is null or empty");
@@ -365,7 +363,7 @@ public sealed class LDTKProject : IAsset
 		if (!_levelCacheByName.TryGetValue(hash, out var level))
 			throw new KeyNotFoundException($"Unable to find a level with the name '{name}'.");
 
-		LastAccessFrame = DateTime.UtcNow;
+		LastAccessTime = DateTime.Now;
 
 		return level;
 	}
@@ -377,16 +375,16 @@ public sealed class LDTKProject : IAsset
 	/// Retrieves a tileset from the project by its numeric identifier index.
 	/// </summary>
 	/// <param name="id">The tileset's internal index value, as defined in the LDTK project.</param>
-	/// <returns>The <see cref="MapTileset"/> associated with the given index.</returns>
+	/// <returns>The <see cref="LDtkTileset"/> associated with the given index.</returns>
 	/// <exception cref="Exception">
 	/// Thrown if the tileset cache is uninitialized or if no tileset matches the specified index.
 	/// </exception>
-	public MapTileset GetTilesetId(uint id)
+	public LDtkTileset GetTilesetId(uint id)
 	{
 		if (!_tilesetCacheById.TryGetValue(id, out var tilemap))
 			throw new Exception($"Unable to find a tileset with the id '{id}'.");
 
-		LastAccessFrame = DateTime.UtcNow;
+		LastAccessTime = DateTime.Now;
 
 		return tilemap;
 	}
@@ -396,19 +394,19 @@ public sealed class LDTKProject : IAsset
 	/// </summary>
 	/// <param name="id">The unique tileset identifier to look up.</param>
 	/// <param name="value">
-	/// When this method returns, contains the resolved <see cref="MapTileset"/>
+	/// When this method returns, contains the resolved <see cref="LDtkTileset"/>
 	/// if the lookup succeeded; otherwise <c>null</c>.
 	/// </param>
 	/// <returns>
 	/// <c>true</c> if the tileset was found and returned successfully;
 	/// <c>false</c> if the lookup failed or the identifier does not exist.
 	/// </returns>
-	public bool TryGetTilesetId(uint id, out MapTileset value)
+	public bool TryGetTilesetId(uint id, out LDtkTileset value)
 	{
 		try
 		{
 			value = GetTilesetId(id);
-			LastAccessFrame = DateTime.UtcNow;
+			LastAccessTime = DateTime.Now;
 
 			return true;
 		}
@@ -423,14 +421,14 @@ public sealed class LDTKProject : IAsset
 	/// Retrieves a tileset from the project by matching its name.
 	/// </summary>
 	/// <param name="name">The name of the tileset as defined in the project.</param>
-	/// <returns>The matching <see cref="MapTileset"/> instance.</returns>
+	/// <returns>The matching <see cref="LDtkTileset"/> instance.</returns>
 	/// <exception cref="ArgumentNullException">
 	/// Thrown if <paramref name="name"/> is null or an empty string.
 	/// </exception>
 	/// <exception cref="Exception">
 	/// Thrown if the tileset cache is uninitialized or no tileset with the given name is found.
 	/// </exception>
-	public MapTileset GetTilesetByName(string name)
+	public LDtkTileset GetTilesetByName(string name)
 	{
 		if (name.IsEmpty())
 			throw new ArgumentNullException(nameof(name), "Is null or empty");
@@ -438,7 +436,7 @@ public sealed class LDTKProject : IAsset
 		if (!_tilesetCacheByName.TryGetValue(hash, out var tileset))
 			throw new Exception($"Unable to find a tileset with the name '{name}'.");
 
-		LastAccessFrame = DateTime.UtcNow;
+		LastAccessTime = DateTime.Now;
 
 		return tileset;
 	}
@@ -448,19 +446,19 @@ public sealed class LDTKProject : IAsset
 	/// </summary>
 	/// <param name="name">The tileset name to look up.</param>
 	/// <param name="value">
-	/// When this method returns, contains the resolved <see cref="MapTileset"/>
+	/// When this method returns, contains the resolved <see cref="LDtkTileset"/>
 	/// if the lookup succeeded; otherwise <c>null</c>.
 	/// </param>
 	/// <returns>
 	/// <c>true</c> if the tileset was found and returned successfully;
 	/// <c>false</c> if the lookup failed or the name does not exist.
 	/// </returns>
-	public bool TryGetTilesetByName(string name, out MapTileset value)
+	public bool TryGetTilesetByName(string name, out LDtkTileset value)
 	{
 		try
 		{
 			value = GetTilesetByName(name);
-			LastAccessFrame = DateTime.UtcNow;
+			LastAccessTime = DateTime.Now;
 			return true;
 		}
 		catch

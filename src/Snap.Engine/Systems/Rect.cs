@@ -8,6 +8,7 @@ namespace Snap.Engine.Systems;
 public struct Rect2 : IEquatable<Rect2>
 {
 	private const float Epsilon = 1e-6f;
+	private const float QuantizeFactor = 1e6f; // 1 / Epsilon
 
 	#region Properties
 	/// <summary>
@@ -326,9 +327,13 @@ public struct Rect2 : IEquatable<Rect2>
 	/// <returns>
 	/// <c>true</c> if the rectangles have the same position and size; otherwise, <c>false</c>.
 	/// </returns>
-	public readonly bool Equals(Rect2 other) =>
-		X.Equals(other.X) && Y.Equals(other.Y) &&
-		Width.Equals(other.Width) && Height.Equals(other.Height);
+	public readonly bool Equals(Rect2 other)
+		=> MathHelpers.AlmostEquals(X, other.X, Epsilon)
+		&& MathHelpers.AlmostEquals(Y, other.Y, Epsilon)
+		&& MathHelpers.AlmostEquals(Width, other.Width, Epsilon)
+		&& MathHelpers.AlmostEquals(Height, other.Height, Epsilon);
+	// X.Equals(other.X) && Y.Equals(other.Y) &&
+	// Width.Equals(other.Width) && Height.Equals(other.Height);
 
 	/// <summary>
 	/// Determines whether the specified object is equal to the current <see cref="Rect2"/>.
@@ -347,7 +352,14 @@ public struct Rect2 : IEquatable<Rect2>
 	/// <returns>
 	/// A 32-bit signed integer hash code that uniquely represents the rectangle's position and size.
 	/// </returns>
-	public override readonly int GetHashCode() => HashCode.Combine(X, Y, Width, Height);
+	public override readonly int GetHashCode() //=> HashCode.Combine(X, Y, Width, Height);
+	{
+		int hashX = (int)MathF.Round(X * QuantizeFactor);
+		int hashY = (int)MathF.Round(Y * QuantizeFactor);
+		int hashWidth = (int)MathF.Round(Width * QuantizeFactor);
+		int hashHeight = (int)MathF.Round(Height * QuantizeFactor);
+		return HashCode.Combine(hashX, hashY, hashWidth, hashHeight);
+	}
 
 	/// <summary>
 	/// Returns a string that represents the current <see cref="Rect2"/>.
@@ -355,7 +367,7 @@ public struct Rect2 : IEquatable<Rect2>
 	/// <returns>
 	/// A string in the format <c>Rect(X,Y,Width,Height)</c>.
 	/// </returns>
-	public override readonly string ToString() => $"Rect({X},{Y},{Width},{Height})";
+	public override readonly string ToString() => $"Rect({X}, {Y}, {Width}, {Height})";
 	#endregion
 
 

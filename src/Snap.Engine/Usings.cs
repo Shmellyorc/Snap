@@ -13,13 +13,12 @@ global using System.Text;
 global using System.Text.Json;
 global using System.Xml.Serialization;
 
-global using Snap.Content.Abstractions;
-global using Snap.Content.Abstractions.Interfaces;
 global using Snap.Engine.Assets;
 global using Snap.Engine.Assets.Fonts;
 global using Snap.Engine.Assets.LDTKImporter;
 global using Snap.Engine.Assets.LDTKImporter.Instances;
 global using Snap.Engine.Assets.Loaders;
+global using Snap.Engine.Assets.Mounts;
 global using Snap.Engine.Assets.Spritesheets;
 global using Snap.Engine.Beacons;
 global using Snap.Engine.Coroutines;
@@ -41,6 +40,7 @@ global using Snap.Engine.Services;
 global using Snap.Engine.Sounds;
 global using Snap.Engine.Systems;
 global using Snap.Engine.Tweens;
+global using Snap.Packer;
 
 global using SFBlendMode = SFML.Graphics.BlendMode;
 global using SFClock = SFML.System.Clock;

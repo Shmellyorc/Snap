@@ -5,6 +5,7 @@ namespace Snap.Engine.Assets.Fonts;
 /// </summary>
 public class Font : IAsset
 {
+	internal SFImage Image { get; set; }
 	internal SFTexture Texture { get; set; }
 
 	/// <summary>
@@ -35,7 +36,7 @@ public class Font : IAsset
 	/// <summary>
 	/// Gets the total number of bytes read from the font file.
 	/// </summary>
-	public ulong Length { get; protected set; }
+	public byte[] Data { get; protected set; }
 
 	/// <summary>
 	/// Gets the default spacing between glyphs.
@@ -52,7 +53,8 @@ public class Font : IAsset
 	/// </summary>
 	public virtual float LineSpacing { get; }
 
-	public DateTime LastAccessFrame { get; protected set; }
+	/// <summary>Gets or sets the last time this font was accessed. Used by the asset manager for eviction decisions.</summary>
+	public DateTime LastAccessTime { get; protected set; }
 
 
 	/// <summary>
@@ -67,22 +69,22 @@ public class Font : IAsset
 		return g.Advance + Spacing;
 	}
 
-	/// <summary>
-	/// Initializes a new instance of the <see cref="Font"/> class using a unique ID and font file tag.
-	/// </summary>
+	/// <summary>Initializes a new font instance from raw byte data.</summary>
+	/// <param name="data">The raw font file bytes.</param>
 	/// <param name="id">The unique identifier for the font.</param>
-	/// <param name="filename">The file path or tag for the font source.</param>
-	public Font(uint id, string filename)
+	/// <param name="tag">The virtual path or tag used to identify the font source.</param>
+	public Font(byte[] data, uint id, string tag)
 	{
+		Data = data;
 		Id = id;
-		Tag = filename;
+		Tag = tag;
 	}
 
 	/// <summary>
 	/// Loads the font data and returns its length in bytes. May be overridden by derived font types.
 	/// </summary>
 	/// <returns>The total number of bytes loaded.</returns>
-	public virtual ulong Load() { return Length; }
+	public virtual void Load() { }
 
 	/// <summary>
 	/// Unloads the font from memory and logs an informational message.
@@ -92,6 +94,7 @@ public class Font : IAsset
 		if (!IsValid)
 			return;
 
+		Image?.Dispose();
 		Texture?.Dispose();
 
 		Logger.Instance.Log(LogLevel.Info, $"Unloaded asset {Id}, of {GetType().Name}");
@@ -104,6 +107,7 @@ public class Font : IAsset
 	/// </summary>
 	public virtual void Dispose()
 	{
+		Image?.Dispose();
 		Texture?.Dispose();
 
 		Logger.Instance.Log(LogLevel.Info, $"Unloaded asset {Id}, of {GetType().Name}");

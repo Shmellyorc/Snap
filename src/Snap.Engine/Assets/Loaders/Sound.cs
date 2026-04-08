@@ -40,14 +40,11 @@ public sealed class Sound : IAsset, IEquatable<Sound>
 	/// </summary>
 	public TimeSpan Duration => IsValid ? Buffer.Duration.ToTimeSpan() : TimeSpan.Zero;
 
+	/// <summary>Gets the last time this sound was accessed. Used by the asset manager for eviction decisions.</summary>
+	public DateTime LastAccessTime { get; private set; }
 
-
-	public DateTime LastAccessFrame { get; private set; }
-
-
-	public ulong Length { get; private set; }
-
-
+	/// <summary>Gets the raw audio byte data of the sound file.</summary>
+	public byte[] Data { get; private set; }
 
 	/// <summary>
 	/// The sample rate (in Hz) of the sound buffer. Returns 0 if not loaded.
@@ -67,11 +64,14 @@ public sealed class Sound : IAsset, IEquatable<Sound>
 
 
 
-	internal Sound(uint id, string filename, bool looped)
+	internal Sound(byte[] data, uint id, string filename, bool looped)
 	{
+		Data = data;
 		Id = id;
 		Tag = filename;
 		IsLooped = looped;
+
+		LastAccessTime = DateTime.Now;
 	}
 
 	/// <summary>
@@ -92,6 +92,41 @@ public sealed class Sound : IAsset, IEquatable<Sound>
 			Load();
 
 		return SoundInstancePool.GetInstance(this);
+	}
+
+
+
+
+	/// <summary>
+	/// Loads the sound buffer into memory from the file specified by <see cref="Tag"/>.
+	/// </summary>
+	/// <returns>
+	/// The number of bytes loaded from disk into the sound buffer.
+	/// </returns>
+	/// <exception cref="FileNotFoundException">
+	/// Thrown if the file path does not exist or is inaccessible.
+	/// </exception>
+	public void Load()
+	{
+		if (IsValid)
+		{
+			LastAccessTime = DateTime.Now;
+			return;
+		}
+
+		// using var s = AssetManager.OpenStream(Tag);
+		// using var ms = new MemoryStream();
+		// s.CopyTo(ms);
+
+		// var soundBytes = ms.ToArray();
+
+		Buffer = new SFSoundBuffer(Data);
+
+		IsValid = true;
+		LastAccessTime = DateTime.Now;
+		// Length = (ulong)Buffer.SampleRate * 2UL;
+
+		return;
 	}
 
 	/// <summary>
@@ -135,38 +170,6 @@ public sealed class Sound : IAsset, IEquatable<Sound>
 		GC.SuppressFinalize(this);
 
 		IsValid = false;
-	}
-
-	/// <summary>
-	/// Loads the sound buffer into memory from the file specified by <see cref="Tag"/>.
-	/// </summary>
-	/// <returns>
-	/// The number of bytes loaded from disk into the sound buffer.
-	/// </returns>
-	/// <exception cref="FileNotFoundException">
-	/// Thrown if the file path does not exist or is inaccessible.
-	/// </exception>
-	public ulong Load()
-	{
-		if (IsValid)
-		{
-			LastAccessFrame = DateTime.UtcNow;
-			return 0u;
-		}
-
-		using var s = AssetManager.OpenStream(Tag);
-		using var ms = new MemoryStream();
-		s.CopyTo(ms);
-
-		var soundBytes = ms.ToArray();
-
-		Buffer = new SFSoundBuffer(ms);
-
-		IsValid = true;
-		LastAccessFrame = DateTime.UtcNow;
-		Length = (ulong)Buffer.SampleRate * 2UL;
-
-		return Length;
 	}
 
 	/// <summary>

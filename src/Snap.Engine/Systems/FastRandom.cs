@@ -24,7 +24,7 @@ public sealed class FastRandom
 	{
 		Instance ??= this;
 
-		ulong seed = (ulong)DateTime.UtcNow.Ticks;
+		ulong seed = (ulong)DateTime.Now.Ticks;
 		SetSeed(seed);
 	}
 

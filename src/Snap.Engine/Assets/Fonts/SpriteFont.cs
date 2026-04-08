@@ -13,6 +13,33 @@ public sealed class SpriteFont : Font
 	private readonly string _charList;
 	private float _finalLineSpacing;
 
+
+	/// <summary>All printable ASCII characters from space (32) to tilde (126).</summary>
+	public const string CharListAll = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+
+	/// <summary>Digits 0 through 9.</summary>
+	public const string CharListNumbers = "0123456789";
+
+	/// <summary>Digits and common symbols used in UI and numeric displays.</summary>
+	public const string CharListNumbersAndSymbols = "!\"#$%&'()*+,-./0123456789:;<=>?@";
+
+	/// <summary>Uppercase letters A through Z.</summary>
+	public const string CharListUppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+	/// <summary>Lowercase letters a through z.</summary>
+	public const string CharListLowercase = "abcdefghijklmnopqrstuvwxyz";
+
+	/// <summary>Both uppercase and lowercase letters A-Z and a-z.</summary>
+	public const string CharListUppercaseLowercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+	/// <summary>Hexadecimal characters 0-9 and A-F.</summary>
+	public const string CharListHex = "0123456789ABCDEF";
+
+	/// <summary>All punctuation and symbol characters (non-alphanumeric).</summary>
+	public const string CharListPunctuation = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~";
+
+
+
 	/// <summary>
 	/// Gets the adjusted line height used for rendering multiline text.
 	/// </summary>
@@ -23,15 +50,15 @@ public sealed class SpriteFont : Font
 	/// </summary>
 	public override float Spacing => _spacing;
 
-	internal SpriteFont(uint id, string filename, float spacing, float lineSpacing,
-		bool smoothing = false, string charList = null) : base(id, filename)
+	internal SpriteFont(byte[] data, uint id, string filename, float spacing, float lineSpacing,
+		bool smoothing = false, string charList = null) : base(data, id, filename)
 	{
 		_smoothing = smoothing;
 		_spacing = spacing;
 		_lineSpacing = lineSpacing;
 		_charList = charList;
 
-		LastAccessFrame = DateTime.UtcNow;
+		LastAccessTime = DateTime.Now;
 	}
 
 	/// <summary>
@@ -60,38 +87,39 @@ public sealed class SpriteFont : Font
 	/// </summary>
 	/// <returns>The estimated byte length of the loaded texture.</returns>
 	/// <exception cref="Exception">Thrown if the image file is missing or glyph extraction fails.</exception>
-	public override ulong Load()
+	public override void Load()
 	{
 		if (IsValid)
 		{
-			LastAccessFrame = DateTime.UtcNow;
-			return 0u;
+			LastAccessTime = DateTime.Now;
+			return;
 		}
 
-		byte[] bytes;
-		using (var stream = AssetManager.OpenStream(Tag))
-		using (var ms = new MemoryStream())
-		{
-			stream.CopyTo(ms);
-			bytes = ms.ToArray();
-		}
+		// byte[] bytes;
+		// using (var stream = AssetManager.OpenStream(Tag))
+		// using (var ms = new MemoryStream())
+		// {
+		// 	stream.CopyTo(ms);
+		// 	bytes = ms.ToArray();
+		// }
 
 		var seq = _charList.IsEmpty()
 			? " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOP" +
 				"QRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
 			: _charList;
 
-		Texture = new SFTexture(bytes) { Smooth = _smoothing };
+		Image = new SFImage(Data);
+		Texture = new SFTexture(Image) { Smooth = _smoothing };
 
-		Glyphs = LoadBorderCells(Tag, seq, _spacing);
+		Glyphs = LoadBorderCells(Image, seq, _spacing);
 
 		_finalLineSpacing = Glyphs.Max(x => x.Value.Cell.Height);
 
 		IsValid = true;
-		LastAccessFrame = DateTime.UtcNow;
-		Length = Texture.Size.X * (ulong)Texture.Size.Y * 4UL;
+		LastAccessTime = DateTime.Now;
+		// Length = Texture.Size.X * (ulong)Texture.Size.Y * 4UL;
 
-		return Length;
+		// return Length;
 	}
 
 	/// <summary>
@@ -103,22 +131,23 @@ public sealed class SpriteFont : Font
 		if (!IsValid || Texture == null || Texture.IsInvalid)
 			Load();
 
-		LastAccessFrame = DateTime.UtcNow;
+		LastAccessTime = DateTime.Now;
 
 		return Texture;
 	}
 
-	private Dictionary<char, Glyph> LoadBorderCells(string imagePath, string asciiSequence, float spacing = 0f)
+	private Dictionary<char, Glyph> LoadBorderCells(SFImage image, string asciiSequence, float spacing = 0f)
 	{
-		using var s = AssetManager.OpenStream(imagePath);
-		using var ms = new MemoryStream();
-		s.CopyTo(ms);
-		using var img = new SFImage(ms.ToArray());
+		// using var s = AssetManager.OpenStream(imagePath);
+		// using var ms = new MemoryStream();
+		// s.CopyTo(ms);
+		// using var img = new SFImage(ms.ToArray());
+		// var img = new SFImage(Data);
 
-		uint w = img.Size.X, h = img.Size.Y;
+		uint w = image.Size.X, h = image.Size.Y;
 
 		// SFColor topLeft = img.GetPixel(0, 0);
-		SFColor topLeft = img.GetPixel(new(0, 0));
+		SFColor topLeft = image.GetPixel(new(0, 0));
 
 		bool isFullyTransparent = topLeft.A == 0;
 
@@ -137,7 +166,7 @@ public sealed class SpriteFont : Font
 		bool IsMagenta(uint x, uint y)
 		{
 			// var px = img.GetPixel(x, y);
-			var px = img.GetPixel(new(x, y));
+			var px = image.GetPixel(new(x, y));
 			return px.R == topLeft.R && px.G == topLeft.G && px.B == topLeft.B;// && px.A == topLeft.A;
 		}
 
@@ -221,7 +250,7 @@ public sealed class SpriteFont : Font
 				for (int yy = y0; yy <= y1; yy++)
 				{
 					// var px = img.GetPixel((uint)x0, (uint)yy);
-					var px = img.GetPixel(new((uint)x0, (uint)yy));
+					var px = image.GetPixel(new((uint)x0, (uint)yy));
 					if (!(px.R == borderColor.R && px.G == borderColor.G && px.B == borderColor.B && px.A == borderColor.A))
 					{
 						columnAllBorder = false;
@@ -238,7 +267,7 @@ public sealed class SpriteFont : Font
 				for (int yy = y0; yy <= y1; yy++)
 				{
 					// var px = img.GetPixel((uint)x1, (uint)yy);
-					var px = img.GetPixel(new((uint)x1, (uint)yy));
+					var px = image.GetPixel(new((uint)x1, (uint)yy));
 					if (!(px.R == borderColor.R && px.G == borderColor.G && px.B == borderColor.B && px.A == borderColor.A))
 					{
 						columnAllBorder = false;
@@ -255,7 +284,7 @@ public sealed class SpriteFont : Font
 				for (int xx = x0; xx <= x1; xx++)
 				{
 					// var px = img.GetPixel((uint)xx, (uint)y0);
-					var px = img.GetPixel(new((uint)xx, (uint)y0));
+					var px = image.GetPixel(new((uint)xx, (uint)y0));
 					if (!(px.R == borderColor.R && px.G == borderColor.G && px.B == borderColor.B && px.A == borderColor.A))
 					{
 						columnAllBorder = false;
@@ -272,7 +301,7 @@ public sealed class SpriteFont : Font
 				for (int xx = x0; xx <= x1; xx++)
 				{
 					// var px = img.GetPixel((uint)xx, (uint)y1);
-					var px = img.GetPixel(new((uint)xx, (uint)y1));
+					var px = image.GetPixel(new((uint)xx, (uint)y1));
 					if (!(px.R == borderColor.R && px.G == borderColor.G && px.B == borderColor.B && px.A == borderColor.A))
 					{
 						columnAllBorder = false;
