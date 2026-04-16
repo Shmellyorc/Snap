@@ -98,8 +98,8 @@ public static class EntityExtentions
     {
         foreach (var a in GetDescendants(e))
         {
-            if (a is T)
-                yield return (T)a;
+            if (a is T t)
+                yield return t;
         }
     }
 
@@ -117,11 +117,6 @@ public static class EntityExtentions
 
         if (e.IsChild && e.Parent != null)
             pos += e.Parent.GetGlobalPosition();
-
-        // if (e.IsChild)
-        // 	return e.Parent?.Position + e._position ?? e._position;
-        // else
-        // 	return e._position;
 
         return pos;
     }

@@ -87,7 +87,6 @@ public sealed class AssetManager
 
 
 
-
     #region Mount Management
     /// <summary>Adds a mount to the beginning of the mount list (highest priority).</summary>
     /// <param name="mount">The mount to add.</param>
@@ -177,8 +176,6 @@ public sealed class AssetManager
 
 
 
-
-
     #region GetOrLoad
     /// <summary>Loads an asset of type <typeparamref name="T"/> from the specified virtual path.</summary>
     /// <typeparam name="T">The asset type to load (must implement <see cref="IAsset"/>).</typeparam>
@@ -197,7 +194,6 @@ public sealed class AssetManager
         asset = GetOrLoadInternal<T>(path, null);
         return asset != null;
     }
-
 
     /// <summary>Loads a texture from the specified virtual path with the given repeat and smoothing settings.</summary>
     /// <param name="path">The virtual path to the texture asset.</param>
@@ -221,7 +217,6 @@ public sealed class AssetManager
         return asset != null;
     }
 
-
     /// <summary>Loads an LDtk map from the specified virtual path.</summary>
     /// <param name="path">The virtual path to the LDtk map asset (.ldtk or .json).</param>
     /// <returns>The loaded LDtk map, or <c>null</c> if the asset could not be found or loaded.</returns>
@@ -239,7 +234,6 @@ public sealed class AssetManager
         asset = LoadLDtk(path);
         return asset != null;
     }
-
 
     /// <summary>Loads a sprite font from the specified virtual path with the given spacing and smoothing settings.</summary>
     /// <param name="path">The virtual path to the sprite font texture asset.</param>
@@ -268,7 +262,6 @@ public sealed class AssetManager
         return asset != null;
     }
 
-
     /// <summary>Loads a bitmap font from the specified virtual path with the given spacing and smoothing settings.</summary>
     /// <param name="path">The virtual path to the bitmap font asset (.fnt).</param>
     /// <param name="spacing">Additional spacing between characters.</param>
@@ -294,7 +287,6 @@ public sealed class AssetManager
         return asset != null;
     }
 
-
     /// <summary>Loads a spritesheet from the specified virtual path.</summary>
     /// <param name="path">The virtual path to the spritesheet asset (.sheet or .json).</param>
     /// <returns>The loaded spritesheet, or <c>null</c> if the asset could not be found or loaded.</returns>
@@ -312,7 +304,6 @@ public sealed class AssetManager
         asset = LoadSheet(path);
         return asset != null;
     }
-
 
     /// <summary>Loads a sound from the specified virtual path with the given loop setting.</summary>
     /// <param name="path">The virtual path to the sound asset (supports .wav, .mp3, .ogg, and many other formats).</param>
@@ -333,7 +324,6 @@ public sealed class AssetManager
         asset = LoadSound(path, looped);
         return asset != null;
     }
-
 
     /// <summary>
     /// Retrieves the texture associated with a given tileset ID from an LDTK project.
@@ -373,6 +363,42 @@ public sealed class AssetManager
             throw new FileNotFoundException($"Unable to locate file: {wanted}");
 
         return texture;
+    }
+
+    /// <summary>
+    /// Attempts to retrieve the texture associated with a given tileset ID from an LDTK project.
+    /// </summary>
+    /// <param name="project">The loaded <see cref="LDtkMap"/> that contains the tileset reference.</param>
+    /// <param name="tilesetId">The unique ID of the tileset to locate.</param>
+    /// <param name="texture">
+    /// When this method returns, contains the <see cref="Texture"/> associated with the specified tileset ID 
+    /// if the operation succeeded; otherwise, <c>null</c>. This parameter is passed uninitialized.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the tileset texture was successfully retrieved; otherwise, <c>false</c>.
+    /// </returns>
+    /// <remarks>
+    /// This method does not throw exceptions. Instead, it returns <c>false</c> under any failure condition, 
+    /// including when:
+    /// <list type="bullet">
+    /// <item><description>The tileset ID is 0 (invalid).</description></item>
+    /// <item><description>The tileset ID does not exist in the project.</description></item>
+    /// <item><description>The texture file cannot be found or loaded.</description></item>
+    /// </list>
+    /// </remarks>
+    /// <seealso cref="GetTilesetTexture(LDtkMap, uint)"/>
+    public bool TryGetTilesetTexture(LDtkMap project, uint tilesetId, out Texture texture)
+    {
+        try
+        {
+            texture = GetTilesetTexture(project, tilesetId);
+            return true;
+        }
+        catch
+        {
+            texture = null;
+            return false;
+        }
     }
     #endregion
 

@@ -103,11 +103,17 @@ public sealed class Renderer
 	/// <summary>
 	/// Gets the current viewport size of the renderer.
 	/// </summary>
-	/// <remarks>
-	/// This property reflects the active viewport dimensions as defined in <see cref="EngineSettings.Instance"/>.  
-	/// It can be used to align rendering operations with the engine’s configured resolution.
-	/// </remarks>
 	public Vect2 Size => EngineSettings.Instance.Viewport;
+
+	/// <summary>
+	/// Gets the current viewport width in pixels.
+	/// </summary>
+	public int Width => (int)Size.X;
+
+	/// <summary>
+	/// Gets the current viewport height in pixels.
+	/// </summary>
+	public int Height => (int)Size.Y;
 
 	internal Renderer(int maxDrawCalls = 8192)
 	{
@@ -182,7 +188,6 @@ public sealed class Renderer
 			_drawCommands[texHandle] = list;
 		}
 
-		// list.Add(new DrawCommand(tex, quad, depth, _seqCounter++));
 		var cmd = new DrawCommand(tex, quad, depth, _seqCounter++, _currentCameraId);
 
 		InsertSorted(list, cmd);
@@ -657,13 +662,6 @@ public sealed class Renderer
 					new Vect2(g.Cell.Width, g.Cell.Height)
 				);
 
-				// source in font texture
-				// var srcInt = new SFRectI(
-				// 	(int)g.Cell.Left,
-				// 	(int)g.Cell.Top,
-				// 	(int)g.Cell.Width,
-				// 	(int)g.Cell.Height
-				// );
 				var srcInt = new SFRectI(
 					new((int)g.Cell.Left, (int)g.Cell.Top),
 					new((int)g.Cell.Width, (int)g.Cell.Height)
@@ -675,7 +673,6 @@ public sealed class Renderer
 			}
 		}
 	}
-
 
 	private void EngineDrawBypassAtlas(
 	Texture texture,
@@ -743,13 +740,6 @@ public sealed class Renderer
 		if (!texture.IsValid)
 			texture.Load();
 
-		// convert float Rect2 → IntRect
-		// var srcInt = new SFRectI(
-		// 	(int)srcRect.Left,
-		// 	(int)srcRect.Top,
-		// 	(int)srcRect.Width,
-		// 	(int)srcRect.Height
-		// );
 		var srcInt = new SFRectI(
 			new((int)srcRect.Left, (int)srcRect.Top),
 			new((int)srcRect.Width, (int)srcRect.Height)
@@ -768,82 +758,18 @@ public sealed class Renderer
 		float rotation,
 		TextureEffects effects)
 	{
-		// var result = new SFVertex[MaxVerticies];
 		var result = QuadPool.Rent();
 		_rentedQuads.Add(result);
 
 		QuadBuilder.BuildQuad(result, dstRect, srcRect, color, origin, scale, rotation, effects, texture);
-
-		// Compute a pivot that accounts for both origin and scale exactly once:
-		// float pivotX = origin.X * dstRect.Width * scale.X;
-		// float pivotY = origin.Y * dstRect.Height * scale.Y;
-
-		// // Build “local” corner positions already multiplied by scale:
-		// var localPos = new SFVectF[4];
-		// localPos[0] = new SFVectF(-pivotX, -pivotY);
-		// localPos[1] = new SFVectF(dstRect.Width * scale.X - pivotX, -pivotY);
-		// localPos[2] = new SFVectF(dstRect.Width * scale.X - pivotX, dstRect.Height * scale.Y - pivotY);
-		// localPos[3] = new SFVectF(-pivotX, dstRect.Height * scale.Y - pivotY);
-
-		// float cos = MathF.Cos(rotation);
-		// float sin = MathF.Sin(rotation);
-
-		// // Rotate each corner and then translate by (dstRect.X, dstRect.Y) + pivot
-		// for (int i = 0; i < localPos.Length; i++)
-		// {
-		// 	float x = localPos[i].X;
-		// 	float y = localPos[i].Y;
-
-		// 	localPos[i].X = cos * x - sin * y + dstRect.X + pivotX;
-		// 	localPos[i].Y = sin * x + cos * y + dstRect.Y + pivotY;
-		// }
-
-		// // Texture coordinates (UVs)
-		// float u1 = srcRect.Left;
-		// float v1 = srcRect.Top;
-		// float u2 = srcRect.Right;
-		// float v2 = srcRect.Bottom;
-
-		// if (effects.HasFlag(TextureEffects.FlipHorizontal))
-		// {
-		// 	(u1, u2) = (u2, u1);
-		// }
-		// if (effects.HasFlag(TextureEffects.FlipVertical))
-		// {
-		// 	(v1, v2) = (v2, v1);
-		// }
-
-		// if (EngineSettings.Instance.HalfTexelOffset)
-		// {
-		// 	float texelOffsetX = TexelOffset / texture.Size.X;
-		// 	float texelOffsetY = TexelOffset / texture.Size.Y;
-
-		// 	if (u1 < u2) { u1 += texelOffsetX; u2 -= texelOffsetX; }
-		// 	else { u1 -= texelOffsetX; u2 += texelOffsetX; }
-
-		// 	if (v1 < v2) { v1 += texelOffsetY; v2 -= texelOffsetY; }
-		// 	else { v1 -= texelOffsetY; v2 += texelOffsetY; }
-		// }
-
-		// // Build two triangles (6 vertices)
-		// result[0] = new SFVertex(localPos[0], color, new SFVectF(u1, v1));
-		// result[1] = new SFVertex(localPos[1], color, new SFVectF(u2, v1));
-		// result[2] = new SFVertex(localPos[3], color, new SFVectF(u1, v2));
-		// result[3] = new SFVertex(localPos[1], color, new SFVectF(u2, v1));
-		// result[4] = new SFVertex(localPos[2], color, new SFVectF(u2, v2));
-		// result[5] = new SFVertex(localPos[3], color, new SFVectF(u1, v2));
 
 		return result;
 	}
 
 
 
-	// internal void Begin(Camera camera)
 	internal void Begin()
 	{
-		// Game.Instance.ToRenderer.SetView(camera.ToEngine);
-		// _camera = camera;
-
 		DrawCalls = (int)_vertexBuffer.VertexCount;
 		Batches = _batches;
 
@@ -867,9 +793,6 @@ public sealed class Renderer
 		Camera currentCamera = null;
 
 		var totalCommands = _drawCommands.Values.Sum(l => l.Count);
-		// var allCommands = new List<DrawCommand>(totalCommands);
-		// foreach (var list in _drawCommands.Values)
-		// 	allCommands.AddRange(list);
 
 		_tempCommandList.Clear();
 		_tempCommandList.EnsureCapacity(totalCommands);
@@ -903,14 +826,9 @@ public sealed class Renderer
 				{
 					var command = cmd;
 
-					// Find which camera this command belongs to
-					// currentCamera = _cameraIdMap.FirstOrDefault(x => x.Value == command.CameraId).Key;
 					_cameraById.TryGetValue(cmd.CameraId, out currentCamera);
 					if (currentCamera != null)
-					{
-						// Update SFML view for this camera's batch
 						Game.Instance.ToRenderer.SetView(currentCamera.ToEngine);
-					}
 					currentCameraId = cmd.CameraId;
 				}
 			}
@@ -937,12 +855,6 @@ public sealed class Renderer
 				index += vertexCount;
 			}
 
-			// copy verts into the cache
-			// var src = cmd.Vertex.AsSpan();
-			// var dst = _vertexCache.AsSpan(index, src.Length);
-			// src.CopyTo(dst);
-			// index += src.Length;
-
 			currentTexture = cmd.Texture;
 		}
 
@@ -963,10 +875,6 @@ public sealed class Renderer
 		if (neededSize <= _vertexBufferSize)
 			return;
 
-		// double the size until big enough:
-		// int newSize = _vertexBufferSize;
-		// while (newSize < neededSize)
-		// 	newSize += EngineSettings.Instance.BatchIncreasment;
 		int newSize = Math.Max(_vertexBufferSize * 2, _vertexBufferSize + EngineSettings.Instance.BatchIncreasment);
 		while (newSize < neededSize)
 		{

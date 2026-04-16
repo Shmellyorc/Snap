@@ -850,7 +850,7 @@ public struct Vect2(float x, float y) : IEquatable<Vect2>
 	/// <param name="other">The target vector.</param>
 	/// <param name="t">The interpolation factor (0-1).</param>
 	/// <returns>The interpolated vector.</returns>
-	public readonly Vect2 LerpPercise(Vect2 other, float t) => LerpPercise(this, other, t);
+	public readonly Vect2 LerpPrecise(Vect2 other, float t) => LerpPercise(this, other, t);
 
 	/// <summary>
 	/// Linearly interpolates between two vectors using a precise method.
@@ -862,8 +862,8 @@ public struct Vect2(float x, float y) : IEquatable<Vect2>
 	public static Vect2 LerpPercise(Vect2 a, Vect2 b, float t)
 	{
 		return new Vect2(
-			MathHelpers.LerpPercise(a.X, b.X, t),
-			MathHelpers.LerpPercise(a.Y, b.Y, t)
+			MathHelpers.LerpPrecise(a.X, b.X, t),
+			MathHelpers.LerpPrecise(a.Y, b.Y, t)
 		);
 	}
 

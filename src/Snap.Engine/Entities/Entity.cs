@@ -365,6 +365,11 @@ public class Entity
 	/// </summary>
 	public CoroutineManager CoroutineManager => CoroutineManager.Instance;
 
+	/// <summary>
+	/// Provides access to the service manager for registering and retrieving game services.
+	/// </summary>
+	public ServiceManager Services => ServiceManager.Instance;
+
 	// /// <summary>
 	// /// Retrieves a texture asset by string name.
 	// /// </summary>

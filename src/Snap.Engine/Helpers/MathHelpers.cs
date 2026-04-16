@@ -5,9 +5,40 @@ namespace Snap.Engine.Helpers;
 /// </summary>
 public static class MathHelpers
 {
+	/// <summary>
+	/// Represents the mathematical constant π (pi), approximately 3.14159265358979.
+	/// </summary>
 	public const float Pi = MathF.PI;
 
+	/// <summary>
+	/// Represents the mathematical constant 2π (two times pi), approximately 6.28318530717959.
+	/// </summary>
 	public const float TwoPi = MathF.PI * 2f;
+
+	/// <summary>
+	/// Represents π/2 (90 degrees in radians), approximately 1.5707963267949.
+	/// </summary>
+	public const float PiOver2 = MathF.PI / 2f;
+
+	/// <summary>
+	/// Represents π/4 (45 degrees in radians), approximately 0.785398163397448.
+	/// </summary>
+	public const float PiOver4 = MathF.PI / 4f;
+
+	/// <summary>
+	/// Represents the reciprocal of π (1/π), approximately 0.318309886183791.
+	/// </summary>
+	public const float InvPi = 1f / MathF.PI;
+
+	/// <summary>
+	/// Represents the conversion factor from degrees to radians (π/180).
+	/// </summary>
+	public const float DegToRad = MathF.PI / 180f;
+
+	/// <summary>
+	/// Represents the conversion factor from radians to degrees (180/π).
+	/// </summary>
+	public const float RadToDeg = 180f / MathF.PI;
 
 	/// <summary>
 	/// Linearly interpolates between <paramref name="a"/> and <paramref name="b"/> by <paramref name="t"/>,
@@ -44,7 +75,7 @@ public static class MathHelpers
 	/// <param name="b">The end value.</param>
 	/// <param name="t">Interpolation factor.</param>
 	/// <returns>The interpolated value.</returns>
-	public static float LerpPercise(float a, float b, float t) =>
+	public static float LerpPrecise(float a, float b, float t) =>
 		a + (b - a) * t;
 
 	/// <summary>

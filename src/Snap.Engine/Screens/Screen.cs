@@ -130,38 +130,70 @@ public class Screen
 	/// </summary>
 	public float SafeRegion => EngineSettings.Instance.SafeRegion;
 
-	/// <summary>Provides access to the global logger instance for logging debug or runtime information.</summary>
+	/// <summary>
+	/// Provides access to the global logger instance for logging debug or runtime information.
+	/// </summary>
 	public Logger Logger => Logger.Instance;
 
-	/// <summary>Provides access to the global clock used for delta time and time tracking.</summary>
+	/// <summary>
+	/// Provides access to the global clock used for delta time and time tracking.
+	/// </summary>
 	public Clock Clock => Clock.Instance;
 
-	/// <summary>Gets the singleton instance of the running engine.</summary>
+	/// <summary>
+	/// Gets the singleton instance of the running engine.
+	/// </summary>
 	public Game Game => Game.Instance;
 
-	/// <summary>Gets the global random number generator used for deterministic or fast random operations.</summary>
+	/// <summary>
+	/// Gets the global random number generator used for deterministic or fast random operations.
+	/// </summary>
 	public FastRandom Rand => FastRandom.Instance;
 
-	/// <summary>Provides access to the main renderer responsible for drawing entities and visuals.</summary>
+	/// <summary>
+	/// Provides access to the main renderer responsible for drawing entities and visuals.
+	/// </summary>
 	public Renderer Renderer => Renderer.Instance;
 
-	/// <summary>Gets the global input mapping system used for handling keyboard, mouse, and gamepad input.</summary>
+	/// <summary>
+	/// Gets the global input mapping system used for handling keyboard, mouse, and gamepad input.
+	/// </summary>
 	public InputMap Input => Game.Instance.Input;
 
-	/// <summary>Provides access to the asset manager, responsible for loading and managing game assets.</summary>
+	/// <summary>
+	/// Provides access to the asset manager, responsible for loading and managing game assets.
+	/// </summary>
 	public AssetManager Assets => AssetManager.Instance;
 
-	/// <summary>Manages cross-scene communication via beacon signaling and listening.</summary>
+	/// <summary>
+	/// Manages cross-scene communication via beacon signaling and listening.
+	/// </summary>
 	public BeaconManager Beacon => BeaconManager.Instance;
 
-	/// <summary>Handles all sound playback, effects, and audio instances.</summary>
+	/// <summary>
+	/// Handles all sound playback, effects, and audio instances.
+	/// </summary>
 	public SoundManager SoundManager => SoundManager.Instance;
 
-	/// <summary>Provides access to the screen manager which handles scene stacking and transitions.</summary>
+	/// <summary>
+	/// Provides access to the screen manager which handles scene stacking and transitions.
+	/// </summary>
 	public ScreenManager ScreenManager => ScreenManager.Instance;
 
-	/// <summary>Manages coroutine execution tied to the screen’s lifecycle.</summary>
+	/// <summary>
+	/// Manages coroutine execution tied to the screen's lifecycle.
+	/// </summary>
 	public CoroutineManager CoroutineManager => CoroutineManager.Instance;
+
+	/// <summary>
+	/// Provides access to the service manager for registering and retrieving game services.
+	/// </summary>
+	/// <remarks>
+	/// Services are singleton components that provide shared functionality across screens and entities.
+	/// Use <see cref="ServiceManager.GetService{T}"/> to retrieve services and 
+	/// <see cref="ServiceManager.RegisterService"/> to register new services.
+	/// </remarks>
+	public ServiceManager Services => ServiceManager.Instance;
 
 
 	// /// <summary>
@@ -541,8 +573,6 @@ public class Screen
 
 		if (_dirtyState != DirtyState.None)
 		{
-			IEnumerable<Entity> pipeline = _entities;
-
 			if (_dirtyState.HasFlag(DirtyState.Update))
 			{
 				_updateEntities.Clear();
@@ -553,9 +583,9 @@ public class Screen
 					var entity = _entities[i];
 
 					if (entity != null
-					&& !entity.IsExiting
-					&& (entity.HasAncestorOfType<RenderTarget>()
-					|| entity.Bounds.Intersects(Camera.CullBounds) || entity.KeepAlive))
+						&& !entity.IsExiting
+						&& (entity.HasAncestorOfType<RenderTarget>()
+						|| entity.Bounds.Intersects(Camera.CullBounds) || entity.KeepAlive))
 					{
 						_updateEntities.Add(entity);
 					}

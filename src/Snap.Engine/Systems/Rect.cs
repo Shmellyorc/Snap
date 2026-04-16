@@ -60,7 +60,7 @@ public struct Rect2 : IEquatable<Rect2>
 	/// Gets a value indicating whether this rectangle is effectively empty,
 	/// defined as having a width and height less than or equal to a small epsilon.
 	/// </summary>
-	public readonly bool IsEmpty => MathF.Abs(Width) <= Epsilon && MathF.Abs(Height) <= Epsilon;
+	public readonly bool IsEmpty => MathF.Abs(Width) < Epsilon && MathF.Abs(Height) < Epsilon;
 
 	/// <summary>
 	/// Gets or sets the center point of the rectangle.
@@ -358,6 +358,7 @@ public struct Rect2 : IEquatable<Rect2>
 		int hashY = (int)MathF.Round(Y * QuantizeFactor);
 		int hashWidth = (int)MathF.Round(Width * QuantizeFactor);
 		int hashHeight = (int)MathF.Round(Height * QuantizeFactor);
+
 		return HashCode.Combine(hashX, hashY, hashWidth, hashHeight);
 	}
 
