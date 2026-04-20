@@ -72,6 +72,8 @@ public class Progress : Entity
 	/// </summary>
 	public bool Rounded { get; set; }
 
+	public Vect2 PixelPercent { get; private set; }
+
 	/// <summary>
 	/// Called when the entity is first added to the scene.
 	/// Initializes the background and foreground textures.
@@ -150,6 +152,7 @@ public class Progress : Entity
 
 		Rect2 bgRect = new(Position, Size);
 		Rect2 fgRect = new(fgPos, fillSize);
+		PixelPercent = fillSize;
 
 		if (_rt != null)
 		{
