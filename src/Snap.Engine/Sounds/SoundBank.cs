@@ -390,22 +390,41 @@ public sealed class SoundBank
 	private bool RemoveInstanceDirect(SoundInstance instance)
 	{
 		bool removed = false;
+		var keysToRemove = new List<Sound>();
 
 		foreach (var kv in _instances)
 		{
 			var instances = kv.Value;
 			for (int i = instances.Count - 1; i >= 0; i--)
 			{
+				var wrapped = instances[i];
+
+				// Skip if wrapper is null
+				if (wrapped == null)
+				{
+					instances.RemoveAt(i);
+					continue;
+				}
+
+				// Skip if instance was recycled by pool (now belongs to different sound)
+				if (wrapped.Instance == null || wrapped.Instance.Sound == null ||
+					wrapped.Instance.Sound.Id != kv.Key.Id)
+				{
+					instances.RemoveAt(i);
+					continue;
+				}
+
 				if (instances[i].Instance == instance)
 				{
-					UnsubscribeFromInstance(instance);
-					instances.RemoveAt(i);
+					instances.RemoveAt(i);  // Remove FIRST
 					removed = true;
 
 					if (instances.Count == 0)
 					{
-						_instances.Remove(kv.Key);
+						keysToRemove.Add(kv.Key);
 					}
+
+					UnsubscribeFromInstance(instance);  // Unsubscribe AFTER
 
 					break;
 				}
@@ -413,6 +432,9 @@ public sealed class SoundBank
 
 			if (removed) break;
 		}
+
+		foreach (var key in keysToRemove)
+			_instances.Remove(key);
 
 		return removed;
 	}
