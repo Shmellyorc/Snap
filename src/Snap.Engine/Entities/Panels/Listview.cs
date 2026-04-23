@@ -370,8 +370,6 @@ public sealed class Listview : RenderTarget
 			offset += Direction == ListviewDirection.Vertical
 				? _avgSize.Y + _spacing
 				: _avgSize.X + _spacing;
-
-
 		}
 
 		base.OnDirty(state);
