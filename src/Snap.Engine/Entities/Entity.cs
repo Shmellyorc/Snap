@@ -238,6 +238,22 @@ public class Entity
 	/// </summary>
 	public Vect2 Size
 	{
+		get => LocalSize;
+		set => LocalSize = value;
+	}
+
+	/// <summary>
+	/// Gets or sets the local size of this entity directly on the backing field,
+	/// bypassing any subclass size setter logic.
+	/// </summary>
+	/// <remarks>
+	/// Setting this notifies all ancestor <see cref="Panel"/> instances to recalculate their layouts.
+	/// Prefer using <see cref="Size"/> for normal operations; use <see cref="LocalSize"/> internally
+	/// when subclass size setters (which may disable auto-sizing) need to be bypassed.
+	/// </remarks>
+	/// <value>A <see cref="Vect2"/> representing the width and height of this entity.</value>
+	public Vect2 LocalSize
+	{
 		get => _size;
 		set
 		{

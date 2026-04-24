@@ -1,6 +1,29 @@
 namespace Snap.Engine.Entities.Graphics;
 
 /// <summary>
+/// Specifies how an entity automatically sizes itself relative to its content.
+/// </summary>
+public enum AutoSizeStrategy
+{
+	/// <summary>
+	/// No automatic sizing is applied.
+	/// </summary>
+	None,
+	/// <summary>
+	/// Automatically adjusts width to fit the content.
+	/// </summary>
+	Width,
+	/// <summary>
+	/// Automatically adjusts height to fit the content.
+	/// </summary>
+	Height,
+	/// <summary>
+	/// Automatically adjusts both width and height to fit the content.
+	/// </summary>
+	Both
+}
+
+/// <summary>
 /// Represents a drawable text label entity with support for multi-line text, alignment, shadow, and partial text display.
 /// </summary>
 public sealed class Label : Entity
@@ -14,6 +37,38 @@ public sealed class Label : Entity
 	private float _cachedMaxHeight = 0f;
 	private RenderTarget _rt;
 	private bool _rtChecked;
+	private AutoSizeStrategy _autoSizeStrategy;
+
+	/// <summary>
+	/// Gets the font used to render and measure this label's text.
+	/// </summary>
+	/// <value>The <see cref="Font"/> used for text rendering and measurement.</value>
+	public Font Font => _font;
+
+	/// <summary>
+	/// Gets or sets the auto-sizing strategy for this label.
+	/// </summary>
+	/// <remarks>
+	/// When set to a value other than <see cref="AutoSizeStrategy.None"/>, the label
+	/// will automatically resize itself when its <see cref="Text"/> changes.
+	/// </remarks>
+	/// <value>The <see cref="AutoSizeStrategy"/> that determines which dimensions auto-size.</value>
+	public AutoSizeStrategy AutoSizeStrategy
+	{
+		get => _autoSizeStrategy;
+		set
+		{
+			if (_autoSizeStrategy == value)
+				return;
+			_autoSizeStrategy = value;
+
+			if (_autoSizeStrategy != AutoSizeStrategy.None)
+			{
+				ApplyAutoSize();
+				_isDirty = true;
+			}
+		}
+	}
 
 	/// <summary>
 	/// Gets or sets the offset for the text shadow.
@@ -68,6 +123,7 @@ public sealed class Label : Entity
 				return;
 			_text = value;
 			_isDirty = true;
+			ApplyAutoSize();
 		}
 	}
 
@@ -188,5 +244,21 @@ public sealed class Label : Entity
 		}
 
 		base.OnUpdate();
+	}
+
+	private void ApplyAutoSize()
+	{
+		if (_font == null || AutoSizeStrategy == AutoSizeStrategy.None)
+			return;
+
+		var textSize = _font.Measure(_text);
+		var newSize = Size;
+
+		if (AutoSizeStrategy == AutoSizeStrategy.Width || AutoSizeStrategy == AutoSizeStrategy.Both)
+			newSize.X = textSize.X;
+		if (AutoSizeStrategy == AutoSizeStrategy.Height || AutoSizeStrategy == AutoSizeStrategy.Both)
+			newSize.Y = textSize.Y;
+
+		Size = newSize;
 	}
 }

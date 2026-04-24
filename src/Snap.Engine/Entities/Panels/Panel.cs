@@ -10,6 +10,7 @@ public class Panel : Entity
 {
 	private readonly List<Entity> _entityAdd;
 	private DirtyState _state;
+	private bool _isAutoSize = true;
 
 	/// <summary>
 	/// Gets or sets the size of the panel.
@@ -30,13 +31,40 @@ public class Panel : Entity
 		get => base.Size;
 		set
 		{
-			Vect2 oldSize = base.Size;
-			if (oldSize == value) return;
-
+			if (base.Size == value)
+				return;
 			base.Size = value;
+			_isAutoSize = false;
 
-			foreach (var p in this.GetAncestorsOfType<Panel>())
-				p.SetDirtyState(DirtyState.Update | DirtyState.Sort);
+			// foreach (var p in this.GetAncestorsOfType<Panel>())
+			// 	p.SetDirtyState(DirtyState.Update | DirtyState.Sort);
+
+			SetDirtyState(DirtyState.Update | DirtyState.Sort);
+		}
+	}
+
+	/// <summary>
+	/// Gets or sets whether this panel automatically resizes to fit its children.
+	/// </summary>
+	/// <remarks>
+	/// When set to <c>true</c>, the panel will immediately recalculate its size based on
+	/// its visible children. When set to <c>false</c>, the panel retains its current size.
+	/// Setting <see cref="Size"/> manually will automatically disable auto-sizing.
+	/// </remarks>
+	/// <value>
+	/// <c>true</c> if the panel sizes itself to its children; otherwise <c>false</c>.
+	/// </value>
+	public bool AutoSize
+	{
+		get => _isAutoSize;
+		set
+		{
+			if (_isAutoSize == value)
+				return;
+			_isAutoSize = value;
+
+			if (_isAutoSize)
+				SetDirtyState(DirtyState.Update | DirtyState.Sort);
 		}
 	}
 

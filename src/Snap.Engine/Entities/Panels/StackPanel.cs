@@ -26,28 +26,9 @@ public enum StackDirection
 public class StackPanel : Panel
 {
 	private float _spacing;
-	private bool _isAutoSize = true;
+
 	private HAlign _hAlign = HAlign.Left;
 	private VAlign _vAlign = VAlign.Top;
-
-	/// <summary>
-	/// Gets or sets the size of the panel.
-	/// Setting this manually disables automatic sizing based on children.
-	/// </summary>
-	/// <value>A <see cref="Vect2"/> representing the panel's width and height.</value>
-	public new Vect2 Size
-	{
-		get => base.Size;
-		set
-		{
-			if (base.Size == value)
-				return;
-			base.Size = value;
-			_isAutoSize = false;
-
-			SetDirtyState(DirtyState.Sort | DirtyState.Update);
-		}
-	}
 
 	/// <summary>
 	/// Gets or sets the horizontal alignment of the children within each row.
@@ -61,7 +42,6 @@ public class StackPanel : Panel
 			if (_hAlign == value)
 				return;
 			_hAlign = value;
-			// _isDirty = true;
 			SetDirtyState(DirtyState.Sort | DirtyState.Update);
 		}
 	}
@@ -78,7 +58,6 @@ public class StackPanel : Panel
 			if (_vAlign == value)
 				return;
 			_vAlign = value;
-			// _isDirty = true;
 			SetDirtyState(DirtyState.Sort | DirtyState.Update);
 		}
 	}
@@ -115,7 +94,7 @@ public class StackPanel : Panel
 		_spacing = spacing;
 		Direction = direction;
 
-		Size = OnResize(children);
+		LocalSize = OnResize(children);
 	}
 
 	/// <summary>
@@ -139,14 +118,17 @@ public class StackPanel : Panel
 
 		if (children.Count == 0)
 		{
-			if (_isAutoSize)
-				base.Size = Vect2.Zero;
+			if (AutoSize)
+				LocalSize = Vect2.Zero;
 			base.OnDirty(state);
 			return;
 		}
 
-		if (_isAutoSize)
-			Size = OnResize(children);
+		if (AutoSize)
+		{
+			LocalSize = OnResize(Children);
+			SetDirtyState(DirtyState.Sort | DirtyState.Update);
+		}
 
 		if (Direction == StackDirection.Vertical)
 			VPanelStack(children);
@@ -210,7 +192,7 @@ public class StackPanel : Panel
 	/// </returns>
 	protected override Vect2 OnResize(IEnumerable<Entity> children)
 	{
-		if (!_isAutoSize)
+		if (!AutoSize)
 			return Size;
 
 		var visible = children
