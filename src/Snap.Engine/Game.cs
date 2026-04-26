@@ -1,8 +1,4 @@
-﻿using SFML.Window;
-
-using SFState = SFML.Window.State;
-
-namespace Snap.Engine;
+﻿namespace Snap.Engine;
 
 /// <summary>
 /// Represents errors that occur during the creation of a game window.
@@ -108,6 +104,10 @@ public class Game : IDisposable
 	/// formatted as an 8-character hexadecimal value.
 	/// </remarks>
 	public string VersionHash => $"{HashHelpers.Cache64(Version):X8}";
+
+	public string AppVersion => Settings.AppVersion.ToString();
+
+	public string AppVersionHash => $"{HashHelpers.Cache64(AppVersion):X8}";
 
 	/// <summary>
 	/// Gets the input map for the game.
@@ -347,9 +347,9 @@ public class Game : IDisposable
 		_canApplyChanges = false;
 	}
 
-	private void OnWindowResized(object sender, SizeEventArgs e)
+	private void OnWindowResized(object sender, SFSizeEventArgs e)
 		=> Settings.Window = new Vect2(e.Size.X, e.Size.Y);
-	private void OnLostFocus(object sender, EventArgs e) 
+	private void OnLostFocus(object sender, EventArgs e)
 		=> IsActive = false;
 	private void OnGainedFocus(object sender, EventArgs e)
 		=> IsActive = true;
@@ -513,6 +513,8 @@ public class Game : IDisposable
 		// Happens only when app crashes, make sure to report:
 		AppDomain.CurrentDomain.UnhandledException += (sender, args) =>
 		{
+			settings.OnCrash?.Invoke(sender, args);
+
 			if (args.ExceptionObject is Exception ex)
 				_log.LogException(ex);
 
@@ -520,7 +522,12 @@ public class Game : IDisposable
 		};
 
 		// Only triggers if app doesnt crash:
-		AppDomain.CurrentDomain.ProcessExit += (sender, args) => _log.Log(LogLevel.Info, "SNAP Stopped\n");
+		AppDomain.CurrentDomain.ProcessExit += (sender, args) =>
+		{
+			settings.OnShutdown?.Invoke();
+
+			_log.Log(LogLevel.Info, "SNAP Stopped\n");
+		};
 
 		_log.Log(LogLevel.Info, $"Vsync been set to: {settings.VSync}.");
 		ToRenderer.SetVerticalSyncEnabled(settings.VSync);
@@ -639,9 +646,6 @@ public class Game : IDisposable
 		{
 			_initialized = true;
 
-			// Setup defualt Asset Manager Provider
-			// AssetBootstrap.InitDefault();
-
 			if (Settings.Services?.Length > 0)
 			{
 				_log.Log(LogLevel.Info, $"Adding {Settings.Services.Length} service{(Settings.Services.Length > 1 ? "s" : string.Empty)}.");
@@ -672,6 +676,8 @@ public class Game : IDisposable
 				_log.Log(LogLevel.Info, $"Adding {sResult.Count} screen{(sResult.Count > 1 ? "s" : string.Empty)}.");
 				_screenManager.Add([.. sResult]);
 			}
+
+			Settings.OnStartup?.Invoke();
 		}
 
 		while (ToRenderer.IsOpen)
@@ -741,11 +747,9 @@ public class Game : IDisposable
 		}
 		else
 		{
-			var sb = new StringBuilder(1024);
+			var sb = new StringBuilder(1024 * 2);
 			var tEntity = _screenManager.Screens.Sum(x => x.Entities.Count);
 			var aEntity = _screenManager.Screens.Sum(x => x.ActiveEntities.Count);
-
-			// static double BytesToMib(long bytes) => bytes / 1024.0 / 1024.0;
 
 			sb.Append($"{Settings.AppTitle} | ");
 
@@ -755,8 +759,8 @@ public class Game : IDisposable
 			// Entity: ActiveEntity/total Entities
 			sb.Append($"Entity: {aEntity}/{tEntity} | ");
 
-			// Assets: Bytes, Active/Total
-			// sb.Append($"Assets: {BytesToMib(_assets.BytesLoaded):0.00}MB, {_assets.Count}/{_assets.TotalCount} Assets Loaded | ");
+			// Screen: <number> <active screen>
+			sb.Append($"Screens: {_screenManager.Count}, Active: {(_screenManager.Count > 0 ? _screenManager.Screens[^1].GetType().Name : "None")} |  ");
 
 			// Rendering: Draws, Batches
 			sb.Append($"Batch: Draws: {_renderer.DrawCalls}, Batches: {_renderer.Batches} | ");
@@ -764,13 +768,13 @@ public class Game : IDisposable
 			// Atlas Manager: 1/8, <percent of ratio used>
 			sb.Append($"Atlas: {TextureAtlasManager.Instance.Pages}/{TextureAtlasManager.Instance.MaxPages} Pages, {TextureAtlasManager.Instance.TotalFillRatio * 100f:0}% Filled | ");
 
-			// // Coroutines: <number>
+			// Coroutines: <number>
 			sb.Append($"Routines: {CoroutineManager.Instance.Count} | ");
 
-			// // Beacon (PubSub): <number>
+			// Beacon (PubSub): <number>
 			sb.Append($"Beacon: {BeaconManager.Instance.Count} | ");
 
-			// // Sounds:
+			// Sounds:
 			sb.Append($"Sound: Playing: {_soundManager.PlayCount}, Banks: {_soundManager.Count}, Pool: {SoundInstancePool.AvailbleInstances}/{SoundInstancePool.ActiveInstances}");
 
 			ToRenderer.SetTitle(sb.ToString());
@@ -823,13 +827,11 @@ public class Game : IDisposable
 
 		foreach (var mode in modes)
 		{
-			// float actualRatio = (float)mode.Width / mode.Height;
 			float actualRatio = (float)mode.Size.X / mode.Size.Y;
 
 			if (Math.Abs(actualRatio - ratio) >= tolerance)
 				continue;
 
-			// var key = $"{mode.Width}x{mode.Height}";
 			var key = $"{mode.Size.X}x{mode.Size.Y}";
 
 			if (!resolutionMap.TryGetValue(key, out var exists) ||
@@ -840,7 +842,6 @@ public class Game : IDisposable
 		}
 
 		return [.. resolutionMap.Values
-			// .Select(mode => new Monitor((int)mode.Width, (int)mode.Height))
 			.Select(mode => new Monitor((int)mode.Size.X, (int)mode.Size.Y))
 		];
 	}

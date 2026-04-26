@@ -1,4 +1,3 @@
-
 namespace Snap.Engine.Graphics;
 
 internal readonly struct DrawCommand

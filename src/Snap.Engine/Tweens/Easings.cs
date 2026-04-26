@@ -60,7 +60,7 @@ public static class Easing
 			EaseType.BounceOut => BounceOut(t),
 			EaseType.BounceInOut => BounceInOut(t),
 			EaseType.BounceOutIn => OutIn(BounceOut, BounceIn, t),
-			_ => t,// fallback to linear
+			_ => t, // fallback to linear
 		};
 	}
 

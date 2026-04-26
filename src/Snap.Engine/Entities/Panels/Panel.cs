@@ -1,5 +1,3 @@
-using System.Drawing;
-
 namespace Snap.Engine.Entities.Panels;
 
 /// <summary>

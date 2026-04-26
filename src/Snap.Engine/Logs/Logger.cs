@@ -1,4 +1,3 @@
-
 namespace Snap.Engine.Logs;
 
 /// <summary>

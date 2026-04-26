@@ -8,7 +8,7 @@ public class Service
 	/// <summary>
 	/// Initializes the service. Override this method to provide custom initialization logic.
 	/// </summary>
-	public virtual void Iniitialize() { }
+	public virtual void Initialize() { }
 }
 
 /// <summary>
@@ -37,7 +37,7 @@ public sealed class ServiceManager
 	/// <exception cref="ArgumentNullException">Thrown if <paramref name="service"/> is <see langword="null"/>.</exception>
 	/// <exception cref="ArgumentException">Thrown if a service of the same type is already registered.</exception>
 	/// <remarks>
-	/// This method also initializes the service via <see cref="Service.Iniitialize"/> and notifies the <see cref="BeaconManager"/>.
+	/// This method also initializes the service via <see cref="Service.Initialize"/> and notifies the <see cref="BeaconManager"/>.
 	/// </remarks>
 	public void RegisterService(Service service)
 	{
@@ -49,7 +49,7 @@ public sealed class ServiceManager
 		_services[service.GetType()] = service;
 
 		BeaconManager.Initialize(service);
-		service?.Iniitialize();
+		service?.Initialize();
 	}
 
 	/// <summary>

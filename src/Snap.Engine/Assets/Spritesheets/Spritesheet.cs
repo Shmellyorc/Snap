@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace Snap.Engine.Assets.Spritesheets;
 
 /// <summary>

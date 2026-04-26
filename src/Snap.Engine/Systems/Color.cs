@@ -159,7 +159,9 @@ public struct Color : IEquatable<Color>
 		}
 		else
 		{
-			throw new Exception();
+			throw new Exception(
+				$"Unable to create color. '{hex}' isn't a stanard web color! Please follow (with or outwith #) #AARRGGBB, #RRGGBB, or #RGB"
+			);
 		}
 	}
 
