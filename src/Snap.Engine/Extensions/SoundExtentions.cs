@@ -214,7 +214,7 @@ public static class SoundExtentions
 	/// It handles instance creation, configuration, playback, and disposal automatically.
 	/// Ideal for UI sounds, one-shot effects, or any sound where you don't need to track the instance.
 	/// </remarks>
-	public static void PlayAndForget(this Sound sound, float volume = 1f, float pan = 0f, float pitch = 0f)
+	public static void PlayAndForget(this Sound sound, float volume = 1f, float pan = 0f, float pitch = 1f)
 		=> sound.PlayOneShot(volume, pan, pitch).AutoDispose();
 
 	/// <summary>
