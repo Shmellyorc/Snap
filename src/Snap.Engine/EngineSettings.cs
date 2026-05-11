@@ -597,6 +597,21 @@ public sealed class EngineSettings
 	}
 	internal Vect2 Window { get; set; }
 
+	/// <summary>
+	/// Sets the application version using major, minor, and optional build numbers.
+	/// </summary>
+	/// <param name="major">The major version component.</param>
+	/// <param name="minor">The minor version component.</param>
+	/// <param name="build">
+	/// The build version component. Defaults to <c>0</c> if not specified.
+	/// </param>
+	/// <returns>
+	/// The current <see cref="EngineSettings"/> instance, enabling fluent method chaining.
+	/// </returns>
+	/// <remarks>
+	/// This method is part of the fluent configuration API for <see cref="EngineSettings"/>,
+	/// allowing engine settings to be configured inline before startup.
+	/// </remarks>
 	public EngineSettings WithAppVersion(uint major, uint minor, uint build = 0)
 	{
 		AppVersion = new Version((int)major, (int)minor, (int)build);
@@ -809,9 +824,20 @@ public sealed class EngineSettings
 	internal int AssetEvictionMinutes { get; private set; }
 
 
-	
-
-
+	/// <summary>
+	/// Registers a callback to be invoked when an unhandled exception occurs in the engine.
+	/// </summary>
+	/// <param name="action">
+	/// The callback to invoke when an unhandled exception is caught.
+	/// The first parameter is the source object, and the second contains the exception event arguments.
+	/// </param>
+	/// <returns>
+	/// The current <see cref="EngineSettings"/> instance, enabling fluent method chaining.
+	/// </returns>
+	/// <remarks>
+	/// This hook allows applications to log crashes, display error messages, or perform cleanup
+	/// before the engine terminates. If no handler is set, the engine will use its default crash behavior.
+	/// </remarks>
 	public EngineSettings WithOnCrash(Action<object, UnhandledExceptionEventArgs> action)
 	{
 		OnCrash = action;
@@ -821,8 +847,17 @@ public sealed class EngineSettings
 	internal Action<object, UnhandledExceptionEventArgs> OnCrash { get; private set; }
 
 
-
-
+	/// <summary>
+	/// Registers a callback to be invoked when the engine finishes its startup sequence.
+	/// </summary>
+	/// <param name="action">The callback to invoke on engine startup.</param>
+	/// <returns>
+	/// The current <see cref="EngineSettings"/> instance, enabling fluent method chaining.
+	/// </returns>
+	/// <remarks>
+	/// This is called after all engine systems are initialized but before the first frame is processed.
+	/// Use it for loading initial assets, setting up services, or configuring initial screen state.
+	/// </remarks>
 	public EngineSettings WithOnStartup(Action action)
 	{
 		OnStartup = action;
@@ -833,9 +868,20 @@ public sealed class EngineSettings
 
 
 
+	/// <summary>
+	/// Registers a callback to be invoked when the engine begins its shutdown sequence.
+	/// </summary>
+	/// <param name="action">The callback to invoke on engine shutdown.</param>
+	/// <returns>
+	/// The current <see cref="EngineSettings"/> instance, enabling fluent method chaining.
+	/// </returns>
+	/// <remarks>
+	/// This is called when the engine is about to shut down, before any systems are disposed.
+	/// Use it for saving persistent state, flushing logs, or cleaning up external resources.
+	/// </remarks>
 	public EngineSettings WithOnShutdown(Action action)
 	{
-		OnStartup = action;
+		OnShutdown = action;
 
 		return this;
 	}

@@ -72,6 +72,14 @@ public class Progress : Entity
 	/// </summary>
 	public bool Rounded { get; set; }
 
+	/// <summary>
+	/// Gets the pixel size of the filled portion of the progress bar, updated each frame.
+	/// </summary>
+	/// <remarks>
+	/// The filled dimension depends on <see cref="Direction"/>: width varies for horizontal bars,
+	/// height varies for vertical bars. When <see cref="Rounded"/> is <c>true</c>, values are
+	/// rounded to whole pixels.
+	/// </remarks>
 	public Vect2 PixelPercent { get; private set; }
 
 	/// <summary>

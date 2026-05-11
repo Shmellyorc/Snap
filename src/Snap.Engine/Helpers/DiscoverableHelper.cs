@@ -341,10 +341,10 @@ public sealed class DiscoverableAttribute : Attribute
 	internal string InternalName =>
 		Name is Enum e
 			? $"{e.GetType().FullName}.{e}"
-			: Name?.ToString() ?? throw new InvalidOperationException("Discoverable.Name is null");
+			: Name?.ToString() ?? "";//throw new InvalidOperationException("Discoverable.Name is null");
 
 	internal string InternalCategory =>
 		Category is Enum e
 			? $"{e.GetType().FullName}.{e}"
-			: Category?.ToString() ?? throw new InvalidOperationException("Discoverable.Category is null");
+			: Category?.ToString() ?? "";//throw new InvalidOperationException("Discoverable.Category is null");
 }

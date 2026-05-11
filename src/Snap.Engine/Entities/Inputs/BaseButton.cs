@@ -5,7 +5,7 @@ namespace Snap.Engine.Entities.Inputs;
 /// </summary>
 public class BaseButton : Entity
 {
-	private bool _disabled, _wasHovering, _wasPressed, _isDirty;
+	private bool _disabled, _wasHovering, _wasPressed, _isDirty, _pressStartedInside;
 
 	/// <summary>
 	/// Gets or sets the current pressed state logic for this button.
@@ -80,13 +80,17 @@ public class BaseButton : Entity
 
 		var rect = Bounds;
 		var pos = Input.Transform(Input.MousePosition, Camera);
+		bool isMouseDown = Input.IsMousePressed(MouseButton.Left);
+		bool isInside = rect.Contains(pos);
 
-		if (Input.IsMousePressed(MouseButton.Left))
+		if (isMouseDown)
 		{
-			if (rect.Contains(pos))
+			if (isInside)
 			{
-				if (!_wasPressed)
+				if (!_wasPressed && !_wasHovering)
 				{
+					// First frame press started inside the button
+					_pressStartedInside = true;
 					_wasPressed = true;
 					_wasHovering = false;
 					OnButtonDown();
@@ -96,13 +100,14 @@ public class BaseButton : Entity
 				}
 			}
 		}
-		else
+		else // Mouse released
 		{
-			if (rect.Contains(pos))
+			if (isInside)
 			{
-				if (_wasPressed)
+				if (_wasPressed && _pressStartedInside)
 				{
 					_wasPressed = false;
+					_pressStartedInside = false;
 					OnButtonUp();
 
 					if (ButtonState == BaseButtonPressedState.Released)
@@ -118,6 +123,7 @@ public class BaseButton : Entity
 			{
 				_wasHovering = false;
 				_wasPressed = false;
+				_pressStartedInside = false;
 				OnButtonUp();
 			}
 		}

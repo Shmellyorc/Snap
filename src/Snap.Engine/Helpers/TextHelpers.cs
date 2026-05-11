@@ -20,7 +20,7 @@ public static class TextHelpers
 	{
 		if (text.IsEmpty() || width == 0)
 			return string.Empty;
-
+ 
 		var sb = new StringBuilder();
 		var lines = text.Split(["\r\n", "\n"], StringSplitOptions.None);
 

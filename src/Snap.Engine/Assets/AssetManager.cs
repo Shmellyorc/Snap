@@ -191,8 +191,16 @@ public sealed class AssetManager
     /// <returns><c>true</c> if the asset was loaded successfully; otherwise, <c>false</c>.</returns>
     public bool TryLoad<T>(string path, out T asset) where T : IAsset
     {
-        asset = GetOrLoadInternal<T>(path, null);
-        return asset != null;
+        try
+        {
+            asset = GetOrLoadInternal<T>(path, null);
+            return asset != null;
+        }
+        catch
+        {
+            asset = default;
+            return false;
+        }
     }
 
     /// <summary>Loads a texture from the specified virtual path with the given repeat and smoothing settings.</summary>
@@ -409,20 +417,21 @@ public sealed class AssetManager
         var normalizedPath = NormalizePath(path);
 
         if (!IsValidExtension(normalizedPath, typeof(T)))
-            return default;
+            throw new FileNotFoundException(
+                $"Asset '{normalizedPath}' has an unsupported extension for type '{typeof(T).Name}'. " +
+                $"Supported extensions: {string.Join(", ", SupportedExtensions[typeof(T)])}");
 
         // Check if asset exists in cache
         if (_assets.TryGetValue(normalizedPath, out IAsset existingAsset))
         {
             existingAsset.Load();
             EvictOneExpiredAsset();
-
             return (T)existingAsset;
         }
 
         // Find first mount that has the file
         byte[] assetData = null;
-        // IMount sourceMount = null;
+        string foundInMount = null;
 
         foreach (var mount in _mounts)
         {
@@ -431,26 +440,41 @@ public sealed class AssetManager
                 try
                 {
                     assetData = mount.ReadFile(normalizedPath);
-                    // sourceMount = mount;
+                    foundInMount = mount.GetType().Name;
                     break;
                 }
-                catch
+                catch (Exception ex)
                 {
+                    Logger.Instance.Log(LogLevel.Warning,
+                        $"[AssetManager] Mount '{mount.GetType().Name}' reported file '{normalizedPath}' but failed to read: {ex.Message}");
                     continue;
                 }
             }
         }
 
         if (assetData == null)
-            return default;
+            throw new FileNotFoundException(
+                $"Asset '{normalizedPath}' of type '{typeof(T).Name}' was not found in any mount. " +
+                $"Searched {_mounts.Count} mount(s): {string.Join(", ", _mounts.Select(m => m.GetType().Name))}");
 
         T newAsset;
-        if (customLoader != null)
-            newAsset = customLoader(assetData, Id++, normalizedPath);
-        else if (DefaultLoaders.TryGetValue(typeof(T), out var defaultLoader))
-            newAsset = (T)defaultLoader(assetData, Id++, normalizedPath);
-        else
-            return default;
+        try
+        {
+            if (customLoader != null)
+                newAsset = customLoader(assetData, Id++, normalizedPath);
+            else if (DefaultLoaders.TryGetValue(typeof(T), out var defaultLoader))
+                newAsset = (T)defaultLoader(assetData, Id++, normalizedPath);
+            else
+                throw new InvalidOperationException(
+                    $"No loader found for asset type '{typeof(T).Name}'. " +
+                    $"Registered types: {string.Join(", ", DefaultLoaders.Keys.Select(t => t.Name))}");
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException(
+                $"Failed to create asset '{normalizedPath}' of type '{typeof(T).Name}' from mount '{foundInMount}'. " +
+                $"Data size: {assetData.Length} bytes. Error: {ex.Message}", ex);
+        }
 
         // Store and load the asset
         _assets.Add(normalizedPath, newAsset);

@@ -105,8 +105,21 @@ public class Game : IDisposable
 	/// </remarks>
 	public string VersionHash => $"{HashHelpers.Cache64(Version):X8}";
 
+	/// <summary>
+	/// Gets the application version as a formatted string.
+	/// </summary>
+	/// <remarks>
+	/// Returns the value set via <see cref="EngineSettings.WithAppVersion"/>, formatted as <c>major.minor.build</c>.
+	/// </remarks>
 	public string AppVersion => Settings.AppVersion.ToString();
 
+	/// <summary>
+	/// Gets a stable 8-character hexadecimal hash of the application version.
+	/// </summary>
+	/// <remarks>
+	/// Derived from <see cref="AppVersion"/> using a 64-bit cache hash. Useful for cache busting,
+	/// save file versioning, or network compatibility checks.
+	/// </remarks>
 	public string AppVersionHash => $"{HashHelpers.Cache64(AppVersion):X8}";
 
 	/// <summary>
