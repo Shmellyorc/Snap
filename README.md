@@ -1,6 +1,6 @@
 
 <p align="center">
-  <img width="480" height="1536" alt="Github" src="https://github.com/user-attachments/assets/39024e44-5e02-4454-b84d-aa356e02c554" />
+  <img width="30%" height="30%" alt="Github" src="https://github.com/user-attachments/assets/39024e44-5e02-4454-b84d-aa356e02c554" />
 </p>
 
 # SnapEngine
