@@ -49,7 +49,7 @@ internal readonly struct DrawCommand
 public sealed class Renderer
 {
 	private const int MaxVerticies = 6;
-	private const float TexelOffset = 0.05f;
+	// private const float TexelOffset = 0.05f;
 
 	private int _activeVertexCount = 0;
 	private SFVertexBuffer _vertexBuffer;
